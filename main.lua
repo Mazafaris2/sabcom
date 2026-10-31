@@ -5,8 +5,8 @@
 -- nulla da ripulire perche' non parte nulla. Il flag vive in _G, quindi
 -- si azzera da solo rientrando in partita.
 -- ============================================================
-if _G.MetroRunning then return end
-_G.MetroRunning = true
+if _G.YaisRunning then return end
+_G.YaisRunning = true
 
 repeat task.wait() until game:IsLoaded()
 local Players = game:GetService("Players")
@@ -42,7 +42,7 @@ do
   end)
   if ok and typeof(res) == "Instance" then HubGui = res end
 end
-_G.MetroGuiParent = HubGui
+_G.YaisGuiParent = HubGui
 
 
 local _SV = {} -- setVisual callbacks (merged to save local slots)
@@ -54,7 +54,7 @@ local _SV = {} -- setVisual callbacks (merged to save local slots)
 -- e Humanoid esistano davvero. Ritorna false se scade il timeout o se il
 -- character viene sostituito nel frattempo.
 -- ============================================================
-function _G._MetroWaitCharReady(character, timeout)
+function _G._YaisWaitCharReady(character, timeout)
   character = character or LP.Character
   if not character then return false end
   local deadline = os.clock() + (tonumber(timeout) or 5)
@@ -72,7 +72,7 @@ function _G._MetroWaitCharReady(character, timeout)
 end
 
 
-_G.MetroIsMobile = true
+_G.YaisIsMobile = true
 
 for _, name in ipairs({"YaisDuels", "YaisDuels", "YaisDuels"}) do
   local old = HubGui:FindFirstChild(name)
@@ -89,26 +89,26 @@ local LAGGER_CARRY_SPEED = 15
 local currentSpeedMode = "Normal"
 autoCarrySpeedEnabled = false
 setAutoCarrySpeedVisual = nil
-_G.MetroAutoCarryWasCarrying = false
-_G.MetroAutoCarrySavedMode = nil
+_G.YaisAutoCarryWasCarrying = false
+_G.YaisAutoCarrySavedMode = nil
 -- Auto Carry Speed mode: "NORMAL" oppure "SOFT"
-_G._MetroAutoCarryMode = _G._MetroAutoCarryMode or "NORMAL"
+_G._YaisAutoCarryMode = _G._YaisAutoCarryMode or "NORMAL"
 -- Stato SOFT: scan animali + raggio
-_G._MetroAutoCarrySoft = _G._MetroAutoCarrySoft or {radius = 9.5, animals = {}, lastScan = 0, scanInterval = 2}
+_G._YaisAutoCarrySoft = _G._YaisAutoCarrySoft or {radius = 9.5, animals = {}, lastScan = 0, scanInterval = 2}
 
 -- Auto Switch To Carry state
 -- interval = 0 -> il massimo possibile: task.wait(0) riprende al frame
 -- successivo, quindi il check gira una volta per frame (~60/s a 60 fps).
 -- Scendere sotto non serve: task.wait non puo' risvegliarsi piu' spesso di un Heartbeat.
-_G._MetroAS = _G._MetroAS or {interval=0, wasLow=false, locked=false, savedMode=nil, restoring=false}
+_G._YaisAS = _G._YaisAS or {interval=0, wasLow=false, locked=false, savedMode=nil, restoring=false}
 
 local autoStealEnabled = false
 local selectedStealMode = "Normal"
 local selectedSemiMode = "V1"
 local autoStealRadius = 62
-_G.MetroDuelstealRadii = _G.MetroDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
+_G.YaisDuelstealRadii = _G.YaisDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
 local autoStealRadiusBox = nil
-_G._MetroDuelsyncAfterHit = {
+_G._YaisDuelsyncAfterHit = {
   enabled = false,
   conn = nil,
   setVisual = nil,
@@ -119,8 +119,8 @@ _G._MetroDuelsyncAfterHit = {
 local selectedAimbotMode = "V1"
 local AIMBOT_SPEED = 58
 local LAGGER_AIMBOT_SPEED = 40
-_G.MetroBatAimbotV2Speed = _G.MetroBatAimbotV2Speed or 58
-if _G.MetroBatAimbotV2LaggerSpeed == nil or tonumber(_G.MetroBatAimbotV2LaggerSpeed) == 58 then _G.MetroBatAimbotV2LaggerSpeed = 40 end
+_G.YaisBatAimbotV2Speed = _G.YaisBatAimbotV2Speed or 58
+if _G.YaisBatAimbotV2LaggerSpeed == nil or tonumber(_G.YaisBatAimbotV2LaggerSpeed) == 58 then _G.YaisBatAimbotV2LaggerSpeed = 40 end
 
 local autoSwingEnabled = false
 local mirrorTPDownEnabled = false
@@ -157,7 +157,7 @@ do
   local WALK_CLEAR = 15
   local STEP_MAX   = 50   -- oltre questo non e' camminata, non si accumula
 
-  local function enabled() return _G.MetroAntiVoidEnabled == true end
+  local function enabled() return _G.YaisAntiVoidEnabled == true end
 
   local ghost   = setmetatable({}, { __mode = "k" })  -- [player] = posizione d'origine
   local ghostCF = setmetatable({}, { __mode = "k" })  -- [player] = CFrame d'origine
@@ -189,7 +189,7 @@ do
   local _rescueLastSafePos = nil   -- ultima pos a terra dentro la zona
   local _rescueSpawnOrigin = nil   -- prima pos sicura rilevata all'accensione
   local _rescueLastRescue  = 0     -- os.clock() dell'ultimo rescue
-  local RESCUE_COOLDOWN    = 0     -- istantaneo (come in Metro_2_)
+  local RESCUE_COOLDOWN    = 0     -- istantaneo (come in Yais_2_)
   local RESCUE_UPDATE_INT  = 0.1   -- ogni quanto aggiornare il checkpoint
   local _rescueLastUpdate  = 0
 
@@ -372,18 +372,18 @@ do
     return posFor(player, rawPos or part.Position)
   end
 
-  _G.MetroAntiVoidEnabled = _G.MetroAntiVoidEnabled == true
+  _G.YaisAntiVoidEnabled = _G.YaisAntiVoidEnabled == true
 
   -- Avvia subito un thread per ogni giocatore gia' presente.
   -- I thread fanno poll passivo se Anti Void e' spento, tracking attivo
   -- se e' acceso: nessun giocatore viene perso indipendentemente dallo stato.
   startAll()
 
-  _G.MetroAntiVoid = {
+  _G.YaisAntiVoid = {
     setEnabled = function(on)
       on = on and true or false
-      local was = _G.MetroAntiVoidEnabled == true
-      _G.MetroAntiVoidEnabled = on
+      local was = _G.YaisAntiVoidEnabled == true
+      _G.YaisAntiVoidEnabled = on
       if on and not was then
         -- Per sicurezza: aggiunge thread per giocatori entrati nel frattempo
         startAll()
@@ -391,7 +391,7 @@ do
         stopAll()
       end
     end,
-    isEnabled  = function() return _G.MetroAntiVoidEnabled == true end,
+    isEnabled  = function() return _G.YaisAntiVoidEnabled == true end,
     bounds     = MAP_BOUNDS,
     posFor     = posFor,
     posForPart = posForPart,
@@ -411,7 +411,7 @@ do
   local function ensureFolder()
     if ghostFolder and ghostFolder.Parent then return ghostFolder end
     ghostFolder = Instance.new("Folder")
-    ghostFolder.Name = "MetroAntiVoid"
+    ghostFolder.Name = "YaisAntiVoid"
     ghostFolder.Parent = workspace
     return ghostFolder
   end
@@ -419,10 +419,10 @@ do
   -- Mostra o nasconde l'ESP reale del nemico
   local function setRealESP(char, visible)
     if not char then return end
-    local hl = char:FindFirstChild("MetroHubESP")
+    local hl = char:FindFirstChild("YaisHubESP")
     if hl then pcall(function() hl.Enabled = visible end) end
     local head = char:FindFirstChild("Head")
-    local tag = head and head:FindFirstChild("MetroHubESPTag")
+    local tag = head and head:FindFirstChild("YaisHubESPTag")
     if tag then pcall(function() tag.Enabled = visible end) end
   end
 
@@ -436,7 +436,7 @@ do
     clearReplica(plr)
     -- ESP spento: non si crea niente. Il resto (TP Bat, aimbot, tracker,
     -- Look At Enemy) continua a funzionare sulla posizione fantasma.
-    if not char:FindFirstChild("MetroHubESP") then return end
+    if not char:FindFirstChild("YaisHubESP") then return end
     local ok, clone = pcall(function()
       char.Archivable = true
       return char:Clone()
@@ -460,11 +460,11 @@ do
 
     -- L'ESP e il suo overhead sono figli del personaggio, quindi la copia
     -- se li porta dietro identici e congelati sull'ultimo valore.
-    local hl = clone:FindFirstChild("MetroHubESP")
+    local hl = clone:FindFirstChild("YaisHubESP")
     if hl then pcall(function() hl.Enabled = true end) end
 
     local cloneHead = clone:FindFirstChild("Head")
-    local tag = cloneHead and cloneHead:FindFirstChild("MetroHubESPTag")
+    local tag = cloneHead and cloneHead:FindFirstChild("YaisHubESPTag")
     if tag then
       pcall(function() tag.Enabled = true end)
       -- scritta VOID sotto la velocita', al posto dove stava il nome
@@ -522,26 +522,26 @@ do
   end)
 end
 -- <<< ANTI VOID END
-_G.MetroNormalAimbotOn = _G.MetroNormalAimbotOn or false
-_G.MetroBatAimbotV2On = _G.MetroBatAimbotV2On or false
+_G.YaisNormalAimbotOn = _G.YaisNormalAimbotOn or false
+_G.YaisBatAimbotV2On = _G.YaisBatAimbotV2On or false
 -- >>> AIMBOT CHASE MODE BEGIN
 -- Modalita' di inseguimento per ciascun aimbot: "NORMAL" oppure "BYPASS".
 -- Cambia SOLO la matematica del chase, non i nomi, le velocita' o il resto.
-_G._MetroAimbotChase = _G._MetroAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
+_G._YaisAimbotChase = _G._YaisAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
 -- <<< AIMBOT CHASE MODE END
 local tpBatAutoSwingEnabled = false
-_G.MetroTPBatVersion = _G.MetroTPBatVersion or 1   -- >>> TP BAT VERSIONS <<<
+_G.YaisTPBatVersion = _G.YaisTPBatVersion or 1   -- >>> TP BAT VERSIONS <<<
 -- >>> RADIUS CIRCLE <<<
 -- Default bianco, lo stesso del Tracker Color.
-_G.MetroRadiusCircleColor = _G.MetroRadiusCircleColor or Color3.fromRGB(230, 230, 230)
-_G.MetroTPBatOn = _G.MetroTPBatOn or false
+_G.YaisRadiusCircleColor = _G.YaisRadiusCircleColor or Color3.fromRGB(230, 230, 230)
+_G.YaisTPBatOn = _G.YaisTPBatOn or false
 -- Il TP Bat puo' essere avviato in automatico dal Bat Aimbot V2 o dal Bat Counter V2.
 -- In quel caso resta attivo in background ma il bottone mobile NON deve accendersi.
-_G.MetroTPBatSilent = false
-function _G.MetroTPBatMobileActive()
-  if _G.MetroTPBatOn ~= true then return false end
-  if _G.MetroTPBatSilent == true then return false end
-  if _G.MetroBatAimbotV2On == true then return false end
+_G.YaisTPBatSilent = false
+function _G.YaisTPBatMobileActive()
+  if _G.YaisTPBatOn ~= true then return false end
+  if _G.YaisTPBatSilent == true then return false end
+  if _G.YaisBatAimbotV2On == true then return false end
   return true
 end
 local TP_BAT_SPEED = 58
@@ -657,14 +657,14 @@ do
     Speed     = 10000
     Angle     = 0
     Direction = 1
-    _G._MetroAntiBatDesiredXZ = nil
-    _G._MetroAntiBatSpiking = false
+    _G._YaisAntiBatDesiredXZ = nil
+    _G._YaisAntiBatSpiking = false
   end
 
   local function startAntiBat()
     stopAntiBat()
     AntiBatConn = RunService.Heartbeat:Connect(function()
-      if not _G.MetroAntiBatEnabled then return end
+      if not _G.YaisAntiBatEnabled then return end
       local char = LP.Character
       local root = char and char:FindFirstChild("HumanoidRootPart")
       if not root or not root.Parent then return end
@@ -688,7 +688,7 @@ do
       local newX = math.cos(Angle) * radius
       local newZ = math.sin(Angle) * radius
 
-      _G._MetroAntiBatSpiking = true
+      _G._YaisAntiBatSpiking = true
       root.Velocity = Vector3.new(newX, root.Velocity.Y, newZ)
 
       RunService.RenderStepped:Wait()
@@ -696,35 +696,35 @@ do
       -- Ripristina X e Z: se lo speed booster ha una velocita' desiderata
       -- si riscrive quella (la speed dell'hub), altrimenti l'originale.
       if root.Parent then
-        local want = _G._MetroAntiBatDesiredXZ
+        local want = _G._YaisAntiBatDesiredXZ
         if want then
           root.Velocity = Vector3.new(want.X, root.Velocity.Y, want.Z)
         else
           root.Velocity = Vector3.new(origXZ.X, root.Velocity.Y, origXZ.Z)
         end
       end
-      _G._MetroAntiBatSpiking = false
+      _G._YaisAntiBatSpiking = false
     end)
   end
 
-  _G.MetroAntiBatEnabled = _G.MetroAntiBatEnabled == true
+  _G.YaisAntiBatEnabled = _G.YaisAntiBatEnabled == true
 
   -- Ogni fase e' protetta: se una fallisce non blocca le altre e si vede l'errore
   local function step(_, fn)
     pcall(fn)
   end
 
-  _G.MetroAntiBat = {
+  _G.YaisAntiBat = {
     setEnabled = function(on)
       on = on and true or false
-      _G.MetroAntiBatEnabled = on
+      _G.YaisAntiBatEnabled = on
       if on then
         step("startAntiBat", startAntiBat)
       else
         step("stopAntiBat", stopAntiBat)
       end
     end,
-    isEnabled = function() return _G.MetroAntiBatEnabled == true end,
+    isEnabled = function() return _G.YaisAntiBatEnabled == true end,
   }
 
   -- Watchdog permanente: se il flag e' acceso ma i loop non ci sono
@@ -732,7 +732,7 @@ do
   task.spawn(function()
     while true do
       task.wait(0.5)
-      if _G.MetroAntiBatEnabled then
+      if _G.YaisAntiBatEnabled then
         if not AntiBatConn then
           step("watchdog:start", startAntiBat)
         end
@@ -744,8 +744,8 @@ do
 
   -- Respawn: il vecchio HRP e' morto, si riparte pulito
   LP.CharacterAdded:Connect(function(char)
-    if _G._MetroWaitCharReady then _G._MetroWaitCharReady(char, 10) end
-    if _G.MetroAntiBatEnabled then
+    if _G._YaisWaitCharReady then _G._YaisWaitCharReady(char, 10) end
+    if _G.YaisAntiBatEnabled then
       startAntiBat()
     else
       stopAntiBat()
@@ -777,9 +777,9 @@ end
   local savedJumpPower  = nil
   local savedAutoRotate = nil
 
-  _G.MetroAntiTPBatEnabled = _G.MetroAntiTPBatEnabled == true
-  _G.MetroAntiTPBatSpam    = _G.MetroAntiTPBatSpam == true
-  _G.MetroAntiTPBatVersion = math.clamp(tonumber(_G.MetroAntiTPBatVersion) or 1, 1, 4)
+  _G.YaisAntiTPBatEnabled = _G.YaisAntiTPBatEnabled == true
+  _G.YaisAntiTPBatSpam    = _G.YaisAntiTPBatSpam == true
+  _G.YaisAntiTPBatVersion = math.clamp(tonumber(_G.YaisAntiTPBatVersion) or 1, 1, 4)
 
   local function getHRP()
     local c = LP.Character
@@ -840,7 +840,7 @@ end
       pcall(function() voidPart:Destroy() end)
       voidPart = nil
     end
-    local ver = _G.MetroAntiTPBatVersion or 1
+    local ver = _G.YaisAntiTPBatVersion or 1
     local pos
     if ver == 4 then
       pos = Vector3.new(400, 0, 400)
@@ -868,7 +868,7 @@ end
     stopVoidJitter()
     jitterRunning = true
     jitterThread = task.spawn(function()
-      while jitterRunning and ATP_active and _G.MetroAntiTPBatVersion == 3 do
+      while jitterRunning and ATP_active and _G.YaisAntiTPBatVersion == 3 do
         local rx, rz
         repeat
           rx = math.random(-300, 300)
@@ -975,8 +975,8 @@ end
     -- se nelle impostazioni e' selezionato Slow Fall: da quota bloccata il
     -- rientro deve essere immediato, una discesa lenta lascerebbe il
     -- personaggio scoperto per tutto il tragitto.
-    if tpDown and _G.MetroRunTPDown then
-      pcall(_G.MetroRunTPDown, true)
+    if tpDown and _G.YaisRunTPDown then
+      pcall(_G.YaisRunTPDown, true)
     end
   end
 
@@ -1034,38 +1034,38 @@ end
   end
 
   -- ---- API pubblica del Float ----
-  -- _G.MetroFloatOn e' la fonte di verita' per bottone mobile e visuali.
-  _G.MetroFloatOn = false
+  -- _G.YaisFloatOn e' la fonte di verita' per bottone mobile e visuali.
+  _G.YaisFloatOn = false
 
   local function floatSync()
-    _G.MetroFloatOn = FLOAT.running == true
-    if _G.MetroRefreshMobileButtonStates then
-      pcall(_G.MetroRefreshMobileButtonStates)
+    _G.YaisFloatOn = FLOAT.running == true
+    if _G.YaisRefreshMobileButtonStates then
+      pcall(_G.YaisRefreshMobileButtonStates)
     end
   end
 
-  function _G.MetroFloatStart()
+  function _G.YaisFloatStart()
     if FLOAT.running then return end
     -- Anti Die prima di muoversi, come per gli altri moduli.
-    if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
+    if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
     FLOAT.enable()
     floatSync()
   end
 
-  function _G.MetroFloatStop()
+  function _G.YaisFloatStop()
     if not FLOAT.running then return end
     FLOAT.disable()
     floatSync()
   end
 
-  function _G.MetroFloatToggle()
-    if FLOAT.running then _G.MetroFloatStop() else _G.MetroFloatStart() end
+  function _G.YaisFloatToggle()
+    if FLOAT.running then _G.YaisFloatStop() else _G.YaisFloatStart() end
   end
 
-  _G.MetroFloat = {
-    start     = function() _G.MetroFloatStart() end,
-    stop      = function() _G.MetroFloatStop() end,
-    toggle    = function() _G.MetroFloatToggle() end,
+  _G.YaisFloat = {
+    start     = function() _G.YaisFloatStart() end,
+    stop      = function() _G.YaisFloatStop() end,
+    toggle    = function() _G.YaisFloatToggle() end,
     isEnabled = function() return FLOAT.running == true end,
   }
 
@@ -1119,11 +1119,11 @@ end
     -- Qui passano TUTTE le accensioni: setEnabled, setVersion, setSpam,
     -- startSpamLoop e il watcher. Armare qui invece che nel solo
     -- setEnabled significa che nessuna strada resta scoperta.
-    if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
+    if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
     createVoidPart()
     repTo(voidPart)
     lockMovement()
-    if _G.MetroAntiTPBatVersion == 3 then startVoidJitter() end
+    if _G.YaisAntiTPBatVersion == 3 then startVoidJitter() end
   end
 
   local function disableCore()
@@ -1137,7 +1137,7 @@ end
   -- Riaggancio continuo (solo V1, V2, V4: la V3 ricrea la part da sola)
   local function applyDesync()
     if not ATP_active then return end
-    if _G.MetroAntiTPBatVersion == 3 then return end
+    if _G.YaisAntiTPBatVersion == 3 then return end
     if not voidPart or not voidPart.Parent then createVoidPart() end
     repTo(voidPart)
   end
@@ -1156,50 +1156,50 @@ end
     stopSpamLoop()
     spamThread = task.spawn(function()
       enableCore()
-      while _G.MetroAntiTPBatSpam and _G.MetroAntiTPBatEnabled do
+      while _G.YaisAntiTPBatSpam and _G.YaisAntiTPBatEnabled do
         task.wait(0.5)
-        if not (_G.MetroAntiTPBatSpam and _G.MetroAntiTPBatEnabled) then break end
+        if not (_G.YaisAntiTPBatSpam and _G.YaisAntiTPBatEnabled) then break end
         disableCore()
         task.wait(0.5)
-        if not (_G.MetroAntiTPBatSpam and _G.MetroAntiTPBatEnabled) then break end
+        if not (_G.YaisAntiTPBatSpam and _G.YaisAntiTPBatEnabled) then break end
         enableCore()
       end
-      if _G.MetroAntiTPBatEnabled then enableCore() else disableCore() end
+      if _G.YaisAntiTPBatEnabled then enableCore() else disableCore() end
     end)
   end
 
   local function refreshUI()
     pcall(function()
-      if _G._MetroAntiTPBatSetRowVisual then
-        _G._MetroAntiTPBatSetRowVisual(_G.MetroAntiTPBatEnabled == true)
+      if _G._YaisAntiTPBatSetRowVisual then
+        _G._YaisAntiTPBatSetRowVisual(_G.YaisAntiTPBatEnabled == true)
       end
-      if _G._MetroAntiTPBatSetSpamVisual then
-        _G._MetroAntiTPBatSetSpamVisual(_G.MetroAntiTPBatSpam == true)
+      if _G._YaisAntiTPBatSetSpamVisual then
+        _G._YaisAntiTPBatSetSpamVisual(_G.YaisAntiTPBatSpam == true)
       end
-      if _G._MetroAntiTPBatSetVersionVisual then
-        _G._MetroAntiTPBatSetVersionVisual(_G.MetroAntiTPBatVersion or 1)
+      if _G._YaisAntiTPBatSetVersionVisual then
+        _G._YaisAntiTPBatSetVersionVisual(_G.YaisAntiTPBatVersion or 1)
       end
-      if _G.MetroRefreshMobileButtonStates then
-        _G.MetroRefreshMobileButtonStates()
+      if _G.YaisRefreshMobileButtonStates then
+        _G.YaisRefreshMobileButtonStates()
       end
       -- L'Anti TP Bat accende l'Anti Die come fanno TP Bat, Bat Aimbot e
       -- Bat Counter V2. La sync sta qui perche' refreshUI viene chiamata da
       -- tutte le strade che cambiano stato: setEnabled, setVersion, setSpam
       -- e hardStop. Una sola chiamata invece di quattro sparse.
-      if _G.MetroAntiDieAutoSync then _G.MetroAntiDieAutoSync() end
+      if _G.YaisAntiDieAutoSync then _G.YaisAntiDieAutoSync() end
     end)
   end
-  _G._MetroAntiTPBatRefreshUI = refreshUI
+  _G._YaisAntiTPBatRefreshUI = refreshUI
 
   local function saveCfg()
-    if type(saveMetroConfig) == "function" then pcall(saveMetroConfig) end
+    if type(saveYaisConfig) == "function" then pcall(saveYaisConfig) end
   end
 
   local function setEnabled(on, skipSave)
     on = on and true or false
-    _G.MetroAntiTPBatEnabled = on
+    _G.YaisAntiTPBatEnabled = on
     if on then
-      if _G.MetroAntiTPBatSpam then
+      if _G.YaisAntiTPBatSpam then
         startSpamLoop()
       else
         stopSpamLoop()
@@ -1215,8 +1215,8 @@ end
 
   local function setSpam(on, skipSave)
     on = on and true or false
-    _G.MetroAntiTPBatSpam = on
-    if _G.MetroAntiTPBatEnabled then
+    _G.YaisAntiTPBatSpam = on
+    if _G.YaisAntiTPBatEnabled then
       if on then
         startSpamLoop()
       else
@@ -1232,13 +1232,13 @@ end
 
   local function setVersion(v, skipSave)
     v = math.clamp(tonumber(v) or 1, 1, 4)
-    local changed = (v ~= _G.MetroAntiTPBatVersion)
+    local changed = (v ~= _G.YaisAntiTPBatVersion)
     if changed then
       stopSpamLoop()
       disableCore()
-      _G.MetroAntiTPBatVersion = v
-      if _G.MetroAntiTPBatEnabled then
-        if _G.MetroAntiTPBatSpam then startSpamLoop() else enableCore() end
+      _G.YaisAntiTPBatVersion = v
+      if _G.YaisAntiTPBatEnabled then
+        if _G.YaisAntiTPBatSpam then startSpamLoop() else enableCore() end
       end
     end
     refreshUI()
@@ -1247,8 +1247,8 @@ end
 
   -- HARD STOP: spegne solo il modulo principale, la Spam resta come impostazione
   local function hardStop()
-    if not (ATP_active or _G.MetroAntiTPBatEnabled) then return end
-    _G.MetroAntiTPBatEnabled = false
+    if not (ATP_active or _G.YaisAntiTPBatEnabled) then return end
+    _G.YaisAntiTPBatEnabled = false
     stopSpamLoop()
     disableCore()
     refreshUI()
@@ -1256,7 +1256,7 @@ end
   end
 
   local function onDeadTrigger()
-    if ATP_active or _G.MetroAntiTPBatEnabled then hardStop() end
+    if ATP_active or _G.YaisAntiTPBatEnabled then hardStop() end
   end
 
   -- ---- ENEMY DEATH WATCHER ----
@@ -1337,37 +1337,37 @@ end
   if LP.Character then setupSelfWatchers(LP.Character) end
 
   LP.CharacterAdded:Connect(function(c)
-    if _G._MetroWaitCharReady then pcall(_G._MetroWaitCharReady, c, 10) end
+    if _G._YaisWaitCharReady then pcall(_G._YaisWaitCharReady, c, 10) end
     setupSelfWatchers(c)
     -- Respawn: il vecchio HRP non esiste piu', si riparte spenti
-    _G.MetroAntiTPBatEnabled = false
+    _G.YaisAntiTPBatEnabled = false
     stopSpamLoop()
     disableCore()
     refreshUI()
   end)
 
   -- ---- API PUBBLICA ----
-  _G.MetroAntiTPBat = {
+  _G.YaisAntiTPBat = {
     setEnabled = function(on, skipSave) setEnabled(on, skipSave) end,
-    isEnabled  = function() return _G.MetroAntiTPBatEnabled == true end,
-    toggle     = function() setEnabled(not (_G.MetroAntiTPBatEnabled == true)) end,
+    isEnabled  = function() return _G.YaisAntiTPBatEnabled == true end,
+    toggle     = function() setEnabled(not (_G.YaisAntiTPBatEnabled == true)) end,
     setSpam    = function(on, skipSave) setSpam(on, skipSave) end,
-    getSpam    = function() return _G.MetroAntiTPBatSpam == true end,
+    getSpam    = function() return _G.YaisAntiTPBatSpam == true end,
     setVersion = function(v, skipSave) setVersion(v, skipSave) end,
-    getVersion = function() return _G.MetroAntiTPBatVersion or 1 end,
+    getVersion = function() return _G.YaisAntiTPBatVersion or 1 end,
     hardStop   = hardStop,
   }
 
-  _G.MetroToggleAntiTPBat = function()
-    setEnabled(not (_G.MetroAntiTPBatEnabled == true))
+  _G.YaisToggleAntiTPBat = function()
+    setEnabled(not (_G.YaisAntiTPBatEnabled == true))
   end
 
   -- Watchdog: riallinea lo stato reale al flag
   task.spawn(function()
     while true do
       task.wait(0.5)
-      if _G.MetroAntiTPBatEnabled then
-        if not _G.MetroAntiTPBatSpam and not ATP_active then
+      if _G.YaisAntiTPBatEnabled then
+        if not _G.YaisAntiTPBatSpam and not ATP_active then
           pcall(enableCore)
         end
       elseif ATP_active then
@@ -1543,9 +1543,9 @@ do
     task.spawn(function()
         while true do
             task.wait(0.25)
-            if _G.MetroCustomToolsEnabled == true
-            or _G.MetroTransparentToolsEnabled == true
-            or _G.MetroRainbowToolsEnabled == true then
+            if _G.YaisCustomToolsEnabled == true
+            or _G.YaisTransparentToolsEnabled == true
+            or _G.YaisRainbowToolsEnabled == true then
                 pcall(CT_Trans.enforce)
             end
         end
@@ -1734,11 +1734,11 @@ do
             end
         end)
 
-        _G.MetroRainbowTools = {
+        _G.YaisRainbowTools = {
             setEnabled = function(on)
                 on = on and true or false
                 enabled = on
-                _G.MetroRainbowToolsEnabled = on
+                _G.YaisRainbowToolsEnabled = on
                 if on then
                     watchAll()
                 else
@@ -1851,11 +1851,11 @@ do
             end
         end)
 
-        _G.MetroTransparentTools = {
+        _G.YaisTransparentTools = {
             setEnabled = function(on)
                 on = on and true or false
                 enabled = on
-                _G.MetroTransparentToolsEnabled = on
+                _G.YaisTransparentToolsEnabled = on
                 if on then
                     watchAll()
                 else
@@ -1897,14 +1897,14 @@ do
                                   c0 = CFrame.new(0, 0, -0.8) * CFrame.Angles(math.rad(330), math.rad(180), 0),
                                   view = 3.0 },
         }
-        _G.MetroCustomToolAssets = ASSETS
+        _G.YaisCustomToolAssets = ASSETS
 
         -- Skin attualmente scelta per ogni categoria.
-        _G.MetroCustomToolSkins = _G.MetroCustomToolSkins
+        _G.YaisCustomToolSkins = _G.YaisCustomToolSkins
             or { Bat = "DiamondSword", Medusa = "GoldenDesertEagle" }
 
         local function skinFor(cat)
-            local key = _G.MetroCustomToolSkins[cat]
+            local key = _G.YaisCustomToolSkins[cat]
             if key and ASSETS[key] and ASSETS[key].cat == cat then return key end
             return (cat == "Bat") and "DiamondSword" or "GoldenDesertEagle"
         end
@@ -2124,20 +2124,20 @@ do
             end
         end
 
-        _G.MetroCustomToolsRecheck = function() pcall(integrityPass, true) end
+        _G.YaisCustomToolsRecheck = function() pcall(integrityPass, true) end
 
         -- Cambio skin: aggiorna la scelta e ricostruisce subito le repliche
         -- gia' agganciate, senza dover spegnere e riaccendere il modulo.
-        _G.MetroDuelsetCustomToolSkin = function(cat, key)
+        _G.YaisDuelsetCustomToolSkin = function(cat, key)
             if not ASSETS[key] or ASSETS[key].cat ~= cat then return end
-            _G.MetroCustomToolSkins[cat] = key
+            _G.YaisCustomToolSkins[cat] = key
             for tool, entry in pairs(tracked) do
                 if tool.Parent and entry.cat == cat then
                     local handle = tool:FindFirstChild("Handle")
                     if handle then pcall(buildReplica, handle, key) end
                 end
             end
-            if saveMetroConfig then pcall(saveMetroConfig) end
+            if saveYaisConfig then pcall(saveYaisConfig) end
         end
 
         task.spawn(function()
@@ -2157,11 +2157,11 @@ do
             task.delay(0.6, function() if enabled then pcall(integrityPass, true) end end)
         end)
 
-        _G.MetroCustomTools = {
+        _G.YaisCustomTools = {
             setEnabled = function(on)
                 on = on and true or false
                 enabled = on
-                _G.MetroCustomToolsEnabled = on
+                _G.YaisCustomToolsEnabled = on
                 if on then
                     watchAll()
                     pcall(integrityPass, true)
@@ -2395,11 +2395,11 @@ do
             end
         end)
 
-        _G.MetroCustomSounds = {
+        _G.YaisCustomSounds = {
             setEnabled = function(on)
                 on = on and true or false
                 enabled = on
-                _G.MetroCustomSoundsEnabled = on
+                _G.YaisCustomSoundsEnabled = on
                 if on then
                     watchAll()
                 else
@@ -2413,10 +2413,10 @@ do
         }
     end
 
-    _G.MetroRainbowToolsEnabled     = false
-    _G.MetroTransparentToolsEnabled = false
-    _G.MetroCustomToolsEnabled      = false
-    _G.MetroCustomSoundsEnabled     = false
+    _G.YaisRainbowToolsEnabled     = false
+    _G.YaisTransparentToolsEnabled = false
+    _G.YaisCustomToolsEnabled      = false
+    _G.YaisCustomSoundsEnabled     = false
 end
 
 local headlessConnections = {}
@@ -2425,7 +2425,7 @@ local antiLagDescConn = nil
 local vividGraphicsEnabled = false
 local _vividContrastConn = nil
 -- Vivid Graphics custom values stored on _G to avoid local slot usage
-_G._MetroVivid = _G._MetroVivid or {
+_G._YaisVivid = _G._YaisVivid or {
     pickerGui = nil,
     saturation = 0.6,
     bloomIntensity = 0.8,
@@ -2436,16 +2436,16 @@ _G._MetroVivid = _G._MetroVivid or {
 local xrayEnabled = false
 local highPingWarningEnabled = false
 -- ===== KICK WARNING state (su _G per non consumare slot locals del main chunk) =====
-_G._MetroKickWarn = _G._MetroKickWarn or {enabled=false, wasLow=false, active=false, gen=0}
-_G._MetroHPWNextAllowed = _G._MetroHPWNextAllowed or 0
+_G._YaisKickWarn = _G._YaisKickWarn or {enabled=false, wasLow=false, active=false, gen=0}
+_G._YaisHPWNextAllowed = _G._YaisHPWNextAllowed or 0
 local removeAccessoriesEnabled = false
 -- defLightBrightness/Clock/Ambient su _G per liberare slot locals del main chunk
-_G._MetroDefLightBrightness = _G._MetroDefLightBrightness or nil
-_G._MetroDefLightClock = _G._MetroDefLightClock or nil
-_G._MetroDefLightAmbient = _G._MetroDefLightAmbient or nil
-_G._MetroDuelstretchUILock = false
-_G.MetroTrackerActive = false
-_G.MetroTrackerSavedStretchIndex = nil
+_G._YaisDefLightBrightness = _G._YaisDefLightBrightness or nil
+_G._YaisDefLightClock = _G._YaisDefLightClock or nil
+_G._YaisDefLightAmbient = _G._YaisDefLightAmbient or nil
+_G._YaisDuelstretchUILock = false
+_G.YaisTrackerActive = false
+_G.YaisTrackerSavedStretchIndex = nil
 local fovEnabled = false
 local fovValue = 70
 local noCamCollisionEnabled = false
@@ -2453,7 +2453,7 @@ local motionBlurEnabled = false
 local _motionBlurConn = nil
 local _motionBlurEffect = nil
 local _motionBlurCurrentValue = 0
-_G.MetroNoPlayerCollisionEnabled = _G.MetroNoPlayerCollisionEnabled or false
+_G.YaisNoPlayerCollisionEnabled = _G.YaisNoPlayerCollisionEnabled or false
 local unwalkEnabled = false
 local selectedAnimPackIndex = 1  -- 1=NONE, 2..6=Pack1..5, 7=CUSTOM
 
@@ -2461,16 +2461,16 @@ local selectedAnimPackIndex = 1  -- 1=NONE, 2..6=Pack1..5, 7=CUSTOM
 -- ID scelti dall'utente per il pack CUSTOM (indice 7 dello slider).
 -- Su _G e non su un local del main chunk per non consumare registri.
 -- Stringa vuota = slot non impostato, quel movimento resta quello del gioco.
-_G.MetroCustomAnimIds = _G.MetroCustomAnimIds
+_G.YaisCustomAnimIds = _G.YaisCustomAnimIds
   or { idle = "", walk = "", run = "", jump = "", fall = "", climb = "" }
-_G.MetroCustomAnimSlots = { "idle", "walk", "run", "jump", "fall", "climb" }
-_G.MetroCustomAnimLabels = {
+_G.YaisCustomAnimSlots = { "idle", "walk", "run", "jump", "fall", "climb" }
+_G.YaisCustomAnimLabels = {
   idle = "IDLE", walk = "WALK", run = "RUN",
   jump = "JUMP", fall = "FALL", climb = "CLIMB",
 }
-function _G.MetroHasCustomAnim()
-  for _, slot in ipairs(_G.MetroCustomAnimSlots) do
-    local v = _G.MetroCustomAnimIds[slot]
+function _G.YaisHasCustomAnim()
+  for _, slot in ipairs(_G.YaisCustomAnimSlots) do
+    local v = _G.YaisCustomAnimIds[slot]
     if v and v ~= "" then return true end
   end
   return false
@@ -2488,7 +2488,7 @@ local skyEventConnections = {}
 local originalSkyObjects = {}
 
 -- ===== STATUS BAR RIMOSSA =====
-_G.MetroDuelsetNoPlayerCollisionVisual = _G.MetroDuelsetNoPlayerCollisionVisual or nil
+_G.YaisDuelsetNoPlayerCollisionVisual = _G.YaisDuelsetNoPlayerCollisionVisual or nil
 local skyValueLabel = nil
 
 local autoLeftEnabled = false
@@ -2596,7 +2596,7 @@ do
 
   -- Ritorna: Y a cui teletrasportarsi, Y del suolo, distanza dal suolo.
   -- Ritorna nil se sotto non c'e' nessun pavimento.
-  function _G.MetroGetGroundTPY(char, hrp, hum)
+  function _G.YaisGetGroundTPY(char, hrp, hum)
     char = char or LP.Character
     if not char then return nil end
     hrp = hrp or char:FindFirstChild("HumanoidRootPart")
@@ -2650,8 +2650,8 @@ do
 
   -- Y finale da usare per il TP: suolo reale se c'e', altrimenti -7 come prima.
   -- Secondo valore = true se il suolo e' stato trovato davvero.
-  function _G.MetroResolveTPDownY(char, hrp, hum)
-    local ok, y = pcall(_G.MetroGetGroundTPY, char, hrp, hum)
+  function _G.YaisResolveTPDownY(char, hrp, hum)
+    local ok, y = pcall(_G.YaisGetGroundTPY, char, hrp, hum)
     if ok and type(y) == "number" then return y, true end
     return TP_DOWN_FALLBACK_Y, false
   end
@@ -2660,14 +2660,14 @@ end
 -- >>> TP DOWN METHOD BEGIN
 -- "NORMAL" = teletrasporto secco col CFrame (comportamento originale)
 -- "SLOW"   = discesa con velocita' negativa applicata al proxy del jump
-_G._MetroTPDownMethod = _G._MetroTPDownMethod or "NORMAL"
+_G._YaisTPDownMethod = _G._YaisTPDownMethod or "NORMAL"
 -- ZigZag: lato della prossima discesa. -1 sinistra, 1 destra. Si alterna a
 -- ogni chiamata, cosi' due TP Down di fila non atterrano mai dalla stessa
 -- parte.
-_G._MetroZigZagSide = _G._MetroZigZagSide or 1
-_G._MetroDuelslowFallActive = false
+_G._YaisZigZagSide = _G._YaisZigZagSide or 1
+_G._YaisDuelslowFallActive = false
 -- Blocca il jump (sia Normal che Slow Fall) finche' il char non tocca terra
-_G._MetroTPDownJumpLocked = false
+_G._YaisTPDownJumpLocked = false
 
 -- Scende fino a targetY spingendo verso il basso con SLOW_FALL_POWER.
 -- Usa lo stesso proxy dell'Infinite Jump, quindi non tocca l'HRP.
@@ -2679,19 +2679,19 @@ _G._MetroTPDownJumpLocked = false
 -- il fianco del personaggio (RightVector) e viene presa UNA volta alla
 -- partenza: se la si rileggesse ogni frame, girando la visuale durante la
 -- caduta la traiettoria si incurverebbe invece di restare dritta.
-function _G.MetroDuelslowFallDown(targetY, zig)
-  if _G._MetroDuelslowFallActive then return end
-  _G._MetroDuelslowFallActive = true
-  _G._MetroTPDownJumpLocked = true   -- blocca il jump subito
+function _G.YaisDuelslowFallDown(targetY, zig)
+  if _G._YaisDuelslowFallActive then return end
+  _G._YaisDuelslowFallActive = true
+  _G._YaisTPDownJumpLocked = true   -- blocca il jump subito
 
   -- Lato e velocita' si fissano adesso, prima di partire.
   local zigVec = nil
   -- Con questo alzato il loop della speed non scrive la X/Z sulla root:
   -- premendo W riscriveva la velocita' orizzontale a ogni frame e la
   -- deriva laterale spariva. Stesso meccanismo dello spike dell'Anti Bat.
-  _G._MetroZigZagFalling = false
+  _G._YaisZigZagFalling = false
   if zig then
-    _G._MetroZigZagSide = (_G._MetroZigZagSide == -1) and 1 or -1
+    _G._YaisZigZagSide = (_G._YaisZigZagSide == -1) and 1 or -1
     local ch  = LP.Character
     local hr  = ch and ch:FindFirstChild("HumanoidRootPart")
     if hr then
@@ -2700,10 +2700,10 @@ function _G.MetroDuelslowFallDown(targetY, zig)
       if flat.Magnitude > 0.001 then
         -- Velocita' laterale = esattamente quella della modalita' che stai
         -- usando (Normal, Carry, Lagger, Lagger Carry), senza correzioni.
-        local spd = (_G.MetroGetCurrentSpeedValue
-                     and _G.MetroGetCurrentSpeedValue()) or 16
-        zigVec = flat.Unit * spd * _G._MetroZigZagSide
-        _G._MetroZigZagFalling = true
+        local spd = (_G.YaisGetCurrentSpeedValue
+                     and _G.YaisGetCurrentSpeedValue()) or 16
+        zigVec = flat.Unit * spd * _G._YaisZigZagSide
+        _G._YaisZigZagFalling = true
       end
     end
   end
@@ -2755,9 +2755,9 @@ function _G.MetroDuelslowFallDown(targetY, zig)
         pcall(function() hrp.Velocity = Vector3.new(v.X, 0, v.Z) end)
       end
     end
-    _G._MetroDuelslowFallActive = false
+    _G._YaisDuelslowFallActive = false
     -- Da qui in poi la speed puo' riprendere il controllo della X/Z.
-    _G._MetroZigZagFalling = false
+    _G._YaisZigZagFalling = false
 
     -- Aspetta che il char tocchi davvero terra prima di sbloccare il jump.
     -- Deadline di sicurezza: 8s massimo.
@@ -2769,7 +2769,7 @@ function _G.MetroDuelslowFallDown(targetY, zig)
       if h2.FloorMaterial ~= Enum.Material.Air then break end
       RunService.Heartbeat:Wait()
     end
-    _G._MetroTPDownJumpLocked = false
+    _G._YaisTPDownJumpLocked = false
   end)
 end
 -- <<< TP DOWN METHOD END
@@ -2786,13 +2786,13 @@ local function doAutoTPDown(force)
     if hrp.Position.Y < autoTPHeight then return end
   end
   -- Y del suolo reale sotto di noi (fallback -7 se sotto c'e' il vuoto)
-  local targetY = _G.MetroResolveTPDownY(char, hrp, hum2)
+  local targetY = _G.YaisResolveTPDownY(char, hrp, hum2)
   -- Se siamo gia' praticamente appoggiati, non ha senso teletrasportarsi.
   if not force and (hrp.Position.Y - targetY) < 0.75 then return end
   -- >>> TP DOWN METHOD BEGIN
-  if _G._MetroTPDownMethod == "SLOW" or _G._MetroTPDownMethod == "ZIGZAG" then
-    if _G.MetroDuelslowFallDown then
-      _G.MetroDuelslowFallDown(targetY, _G._MetroTPDownMethod == "ZIGZAG")
+  if _G._YaisTPDownMethod == "SLOW" or _G._YaisTPDownMethod == "ZIGZAG" then
+    if _G.YaisDuelslowFallDown then
+      _G.YaisDuelslowFallDown(targetY, _G._YaisTPDownMethod == "ZIGZAG")
     end
     return
   end
@@ -2800,7 +2800,7 @@ local function doAutoTPDown(force)
   hrp.CFrame = CFrame.new(hrp.Position.X, targetY, hrp.Position.Z) * CFrame.Angles(0, select(2, hrp.CFrame:ToEulerAnglesYXZ()), 0)
   hrp.AssemblyLinearVelocity = Vector3.zero
   -- Blocca il jump finche' il char non tocca terra dopo il tp.
-  _G._MetroTPDownJumpLocked = true
+  _G._YaisTPDownJumpLocked = true
   task.spawn(function()
     local groundDeadline = os.clock() + 8
     while os.clock() < groundDeadline do
@@ -2810,7 +2810,7 @@ local function doAutoTPDown(force)
       if h2.FloorMaterial ~= Enum.Material.Air then break end
       RunService.Heartbeat:Wait()
     end
-    _G._MetroTPDownJumpLocked = false
+    _G._YaisTPDownJumpLocked = false
   end)
 end
 
@@ -2853,15 +2853,15 @@ end
 -- riga nel file (l'Anti TP Bat e' molto piu' in alto e non puo' vedere il
 -- local). Con forceNormal si ignora lo Slow Fall eventualmente selezionato,
 -- ripristinando subito dopo la scelta dell'utente.
-function _G.MetroRunTPDown(forceNormal)
+function _G.YaisRunTPDown(forceNormal)
   if not forceNormal then
     pcall(runTPFloor)
     return
   end
-  local prev = _G._MetroTPDownMethod
-  _G._MetroTPDownMethod = "NORMAL"
+  local prev = _G._YaisTPDownMethod
+  _G._YaisTPDownMethod = "NORMAL"
   pcall(runTPFloor)
-  _G._MetroTPDownMethod = prev
+  _G._YaisTPDownMethod = prev
 end
 
 local function toggleAutoTP(on)
@@ -2870,14 +2870,14 @@ local function toggleAutoTP(on)
   else
     stopAutoTP()
   end
-  saveMetroConfig()
+  saveYaisConfig()
 end
 
-function _G.MetroDuelstopAutoTPForAction()
+function _G.YaisDuelstopAutoTPForAction()
   if autoTPEnabled then
     stopAutoTP()
     pcall(function() if _SV.setAutoTPVisual then _SV.setAutoTPVisual(false) end end)
-    pcall(saveMetroConfig)
+    pcall(saveYaisConfig)
   end
 end
 
@@ -2902,14 +2902,14 @@ local DROP_ASCEND_SPEED = 150
 -- L'attesa non e' a tempo fisso: si aspetta che la funzione di drop
 -- abbia finito davvero, guardando il suo stesso flag.
 -- ============================================================
-_G.MetroAfterDrop = _G.MetroAfterDrop or {}
-_G.MetroAfterDrop.enabled = _G.MetroAfterDrop.enabled == true
-_G.MetroAfterDrop.action  = _G.MetroAfterDrop.action or "AIMBOT"  -- "AIMBOT" | "TPBAT"
-_G.MetroAfterDrop.THRESHOLD = 25
-_G.MetroAfterDrop.SETTLE    = 0.15  -- respiro perche' il gioco aggiorni la walkspeed
-_G.MetroAfterDrop.TIMEOUT   = 3     -- tetto di sicurezza sull'attesa
+_G.YaisAfterDrop = _G.YaisAfterDrop or {}
+_G.YaisAfterDrop.enabled = _G.YaisAfterDrop.enabled == true
+_G.YaisAfterDrop.action  = _G.YaisAfterDrop.action or "AIMBOT"  -- "AIMBOT" | "TPBAT"
+_G.YaisAfterDrop.THRESHOLD = 25
+_G.YaisAfterDrop.SETTLE    = 0.15  -- respiro perche' il gioco aggiorni la walkspeed
+_G.YaisAfterDrop.TIMEOUT   = 3     -- tetto di sicurezza sull'attesa
 
-function _G.MetroAfterDrop.walkSpeed()
+function _G.YaisAfterDrop.walkSpeed()
   local c = LP.Character
   local h = c and c:FindFirstChildOfClass("Humanoid")
   return h and h.WalkSpeed or nil
@@ -2918,18 +2918,18 @@ end
 -- Avvia l'azione scelta, ma solo se non e' gia' in corso: chiamare il
 -- toggle a modulo acceso lo spegnerebbe, che e' il contrario di quello
 -- che serve qui.
-function _G.MetroAfterDrop.fire()
-  local AD = _G.MetroAfterDrop
+function _G.YaisAfterDrop.fire()
+  local AD = _G.YaisAfterDrop
   if AD.action == "TPBAT" then
-    if _G.MetroTPBatOn == true then return end
-    if _G.MetroDuelstartTPBat then pcall(_G.MetroDuelstartTPBat) end
-    if _G.MetroRefreshMobileButtonStates then pcall(_G.MetroRefreshMobileButtonStates) end
+    if _G.YaisTPBatOn == true then return end
+    if _G.YaisDuelstartTPBat then pcall(_G.YaisDuelstartTPBat) end
+    if _G.YaisRefreshMobileButtonStates then pcall(_G.YaisRefreshMobileButtonStates) end
     return
   end
-  if _G.MetroNormalAimbotOn == true or _G.MetroBatAimbotV2On == true then return end
+  if _G.YaisNormalAimbotOn == true or _G.YaisBatAimbotV2On == true then return end
   -- Rispetta la versione selezionata (V1 o V2) da sola.
-  if _G.MetroToggleSelectedAimbot then pcall(_G.MetroToggleSelectedAimbot) end
-  if _G.MetroRefreshAimbotVisual then pcall(_G.MetroRefreshAimbotVisual) end
+  if _G.YaisToggleSelectedAimbot then pcall(_G.YaisToggleSelectedAimbot) end
+  if _G.YaisRefreshAimbotVisual then pcall(_G.YaisRefreshAimbotVisual) end
 end
 
 -- isBusy: funzione che dice se il drop e' ancora in corso. La passa chi
@@ -2939,8 +2939,8 @@ end
 -- momento sei ancora per aria: l'Humanoid non ha registrato il pavimento
 -- e la walkspeed non e' quella definitiva. Quindi si aspetta di essere
 -- davvero a terra prima di decidere.
-function _G.MetroAfterDrop.onDrop(isBusy, waitGround)
-  local AD = _G.MetroAfterDrop
+function _G.YaisAfterDrop.onDrop(isBusy, waitGround)
+  local AD = _G.YaisAfterDrop
   if AD.enabled ~= true then return end
 
   local before = AD.walkSpeed()
@@ -2978,7 +2978,7 @@ end
 
 local function runDropBrainrot()
   if dropBrainrotActive then return end
-  if _G.MetroDuelstopAutoTPForAction then _G.MetroDuelstopAutoTPForAction() end
+  if _G.YaisDuelstopAutoTPForAction then _G.YaisDuelstopAutoTPForAction() end
   local char = LP.Character
   if not char then return end
   local root = char:FindFirstChild("HumanoidRootPart")
@@ -2986,10 +2986,10 @@ local function runDropBrainrot()
   dropBrainrotActive = true
   -- >>> AUTO AFTER DROP <<< il flag e' un local di qui, quindi glielo si
   -- passa come funzione: cosi' sa quando il drop e' finito davvero.
-  if _G.MetroAfterDrop then
+  if _G.YaisAfterDrop then
     -- true = aspetta anche l'atterraggio: questo e' il TP UP, che ti
     -- manda in alto e ti riporta giu'.
-    _G.MetroAfterDrop.onDrop(function() return dropBrainrotActive end, true)
+    _G.YaisAfterDrop.onDrop(function() return dropBrainrotActive end, true)
   end
   local startTime = tick()
   local dropConn
@@ -3011,12 +3011,12 @@ local function runDropBrainrot()
       -- il basso e un CFrame secco. Il raycast escludeva solo il
       -- personaggio, quindi si fermava sulla PRIMA cosa incontrata anche
       -- se non calpestabile, mentre il TP Down usa
-      -- MetroResolveTPDownY, che insiste per piu' passaggi finche'
+      -- YaisResolveTPDownY, che insiste per piu' passaggi finche'
       -- non trova terreno buono.
       currentRoot.AssemblyLinearVelocity = Vector3.zero
       currentRoot.AssemblyAngularVelocity = Vector3.zero
-      if _G.MetroRunTPDown then
-        pcall(_G.MetroRunTPDown, true)
+      if _G.YaisRunTPDown then
+        pcall(_G.YaisRunTPDown, true)
       end
       dropBrainrotActive = false
       return
@@ -3045,8 +3045,8 @@ local function runDropStandStill()
     end
     dropActive = true
     -- >>> AUTO AFTER DROP <<<
-    if _G.MetroAfterDrop then
-      _G.MetroAfterDrop.onDrop(function() return dropActive end)
+    if _G.YaisAfterDrop then
+      _G.YaisAfterDrop.onDrop(function() return dropActive end)
     end
 
     local colConn = RunService.Stepped:Connect(function()
@@ -3096,12 +3096,12 @@ local infJumpMode = "HOLD" -- "HOLD" o "MANUAL"
 local antiRagdollEnabled = false
 local antiRagdollConn = nil
 -- antiRagdollMode su _G per non consumare local slot: "V1" o "V2"
-_G._MetroAntiRagdollMode = _G._MetroAntiRagdollMode or "V1"
+_G._YaisAntiRagdollMode = _G._YaisAntiRagdollMode or "V1"
 
 -- ===== ANTI RAGDOLL V2 =====
-_G._MetroARV2 = _G._MetroARV2 or {conn = nil, cached = {}}
+_G._YaisARV2 = _G._YaisARV2 or {conn = nil, cached = {}}
 do
-  local _arv2 = _G._MetroARV2
+  local _arv2 = _G._YaisARV2
   local _camera = workspace.CurrentCamera
 
   local function _arv2Cache()
@@ -3153,7 +3153,7 @@ do
     if _camera.CameraSubject ~= hum then _camera.CameraSubject = hum end
   end
 
-  function _G._MetroDuelstartARV2()
+  function _G._YaisDuelstartARV2()
     if _arv2.conn then return end
     if not _arv2Cache() then return end
     _arv2.conn = RunService.RenderStepped:Connect(function()
@@ -3165,7 +3165,7 @@ do
     end)
   end
 
-  function _G._MetroDuelstopARV2()
+  function _G._YaisDuelstopARV2()
     if _arv2.conn then
       _arv2.conn:Disconnect()
       _arv2.conn = nil
@@ -3173,12 +3173,12 @@ do
     _arv2.cached = {}
   end
 
-  function _G._MetroRestartARV2()
-    _G._MetroDuelstopARV2()
+  function _G._YaisRestartARV2()
+    _G._YaisDuelstopARV2()
     task.wait(0.5)
-    if antiRagdollEnabled and _G._MetroAntiRagdollMode == "V2" then
+    if antiRagdollEnabled and _G._YaisAntiRagdollMode == "V2" then
       _arv2Cache()
-      _G._MetroDuelstartARV2()
+      _G._YaisDuelstartARV2()
     end
   end
 end
@@ -3189,7 +3189,7 @@ local antiDieEnabled = false
 -- comandare la riga nella GUI e quello che finisce nel config.
 -- L'accensione automatica muove antiDieEnabled ma non questo, cosi' la riga
 -- resta com'e' mentre in background l'Anti Die gira davvero.
-_G._MetroAntiDieUserWanted = false
+_G._YaisAntiDieUserWanted = false
 local antiDieConnections = {}          -- tutte le connessioni attive (Health, Died, AncestryChanged)
 local antiDieCharAddedConn = nil       -- connessione a CharacterAdded
 
@@ -3257,8 +3257,8 @@ end
 
 local function startAntiRagdoll()
     antiRagdollEnabled = true
-    if _G._MetroAntiRagdollMode == "V2" then
-        if _G._MetroDuelstartARV2 then _G._MetroDuelstartARV2() end
+    if _G._YaisAntiRagdollMode == "V2" then
+        if _G._YaisDuelstartARV2 then _G._YaisDuelstartARV2() end
     else
         _startAntiRagdollV1()
     end
@@ -3270,7 +3270,7 @@ local function stopAntiRagdoll()
         antiRagdollConn:Disconnect()
         antiRagdollConn = nil
     end
-    if _G._MetroDuelstopARV2 then _G._MetroDuelstopARV2() end
+    if _G._YaisDuelstopARV2 then _G._YaisDuelstopARV2() end
 end
 
 local function setAntiRagdoll(on)
@@ -3737,7 +3737,7 @@ local function startAntiDie(silent)
 
     if not silent then
         if _SV.setAntiDieVisual then _SV.setAntiDieVisual(true) end
-        saveMetroConfig()
+        saveYaisConfig()
     end
 end
 
@@ -3816,15 +3816,15 @@ local function stopAntiDie(silent)
 
     if not silent then
         if _SV.setAntiDieVisual then _SV.setAntiDieVisual(false) end
-        saveMetroConfig()
+        saveYaisConfig()
     end
 end
 
 local function setAntiDie(on)
     -- Scelta esplicita dell'utente: l'auto non deve piu' comandare
-    if _G.MetroAntiDieUserOverride then _G.MetroAntiDieUserOverride() end
+    if _G.YaisAntiDieUserOverride then _G.YaisAntiDieUserOverride() end
     antiDieEnabled = on and true or false
-    _G._MetroAntiDieUserWanted = antiDieEnabled
+    _G._YaisAntiDieUserWanted = antiDieEnabled
     if antiDieEnabled then
         startAntiDie()
     else
@@ -3844,62 +3844,62 @@ end
 -- chiamate dentro il Bat Counter V2).
 -- ============================================================
 do
-  -- autoOn sta su _G perche' lo legge anche saveMetroConfig: quando
+  -- autoOn sta su _G perche' lo legge anche saveYaisConfig: quando
   -- l'Anti Die e' acceso dall'automatismo non va scritto nel config, se no
   -- alla sessione dopo te lo ritrovi acceso come se l'avessi scelto tu.
-  _G._MetroAntiDieAutoOn = false
+  _G._YaisAntiDieAutoOn = false
 
   local function combatActive()
-    if _G.MetroTPBatOn == true then return true end          -- TP Bat
-    if _G.MetroBatCounterV2On == true then return true end   -- Bat Counter V2
-    if _G.MetroNormalAimbotOn == true then return true end   -- Bat Aimbot V1
-    if _G.MetroBatAimbotV2On == true then return true end    -- Bat Aimbot V2
-    if _G.MetroAntiTPBatEnabled == true then return true end -- Anti TP Bat
-    if _G.MetroFloatOn == true then return true end          -- Float
+    if _G.YaisTPBatOn == true then return true end          -- TP Bat
+    if _G.YaisBatCounterV2On == true then return true end   -- Bat Counter V2
+    if _G.YaisNormalAimbotOn == true then return true end   -- Bat Aimbot V1
+    if _G.YaisBatAimbotV2On == true then return true end    -- Bat Aimbot V2
+    if _G.YaisAntiTPBatEnabled == true then return true end -- Anti TP Bat
+    if _G.YaisFloatOn == true then return true end          -- Float
     return false
   end
 
   -- Finche' uno di quei moduli e' acceso l'Anti Die non si puo' spegnere
   -- dalla riga: ci conta sopra.
-  function _G.MetroAntiDieLocked()
+  function _G.YaisAntiDieLocked()
     return combatActive()
   end
 
-  function _G.MetroAntiDieAutoSync()
+  function _G.YaisAntiDieAutoSync()
     local active = combatActive()
     if active and not antiDieEnabled then
       -- era spento: lo accendiamo noi, in silenzio, e ce ne ricordiamo
-      _G._MetroAntiDieAutoOn = true
+      _G._YaisAntiDieAutoOn = true
       pcall(startAntiDie, true)
-    elseif not active and _G._MetroAntiDieAutoOn then
+    elseif not active and _G._YaisAntiDieAutoOn then
       -- si sono spenti tutti: si torna com'era prima, ma non durante la
       -- finestra di avvio (vedi ArmNow). Se siamo dentro la finestra si
       -- ricontrolla quando scade, se no un modulo che parte e finisce
       -- in fretta lascerebbe l'Anti Die acceso per sempre.
-      local hold = _G._MetroAntiDieHoldUntil or 0
+      local hold = _G._YaisAntiDieHoldUntil or 0
       if os.clock() < hold then
-        if not _G._MetroAntiDieHoldPending then
-          _G._MetroAntiDieHoldPending = true
+        if not _G._YaisAntiDieHoldPending then
+          _G._YaisAntiDieHoldPending = true
           task.delay((hold - os.clock()) + 0.05, function()
-            _G._MetroAntiDieHoldPending = false
-            if _G.MetroAntiDieAutoSync then pcall(_G.MetroAntiDieAutoSync) end
+            _G._YaisAntiDieHoldPending = false
+            if _G.YaisAntiDieAutoSync then pcall(_G.YaisAntiDieAutoSync) end
           end)
         end
       else
-        _G._MetroAntiDieAutoOn = false
+        _G._YaisAntiDieAutoOn = false
         pcall(stopAntiDie, true)
       end
-    elseif active and antiDieEnabled and not _G._MetroAntiDieAutoOn then
+    elseif active and antiDieEnabled and not _G._YaisAntiDieAutoOn then
       -- era gia' acceso a mano dall'utente: non si tocca niente, e allo
       -- stop dei moduli resta acceso com'era
-      _G._MetroAntiDieAutoOn = false
+      _G._YaisAntiDieAutoOn = false
     end
   end
 
   -- Se l'utente spegne l'Anti Die a mano mentre lo tenevamo acceso noi,
   -- molliamo la presa: non deve riaccendersi da solo allo stop dei moduli.
-  function _G.MetroAntiDieUserOverride()
-    _G._MetroAntiDieAutoOn = false
+  function _G.YaisAntiDieUserOverride()
+    _G._YaisAntiDieAutoOn = false
   end
 
   -- ARMAMENTO IMMEDIATO.
@@ -3915,7 +3915,7 @@ do
   -- chiama puo' quindi partire subito dopo, sicuro di essere coperto.
   -- Nel caso normale non aspetta nemmeno un frame, perche' applyGodMode e'
   -- sincrona: il ciclo serve solo se qualcosa va storto.
-  function _G.MetroAntiDieArmNow(timeout)
+  function _G.YaisAntiDieArmNow(timeout)
     local function armed()
       if not antiDieEnabled then return false end
       local char = LP.Character
@@ -3926,17 +3926,17 @@ do
     if armed() then return true end
 
     -- Finestra di protezione. Le funzioni di avvio, PRIMA di alzare il
-    -- proprio flag, spengono i moduli concorrenti: MetroDuelstartTPBat
+    -- proprio flag, spengono i moduli concorrenti: YaisDuelstartTPBat
     -- chiama StopNormalAimbot e StopBatAimbotV2, che sono avvolti e fanno
     -- scattare la AutoSync. In quell'istante nessun flag e' ancora su, la
     -- sync vede "nessun modulo attivo" e spegne l'Anti Die che avevamo
     -- appena acceso: acceso e spento nello stesso momento. Per mezzo
     -- secondo lo spegnimento automatico e' vietato, il tempo che la
     -- sequenza di avvio finisca e alzi il suo flag.
-    _G._MetroAntiDieHoldUntil = os.clock() + 0.5
+    _G._YaisAntiDieHoldUntil = os.clock() + 0.5
 
     if not antiDieEnabled then
-      _G._MetroAntiDieAutoOn = true
+      _G._YaisAntiDieAutoOn = true
       pcall(startAntiDie, true)
     elseif LP.Character then
       -- Acceso ma non applicato a QUESTO character (respawn appena fatto):
@@ -3953,15 +3953,15 @@ do
   end
 
   -- Lettura dello stato, per chi volesse controllarlo a mano:
-  --   print(_G.MetroAntiDieStatus())
+  --   print(_G.YaisAntiDieStatus())
   -- "applicato" e' quello che conta davvero: dice se il god mode e'
   -- agganciato al personaggio che hai adesso. Non stampa niente da sola.
-  function _G.MetroAntiDieStatus()
+  function _G.YaisAntiDieStatus()
     local char = LP.Character
     return ("AntiDie acceso=%s | applicato=%s | auto=%s | moduli=%s"):format(
       tostring(antiDieEnabled),
       tostring(char ~= nil and antiDieConnections[char] ~= nil),
-      tostring(_G._MetroAntiDieAutoOn == true),
+      tostring(_G._YaisAntiDieAutoOn == true),
       tostring(combatActive()))
   end
 end
@@ -3970,28 +3970,28 @@ end
 -- ============================================================
 -- INSTANT RESET
 -- ============================================================
-_G._MetroInstantResetBusy = false
+_G._YaisInstantResetBusy = false
 
 -- Sequenza di reset vera e propria
 -- Versione del metodo di reset: 1 = HipHeight, 2 = fling fisico.
-_G.MetroInstantResetVersion = math.clamp(
-  tonumber(_G.MetroInstantResetVersion) or 1, 1, 2)
+_G.YaisInstantResetVersion = math.clamp(
+  tonumber(_G.YaisInstantResetVersion) or 1, 1, 2)
 
 -- ---------- V2: FLING FISICO ----------
 -- Si mette l'Humanoid in stato Physics con PlatformStand e si spara la
 -- root verso l'alto: il personaggio viene sbalzato e muore.
 -- La camera NON viene toccata qui: se ne occupa gia'
--- _MetroLockResetCamera, che la congela dal momento in cui premi fino
+-- _YaisLockResetCamera, che la congela dal momento in cui premi fino
 -- al respawn vero. Il codice da cui viene questa logica forzava invece la
 -- camera su un CFrame fisso per 0.1s, che con la nostra gestione si
 -- accavallerebbe e darebbe uno scatto.
-_G._MetroDoInstantResetV2 = function()
-    _G._MetroResetGaveUp = false
+_G._YaisDoInstantResetV2 = function()
+    _G._YaisResetGaveUp = false
     local character = LP.Character
-    if not character then _G._MetroResetGaveUp = true return end
+    if not character then _G._YaisResetGaveUp = true return end
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local root = character:FindFirstChild("HumanoidRootPart")
-    if not humanoid or not root then _G._MetroResetGaveUp = true return end
+    if not humanoid or not root then _G._YaisResetGaveUp = true return end
 
     local savedPlatform = humanoid.PlatformStand
     local savedBreak    = humanoid.BreakJointsOnDeath
@@ -4067,7 +4067,7 @@ _G._MetroDoInstantResetV2 = function()
     if humanoid.Health <= 0 then return end
 
     -- Non e' morto: si rimette tutto com'era e si dichiara la rinuncia.
-    _G._MetroResetGaveUp = true
+    _G._YaisResetGaveUp = true
     pcall(function()
         humanoid.PlatformStand = savedPlatform
         humanoid.BreakJointsOnDeath = savedBreak
@@ -4077,12 +4077,12 @@ _G._MetroDoInstantResetV2 = function()
 end
 
 -- ---------- V1: HIPHEIGHT ----------
-_G._MetroDoInstantResetV1 = function()
-    _G._MetroResetGaveUp = false
+_G._YaisDoInstantResetV1 = function()
+    _G._YaisResetGaveUp = false
     local character = LP.Character
-    if not character then _G._MetroResetGaveUp = true return end
+    if not character then _G._YaisResetGaveUp = true return end
     local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then _G._MetroResetGaveUp = true return end
+    if not humanoid then _G._YaisResetGaveUp = true return end
 
     local originalHipHeight = humanoid.HipHeight
     local attempts = 0
@@ -4117,7 +4117,7 @@ _G._MetroDoInstantResetV1 = function()
 
     -- Se non e' morto comunque, rimetti tutto a posto
     if not done then
-        _G._MetroResetGaveUp = true
+        _G._YaisResetGaveUp = true
         if character and character.Parent and humanoid then
             pcall(function()
                 humanoid.HipHeight = originalHipHeight
@@ -4130,27 +4130,27 @@ _G._MetroDoInstantResetV1 = function()
 end
 
 -- Smistatore. Tutto il contorno — camera bloccata, Anti Die e Anti Void
--- sospesi, attesa del respawn — resta in MetroInstantReset ed e'
+-- sospesi, attesa del respawn — resta in YaisInstantReset ed e'
 -- identico per le due versioni: cambia solo COME si muore.
-_G._MetroDoInstantReset = function()
-    if (tonumber(_G.MetroInstantResetVersion) or 1) == 2 then
-        _G._MetroDoInstantResetV2()
+_G._YaisDoInstantReset = function()
+    if (tonumber(_G.YaisInstantResetVersion) or 1) == 2 then
+        _G._YaisDoInstantResetV2()
     else
-        _G._MetroDoInstantResetV1()
+        _G._YaisDoInstantResetV1()
     end
 end
 
-_G._MetroResetCamConn = nil
-_G._MetroResetCamSaved = nil
+_G._YaisResetCamConn = nil
+_G._YaisResetCamSaved = nil
 
 -- Congela la camera esattamente dove sta guardando adesso
-_G._MetroLockResetCamera = function()
+_G._YaisLockResetCamera = function()
     local cam = workspace.CurrentCamera
     if not cam then return end
 
-    _G._MetroUnlockResetCamera()
+    _G._YaisUnlockResetCamera()
 
-    _G._MetroResetCamSaved = {
+    _G._YaisResetCamSaved = {
         cframe  = cam.CFrame,
         type    = cam.CameraType,
         subject = cam.CameraSubject,
@@ -4160,9 +4160,9 @@ _G._MetroLockResetCamera = function()
 
     -- Roblox puo' riassegnare la camera al respawn: la riportiamo
     -- al fotogramma salvato ad ogni frame finche' non sblocchiamo.
-    _G._MetroResetCamConn = RunService.RenderStepped:Connect(function()
+    _G._YaisResetCamConn = RunService.RenderStepped:Connect(function()
         local c = workspace.CurrentCamera
-        local saved = _G._MetroResetCamSaved
+        local saved = _G._YaisResetCamSaved
         if not c or not saved then return end
         if c.CameraType ~= Enum.CameraType.Scriptable then
             c.CameraType = Enum.CameraType.Scriptable
@@ -4171,14 +4171,14 @@ _G._MetroLockResetCamera = function()
     end)
 end
 
-_G._MetroUnlockResetCamera = function()
-    if _G._MetroResetCamConn then
-        pcall(function() _G._MetroResetCamConn:Disconnect() end)
-        _G._MetroResetCamConn = nil
+_G._YaisUnlockResetCamera = function()
+    if _G._YaisResetCamConn then
+        pcall(function() _G._YaisResetCamConn:Disconnect() end)
+        _G._YaisResetCamConn = nil
     end
 
-    local saved = _G._MetroResetCamSaved
-    _G._MetroResetCamSaved = nil
+    local saved = _G._YaisResetCamSaved
+    _G._YaisResetCamSaved = nil
     if not saved then return end
 
     local cam = workspace.CurrentCamera
@@ -4194,9 +4194,9 @@ _G._MetroUnlockResetCamera = function()
 end
 
 -- Punto d'ingresso: stacca Anti Die, resetta, dopo 0.5s lo riattacca
-_G.MetroInstantReset = function()
-    if _G._MetroInstantResetBusy then return end
-    _G._MetroInstantResetBusy = true
+_G.YaisInstantReset = function()
+    if _G._YaisInstantResetBusy then return end
+    _G._YaisInstantResetBusy = true
 
     local wasAntiDie = (antiDieEnabled == true)
     -- >>> INSTANT RESET / ANTI VOID BEGIN
@@ -4204,16 +4204,16 @@ _G.MetroInstantReset = function()
     -- lavorerebbe contro di noi, quindi va messo in pausa come l'Anti Die.
     -- Il toggle NON si spegne a schermo e la config non registra un "off":
     -- e' una sospensione in background, non una scelta dell'utente.
-    local wasAntiVoid = (_G.MetroAntiVoidEnabled == true)
+    local wasAntiVoid = (_G.YaisAntiVoidEnabled == true)
     -- <<< INSTANT RESET / ANTI VOID END
-    _G._MetroResetOldChar = LP.Character
-    _G._MetroResetGaveUp = false
+    _G._YaisResetOldChar = LP.Character
+    _G._YaisResetGaveUp = false
 
     -- >>> INSTANT RESET / ANTI VOID BEGIN
     if wasAntiVoid then
-      _G._MetroAntiVoidPaused = true
-      if _G.MetroAntiVoid then
-        pcall(_G.MetroAntiVoid.setEnabled, false)
+      _G._YaisAntiVoidPaused = true
+      if _G.YaisAntiVoid then
+        pcall(_G.YaisAntiVoid.setEnabled, false)
       end
       if _SV.setAntiVoidVisual then pcall(_SV.setAntiVoidVisual, true) end
     end
@@ -4228,10 +4228,10 @@ _G.MetroInstantReset = function()
         if _SV.setAntiDieVisual then pcall(_SV.setAntiDieVisual, true) end
     end
 
-    pcall(_G._MetroLockResetCamera)
+    pcall(_G._YaisLockResetCamera)
 
     task.spawn(function()
-        pcall(_G._MetroDoInstantReset)
+        pcall(_G._YaisDoInstantReset)
     end)
 
     -- >>> INSTANT RESET / ANTI VOID BEGIN
@@ -4240,15 +4240,15 @@ _G.MetroInstantReset = function()
     -- gioco lo sta ancora costruendo, e sbloccando li' si vedeva lo scatto.
     -- Ora si aspetta anche che sia pronto (root e humanoid a posto).
     task.spawn(function()
-        local oldChar = _G._MetroResetOldChar
+        local oldChar = _G._YaisResetOldChar
         local deadline = tick() + 25
         while tick() < deadline do
             -- il reset ha rinunciato: non morira' mai, sblocca subito
-            if _G._MetroResetGaveUp then break end
+            if _G._YaisResetGaveUp then break end
             local ch = LP.Character
             if ch and ch.Parent and ch ~= oldChar then
-                if _G._MetroWaitCharReady then
-                    pcall(_G._MetroWaitCharReady, ch, 10)
+                if _G._YaisWaitCharReady then
+                    pcall(_G._YaisWaitCharReady, ch, 10)
                 end
                 local hum = ch:FindFirstChildOfClass("Humanoid")
                 local hrp = ch:FindFirstChild("HumanoidRootPart")
@@ -4256,15 +4256,15 @@ _G.MetroInstantReset = function()
             end
             task.wait(0.05)
         end
-        pcall(_G._MetroUnlockResetCamera)
+        pcall(_G._YaisUnlockResetCamera)
 
         -- Anti Void ripreso solo qui: rimetterlo prima significherebbe
         -- riaccenderlo su un cadavere o a meta' respawn.
         if wasAntiVoid then
-            if _G.MetroAntiVoid then
-                pcall(_G.MetroAntiVoid.setEnabled, true)
+            if _G.YaisAntiVoid then
+                pcall(_G.YaisAntiVoid.setEnabled, true)
             end
-            _G._MetroAntiVoidPaused = false
+            _G._YaisAntiVoidPaused = false
             if _SV.setAntiVoidVisual then pcall(_SV.setAntiVoidVisual, true) end
         end
     end)
@@ -4272,7 +4272,7 @@ _G.MetroInstantReset = function()
 
     task.delay(0.5, function()
         if not wasAntiDie then
-            _G._MetroInstantResetBusy = false
+            _G._YaisInstantResetBusy = false
             return
         end
 
@@ -4293,14 +4293,14 @@ _G.MetroInstantReset = function()
             antiDieEnabled = false
             pcall(setAntiDie, true)
             if _SV.setAntiDieVisual then pcall(_SV.setAntiDieVisual, true) end
-            _G._MetroInstantResetBusy = false
+            _G._YaisInstantResetBusy = false
         end)
     end)
 end
 
-_G.MetroNormalInfJump = _G.MetroNormalInfJump or {holdPressed=false, holdActive=false, controllerActive=false, mobilePressed=false, mobileActive=false, hooked={}}
+_G.YaisNormalInfJump = _G.YaisNormalInfJump or {holdPressed=false, holdActive=false, controllerActive=false, mobilePressed=false, mobileActive=false, hooked={}}
 
-_G.MetroNormalInfJump = _G.MetroNormalInfJump or {
+_G.YaisNormalInfJump = _G.YaisNormalInfJump or {
     holdPressed = false,
     holdActive = false,
     controllerActive = false,
@@ -4330,11 +4330,11 @@ function _G._jumpEnsureProxy()
 end
 
 -- Applica il boost di salto sulla root velocity
-function _G.MetroApplyNormalInfJumpBoost(boost)
+function _G.YaisApplyNormalInfJumpBoost(boost)
     if not infJumpEnabled then return end
     -- Blocca il jump se il TP Down e' in corso (Normal o Slow Fall):
     -- senza questo l'inf-jump annullerebbe la discesa.
-    if _G._MetroTPDownJumpLocked then return end
+    if _G._YaisTPDownJumpLocked then return end
     local char = LP.Character
     if not char then return end
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -4349,8 +4349,8 @@ function _G.MetroApplyNormalInfJumpBoost(boost)
 end
 
 -- Resetta gli stati di pressione (identico)
-function _G.MetroDuelstopNormalInfJumpHoldState()
-    local S = _G.MetroNormalInfJump
+function _G.YaisDuelstopNormalInfJumpHoldState()
+    local S = _G.YaisNormalInfJump
     S.holdPressed = false
     S.holdActive = false
     S.controllerActive = false
@@ -4364,13 +4364,13 @@ end
 -- In MANUAL mode: singolo hop per ogni pressione, nessun hold loop
 -- In HOLD mode: comportamento originale (boost continuo finché tieni premuto)
 UserInputService.JumpRequest:Connect(function()
-    _G.MetroApplyNormalInfJumpBoost(50)
+    _G.YaisApplyNormalInfJumpBoost(50)
 end)
 
 -- InputBegan (per tenere premuto)
 UserInputService.InputBegan:Connect(function(input)
     if UserInputService:GetFocusedTextBox() then return end
-    local S = _G.MetroNormalInfJump
+    local S = _G.YaisNormalInfJump
 
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
         if infJumpMode == "MANUAL" then
@@ -4380,9 +4380,9 @@ UserInputService.InputBegan:Connect(function(input)
         -- HOLD: logica originale
         S.holdPressed = true
         task.delay(0.12, function()
-            if _G.MetroNormalInfJump.holdPressed and infJumpEnabled then
-                _G.MetroNormalInfJump.holdActive = true
-                _G.MetroApplyNormalInfJumpBoost(50)
+            if _G.YaisNormalInfJump.holdPressed and infJumpEnabled then
+                _G.YaisNormalInfJump.holdActive = true
+                _G.YaisApplyNormalInfJumpBoost(50)
             end
         end)
     elseif input.KeyCode == Enum.KeyCode.ButtonA and input.UserInputType.Name:match("^Gamepad") then
@@ -4394,7 +4394,7 @@ end)
 
 -- InputEnded (rilascio tasti)
 UserInputService.InputEnded:Connect(function(input)
-    local S = _G.MetroNormalInfJump
+    local S = _G.YaisNormalInfJump
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
         S.holdPressed = false
         S.holdActive = false
@@ -4405,8 +4405,8 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- Hook per il pulsante mobile JumpButton
-function _G.MetroHookNormalInfMobileJumpButton(obj)
-    local S = _G.MetroNormalInfJump
+function _G.YaisHookNormalInfMobileJumpButton(obj)
+    local S = _G.YaisNormalInfJump
     if not obj or obj.Name ~= "JumpButton" or not obj:IsA("GuiButton") or S.hooked[obj] then return end
     S.hooked[obj] = true
 
@@ -4417,46 +4417,46 @@ function _G.MetroHookNormalInfMobileJumpButton(obj)
             return
         end
         -- HOLD mobile: logica originale
-        _G.MetroNormalInfJump.mobilePressed = true
+        _G.YaisNormalInfJump.mobilePressed = true
         task.delay(0.12, function()
-            if _G.MetroNormalInfJump.mobilePressed and infJumpEnabled then
-                _G.MetroNormalInfJump.mobileActive = true
-                _G.MetroApplyNormalInfJumpBoost(50)
+            if _G.YaisNormalInfJump.mobilePressed and infJumpEnabled then
+                _G.YaisNormalInfJump.mobileActive = true
+                _G.YaisApplyNormalInfJumpBoost(50)
             end
         end)
     end)
 
     obj.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch then
-            _G.MetroNormalInfJump.mobilePressed = false
-            _G.MetroNormalInfJump.mobileActive = false
+            _G.YaisNormalInfJump.mobilePressed = false
+            _G.YaisNormalInfJump.mobileActive = false
         end
     end)
 
     obj.AncestryChanged:Connect(function(_, parent)
         if not parent then
-            _G.MetroNormalInfJump.hooked[obj] = nil
-            _G.MetroNormalInfJump.mobilePressed = false
-            _G.MetroNormalInfJump.mobileActive = false
+            _G.YaisNormalInfJump.hooked[obj] = nil
+            _G.YaisNormalInfJump.mobilePressed = false
+            _G.YaisNormalInfJump.mobileActive = false
         end
     end)
 end
 
 -- Hook per pulsanti già esistenti
 for _, obj in ipairs(PlayerGui:GetDescendants()) do
-    _G.MetroHookNormalInfMobileJumpButton(obj)
+    _G.YaisHookNormalInfMobileJumpButton(obj)
 end
 
 -- Hook per pulsanti aggiunti in futuro
 PlayerGui.DescendantAdded:Connect(function(obj)
-    task.defer(_G.MetroHookNormalInfMobileJumpButton, obj)
+    task.defer(_G.YaisHookNormalInfMobileJumpButton, obj)
 end)
 
 -- ===== HEARTBEAT LOOP (mantiene il boost quando premuto, solo in HOLD mode) =====
 RunService.Heartbeat:Connect(function()
-    local S = _G.MetroNormalInfJump
+    local S = _G.YaisNormalInfJump
     if infJumpEnabled and infJumpMode == "HOLD" and (S.holdActive or S.mobileActive or S.controllerActive) then
-        _G.MetroApplyNormalInfJumpBoost(50)
+        _G.YaisApplyNormalInfJumpBoost(50)
     end
 end)
 
@@ -4464,7 +4464,7 @@ end)
 setInfJumpInternal = function(on)
     infJumpEnabled = on and true or false
     if not infJumpEnabled then
-        _G.MetroDuelstopNormalInfJumpHoldState()
+        _G.YaisDuelstopNormalInfJumpHoldState()
         -- Azzera la velocita' della root quando si disattiva
         local ch = LP.Character
         local hrp = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -4476,7 +4476,7 @@ end
 
 -- ===== RESPAWN: ricrea il proxy quando il personaggio viene rigenerato =====
 LP.CharacterAdded:Connect(function(char)
-    _G._MetroWaitCharReady(char, 10)
+    _G._YaisWaitCharReady(char, 10)
     _jumpProxy = nil
     _jumpProxyWeld = nil
     -- Se il jump è attivo, ricrea subito il proxy
@@ -4492,13 +4492,13 @@ end)
 -- Disconnettiamo e ricreiamo la connessione così il cooldown viene
 -- anche resettato e parte pulito sul nuovo personaggio.
 LP.CharacterAdded:Connect(function(char)
-    _G._MetroWaitCharReady(char, 10)
+    _G._YaisWaitCharReady(char, 10)
     if antiRagdollEnabled then
         if antiRagdollConn then
             antiRagdollConn:Disconnect()
             antiRagdollConn = nil
         end
-        if _G._MetroDuelstopARV2 then _G._MetroDuelstopARV2() end
+        if _G._YaisDuelstopARV2 then _G._YaisDuelstopARV2() end
         startAntiRagdoll()
     end
 end)
@@ -4519,24 +4519,24 @@ local customBgSelected = nil   -- stringa ID custom selezionato, o nil se si usa
 -- Dove sta la barra delle tab (MOVEMENT / COMBAT / ...) dentro la finestra.
 -- Sta su _G e non su un local del main chunk per non consumare uno dei 200
 -- slot di registro. Valori ammessi: "Up", "Bottom", "Left", "Right".
-_G._MetroTabPosition = _G._MetroTabPosition or "Up"
-function _G.MetroValidTabPosition(v)
+_G._YaisTabPosition = _G._YaisTabPosition or "Up"
+function _G.YaisValidTabPosition(v)
   if v == "Up" or v == "Bottom" or v == "Left" or v == "Right" then return v end
   return "Up"
 end
 -- <<< TAB POSITION END
-local MetroGuiScaleValue = 0.75
-local MetroProgressBarScaleValue = 0.90
+local YaisGuiScaleValue = 0.75
+local YaisProgressBarScaleValue = 0.90
 
 CONFIG_FILE = "YaisDuels_Config.json"
 KEYBINDS_CONFIG_FILE = "YaisDuels_Keybinds.json"
-_Metro_isfile = isfile or (syn and syn.isfile) or function(path)
+_Yais_isfile = isfile or (syn and syn.isfile) or function(path)
   local ok, result = pcall(function() return readfile(path) end)
   return ok and result ~= nil
 end
-_Metro_readfile = readfile or (syn and syn.readfile)
-_Metro_writefile = writefile or (syn and syn.writefile)
-canSaveConfig = (type(_Metro_readfile) == "function" and type(_Metro_writefile) == "function")
+_Yais_readfile = readfile or (syn and syn.readfile)
+_Yais_writefile = writefile or (syn and syn.writefile)
+canSaveConfig = (type(_Yais_readfile) == "function" and type(_Yais_writefile) == "function")
 
 -- Intro
 selectedIntroMusic = selectedIntroMusic or 1
@@ -4709,7 +4709,7 @@ function playIntroMusic()
   if not option then return end
   local token = introPlaybackToken
   task.spawn(function()
-    local sound = createIntroSound(option, "MetroDuelsIntroMusic_" .. tostring(token), SoundService, true)
+    local sound = createIntroSound(option, "YaisDuelsIntroMusic_" .. tostring(token), SoundService, true)
     if token ~= introPlaybackToken or not _introEnabled then if sound then pcall(function() sound:Destroy() end) end; return end
     introPlaybackSound = sound
     if not sound then _safeNotify("SONG FAILED"); return end
@@ -4794,8 +4794,8 @@ musicSongDownloading = musicSongDownloading or {}
 -- Revisioni gia' ripulite in questa esecuzione, per non ricontrollare
 -- il disco a ogni canzone caricata.
 musicRevCleaned = musicRevCleaned or {}
-_G.MetroMusicRefreshUI = nil
-_G.MetroMusicCloseUI = nil
+_G.YaisMusicRefreshUI = nil
+_G.YaisMusicCloseUI = nil
 
 function getMusicSongName()
   local opt = MUSIC_PLAYER_OPTIONS[selectedMusicSong]
@@ -4812,7 +4812,7 @@ function musicRandomIndex()
 end
 
 function _musicRefreshUI()
-  if _G.MetroMusicRefreshUI then pcall(_G.MetroMusicRefreshUI) end
+  if _G.YaisMusicRefreshUI then pcall(_G.YaisMusicRefreshUI) end
 end
 
 function cacheMusicSong(option, allowDownload)
@@ -5009,7 +5009,7 @@ function musicNextSong()
   else
     playMusicSong(selectedMusicSong + 1)
   end
-  saveMetroConfig()
+  saveYaisConfig()
 end
 
 function musicPrevSong()
@@ -5018,7 +5018,7 @@ function musicPrevSong()
   else
     playMusicSong(selectedMusicSong - 1)
   end
-  saveMetroConfig()
+  saveYaisConfig()
 end
 
 function musicSeek(delta)
@@ -5052,7 +5052,7 @@ function setMusicSpeed(v)
   if sound and sound.Parent then
     pcall(function() sound.PlaybackSpeed = v end)
   end
-  if saveMetroConfig then pcall(saveMetroConfig) end
+  if saveYaisConfig then pcall(saveYaisConfig) end
   _musicRefreshUI()
 end
 
@@ -5063,27 +5063,27 @@ function setMusicVolume(v)
   if sound and sound.Parent and sound:GetAttribute("_amFaded") ~= true then
     pcall(function() sound.Volume = v end)
   end
-  if saveMetroConfig then pcall(saveMetroConfig) end
+  if saveYaisConfig then pcall(saveYaisConfig) end
   _musicRefreshUI()
 end
 
 savedConfig = {}
-_G.MetroGuiLocked = _G.MetroGuiLocked == true
-_G.MetroHideMobileButtons = _G.MetroHideMobileButtons == true
+_G.YaisGuiLocked = _G.YaisGuiLocked == true
+_G.YaisHideMobileButtons = _G.YaisHideMobileButtons == true
 -- >>> HIDE PER SINGOLO BOTTONE <<<
 -- Lista e helper stanno QUI, in cima: la UI delle impostazioni viene
 -- costruita prima del modulo dei bottoni mobile, e definirli la' dentro
 -- significava chiamarli quando ancora non esistevano.
 -- Una chiave assente vuol dire "incluso": cosi' di default il toggle
 -- nasconde tutti i bottoni, come ha sempre fatto.
-_G.MetroMobileHideList = _G.MetroMobileHideList or {}
-_G.MetroMobileHideIncluded = function(key)
-  local v = _G.MetroMobileHideList[key]
+_G.YaisMobileHideList = _G.YaisMobileHideList or {}
+_G.YaisMobileHideIncluded = function(key)
+  local v = _G.YaisMobileHideList[key]
   if v == nil then return true end
   return v == true
 end
-_G.MetroMobileButtonScale = 0.75
-_G.MetroMobileButtonPositions = _G.MetroMobileButtonPositions or {}
+_G.YaisMobileButtonScale = 0.75
+_G.YaisMobileButtonPositions = _G.YaisMobileButtonPositions or {}
 savedMainPositionTable = nil
 savedMiniPositionTable = nil
 -- Posizione salvata della Steal Bar (barra progresso auto steal)
@@ -5100,16 +5100,16 @@ function tableToUDim2(t, fallback)
   return fallback
 end
 
-function collectMetroMobileButtonPositions()
+function collectYaisMobileButtonPositions()
   local out = {}
-  for key, entry in pairs(_G.MetroMobileButtonRefs or {}) do
+  for key, entry in pairs(_G.YaisMobileButtonRefs or {}) do
     local holder = entry and entry.holder
     if holder then out[key] = udim2ToTable(holder.Position) end
   end
-  if next(out) == nil and type(_G.MetroMobileButtonPositions) == "table" then
-    return _G.MetroMobileButtonPositions
+  if next(out) == nil and type(_G.YaisMobileButtonPositions) == "table" then
+    return _G.YaisMobileButtonPositions
   end
-  _G.MetroMobileButtonPositions = out
+  _G.YaisMobileButtonPositions = out
   return out
 end
 
@@ -5136,7 +5136,7 @@ function keybindsToTable()
   return out
 end
 
-function collectMetroKeybindConfig()
+function collectYaisKeybindConfig()
   return {
     keybinds = keybindsToTable(),
     tpDownKeybind = keyToString(tpDownKeybind),
@@ -5152,7 +5152,7 @@ function applySavedKeybinds(t)
   end
 end
 
-function applyDefaultMetroKeybinds()
+function applyDefaultYaisKeybinds()
   for keyId, key in pairs(DEFAULT_SPEED_KEYBINDS) do
     speedKeybinds[keyId] = key
   end
@@ -5162,12 +5162,12 @@ end
 -- ============================================================
 -- LOOK AT ENEMY (GLOBALE)
 -- ============================================================
-_G.MetroLookAtEnabled = false
-_G.MetroLookAtRadius  = _G.MetroLookAtRadius  or 20
+_G.YaisLookAtEnabled = false
+_G.YaisLookAtRadius  = _G.YaisLookAtRadius  or 20
 
-_G._MetroLookAt = _G._MetroLookAt or {}
+_G._YaisLookAt = _G._YaisLookAt or {}
 do
-  local S = _G._MetroLookAt
+  local S = _G._YaisLookAt
   local hiddenLAE    = workspace:FindFirstChild("Terrain") or workspace
   S.externalPart     = nil
   S.alignObj         = nil
@@ -5178,7 +5178,7 @@ do
     local char  = LP.Character
     local myHRP = char and char:FindFirstChild("HumanoidRootPart")
     if not myHRP then return nil end
-    local radius = tonumber(_G.MetroLookAtRadius) or 20
+    local radius = tonumber(_G.YaisLookAtRadius) or 20
     local closest, closestDist = nil, math.huge
     for _, player in ipairs(Players:GetPlayers()) do
       if player ~= LP then
@@ -5191,8 +5191,8 @@ do
             -- Nel void la distanza si misura sulla posizione fantasma,
             -- altrimenti il nemico esce dal raggio e non lo si aggancia.
             local tPos = tHRP.Position
-            if _G.MetroAntiVoid then
-              tPos = _G.MetroAntiVoid.posForPart(tHRP, tPos)
+            if _G.YaisAntiVoid then
+              tPos = _G.YaisAntiVoid.posForPart(tHRP, tPos)
             end
             local dist = (myHRP.Position - tPos).Magnitude
             -- <<< ANTI VOID END
@@ -5275,8 +5275,8 @@ do
         S.alignObj.Enabled = true
         -- >>> ANTI VOID BEGIN
         local _laePos = tHRP.Position
-        if _G.MetroAntiVoid then
-          _laePos = _G.MetroAntiVoid.posForPart(tHRP, _laePos)
+        if _G.YaisAntiVoid then
+          _laePos = _G.YaisAntiVoid.posForPart(tHRP, _laePos)
         end
         local flat = Vector3.new(_laePos.X, cHRP.Position.Y, _laePos.Z)
         -- <<< ANTI VOID END
@@ -5288,21 +5288,21 @@ do
     end)
   end
 
-  function _G.MetroToggleLookAt(state)
+  function _G.YaisToggleLookAt(state)
     if state ~= nil then
-      _G.MetroLookAtEnabled = state
+      _G.YaisLookAtEnabled = state
     else
-      _G.MetroLookAtEnabled = not _G.MetroLookAtEnabled
+      _G.YaisLookAtEnabled = not _G.YaisLookAtEnabled
     end
-    if _G.MetroLookAtEnabled then _laeStart() else _laeStop() end
+    if _G.YaisLookAtEnabled then _laeStart() else _laeStop() end
   end
 
-  function _G.MetroDuelstopLookAt() _laeStop() end
-  function _G.MetroDuelstartLookAt() _laeStart() end
+  function _G.YaisDuelstopLookAt() _laeStop() end
+  function _G.YaisDuelstartLookAt() _laeStart() end
 
   LP.CharacterAdded:Connect(function(newChar)
     _laeStop()
-    if _G.MetroLookAtEnabled then
+    if _G.YaisLookAtEnabled then
       local hrp = newChar:WaitForChild("HumanoidRootPart", 5)
       local hum2 = newChar:WaitForChild("Humanoid", 5)
       if hrp and hum2 then task.wait(0.1); _laeStart() end
@@ -5312,12 +5312,12 @@ do
   LP.CharacterRemoving:Connect(function() _laeStop() end)
 end
 
-function collectMetroConfig()
+function collectYaisConfig()
       local savedStretchIdx = stretchCurrentIndex
   local savedStretchEn = stretchEnabled
 
-  if _G.MetroTrackerActive and _G.MetroTrackerSavedStretchIndex then
-      savedStretchIdx = _G.MetroTrackerSavedStretchIndex
+  if _G.YaisTrackerActive and _G.YaisTrackerSavedStretchIndex then
+      savedStretchIdx = _G.YaisTrackerSavedStretchIndex
       savedStretchEn = savedStretchIdx ~= 1
   end
   return {
@@ -5336,67 +5336,67 @@ function collectMetroConfig()
     LAGGER_CARRY_SPEED = LAGGER_CARRY_SPEED,
     currentSpeedMode = currentSpeedMode,
     autoCarrySpeedEnabled = autoCarrySpeedEnabled == true,
-    autoCarryMode = (_G._MetroAutoCarryMode == "SOFT") and "SOFT" or "NORMAL",
+    autoCarryMode = (_G._YaisAutoCarryMode == "SOFT") and "SOFT" or "NORMAL",
     autoTPEnabled = autoTPEnabled,
     autoTPHeight = autoTPHeight,
-    tpDownMethod = _G._MetroTPDownMethod or "NORMAL",   -- >>> TP DOWN METHOD <<<
+    tpDownMethod = _G._YaisTPDownMethod or "NORMAL",   -- >>> TP DOWN METHOD <<<
     infJumpEnabled = infJumpEnabled,
     infJumpMode = infJumpMode,
-    lookAtEnabled = _G.MetroLookAtEnabled == true,
-    lookAtRadius  = tonumber(_G.MetroLookAtRadius) or 20,
+    lookAtEnabled = _G.YaisLookAtEnabled == true,
+    lookAtRadius  = tonumber(_G.YaisLookAtRadius) or 20,
     antiRagdollEnabled = antiRagdollEnabled,
-    antiRagdollMode = _G._MetroAntiRagdollMode or "V1",
-    tpRagdollEnabled = _G.MetroTPRagdollEnabled == true,
+    antiRagdollMode = _G._YaisAntiRagdollMode or "V1",
+    tpRagdollEnabled = _G.YaisTPRagdollEnabled == true,
     -- si salva quello che hai scelto tu, non l'accensione automatica
-    antiDieEnabled = _G._MetroAntiDieUserWanted == true,
+    antiDieEnabled = _G._YaisAntiDieUserWanted == true,
     selectedDropMode = selectedDropMode,
-    instantResetVersion = tonumber(_G.MetroInstantResetVersion) or 1,
-    afterDropEnabled = _G.MetroAfterDrop and _G.MetroAfterDrop.enabled == true,
-    afterDropAction  = (_G.MetroAfterDrop and _G.MetroAfterDrop.action) or "AIMBOT",
+    instantResetVersion = tonumber(_G.YaisInstantResetVersion) or 1,
+    afterDropEnabled = _G.YaisAfterDrop and _G.YaisAfterDrop.enabled == true,
+    afterDropAction  = (_G.YaisAfterDrop and _G.YaisAfterDrop.action) or "AIMBOT",
     selectedStealMode = selectedStealMode,
     selectedSemiMode = selectedSemiMode,
     autoStealEnabled = autoStealEnabled,
     autoStealRadius = autoStealRadius,
-    syncAfterHitEnabled = _G._MetroDuelsyncAfterHit.enabled,
-    MetroDuelstealRadii = _G.MetroDuelstealRadii,
-    semiAutoGrabStopTime     = _G.MetroDuelsemiSteal and _G.MetroDuelsemiSteal.autoGrabStopTime     or 1.29,
-    semiAutoGrabStopPercent  = _G.MetroDuelsemiSteal and _G.MetroDuelsemiSteal.autoGrabStopPercent  or 75,
-    semiAutoGrabDelayRadius  = _G.MetroDuelsemiSteal and _G.MetroDuelsemiSteal.autoGrabSetDelayRadius or 8,
-    radiusCircleEnabled = _G.MetroRadiusCircleEnabled == true,   -- >>> RADIUS CIRCLE <<<
+    syncAfterHitEnabled = _G._YaisDuelsyncAfterHit.enabled,
+    YaisDuelstealRadii = _G.YaisDuelstealRadii,
+    semiAutoGrabStopTime     = _G.YaisDuelsemiSteal and _G.YaisDuelsemiSteal.autoGrabStopTime     or 1.29,
+    semiAutoGrabStopPercent  = _G.YaisDuelsemiSteal and _G.YaisDuelsemiSteal.autoGrabStopPercent  or 75,
+    semiAutoGrabDelayRadius  = _G.YaisDuelsemiSteal and _G.YaisDuelsemiSteal.autoGrabSetDelayRadius or 8,
+    radiusCircleEnabled = _G.YaisRadiusCircleEnabled == true,   -- >>> RADIUS CIRCLE <<<
     radiusCircleColor = {
-      math.floor(((_G.MetroRadiusCircleColor or Color3.fromRGB(230,230,230)).R * 255) + 0.5),
-      math.floor(((_G.MetroRadiusCircleColor or Color3.fromRGB(230,230,230)).G * 255) + 0.5),
-      math.floor(((_G.MetroRadiusCircleColor or Color3.fromRGB(230,230,230)).B * 255) + 0.5),
+      math.floor(((_G.YaisRadiusCircleColor or Color3.fromRGB(230,230,230)).R * 255) + 0.5),
+      math.floor(((_G.YaisRadiusCircleColor or Color3.fromRGB(230,230,230)).G * 255) + 0.5),
+      math.floor(((_G.YaisRadiusCircleColor or Color3.fromRGB(230,230,230)).B * 255) + 0.5),
     },   -- >>> RADIUS CIRCLE <<<
     selectedAimbotMode = selectedAimbotMode,
     AIMBOT_SPEED = AIMBOT_SPEED,
     LAGGER_AIMBOT_SPEED = LAGGER_AIMBOT_SPEED,
-    BAT_AIMBOT_V2_SPEED = _G.MetroBatAimbotV2Speed,
-    BAT_AIMBOT_V2_LAGGER_SPEED = _G.MetroBatAimbotV2LaggerSpeed,
+    BAT_AIMBOT_V2_SPEED = _G.YaisBatAimbotV2Speed,
+    BAT_AIMBOT_V2_LAGGER_SPEED = _G.YaisBatAimbotV2LaggerSpeed,
     TP_BAT_SPEED = TP_BAT_SPEED,
     autoSwingEnabled = autoSwingEnabled,
     mirrorTPDownEnabled = mirrorTPDownEnabled,
-    normalAimbotEnabled = _G.MetroNormalAimbotOn == true,
-    batAimbotV2Enabled = _G.MetroBatAimbotV2On == true,
-    aimbotChaseV1 = (_G._MetroAimbotChase and _G._MetroAimbotChase.V1) or "NORMAL",   -- >>> AIMBOT CHASE MODE <<<
-    aimbotChaseV2 = (_G._MetroAimbotChase and _G._MetroAimbotChase.V2) or "NORMAL",   -- >>> AIMBOT CHASE MODE <<<
+    normalAimbotEnabled = _G.YaisNormalAimbotOn == true,
+    batAimbotV2Enabled = _G.YaisBatAimbotV2On == true,
+    aimbotChaseV1 = (_G._YaisAimbotChase and _G._YaisAimbotChase.V1) or "NORMAL",   -- >>> AIMBOT CHASE MODE <<<
+    aimbotChaseV2 = (_G._YaisAimbotChase and _G._YaisAimbotChase.V2) or "NORMAL",   -- >>> AIMBOT CHASE MODE <<<
     tpBatAutoSwingEnabled = tpBatAutoSwingEnabled,
-    tpBatCameraLockEnabled = _G._MetroGetTPBatCameraLock and _G._MetroGetTPBatCameraLock() or false,
-    tpBatEnabled = _G.MetroTPBatOn == true,
-    tpBatVersion = _G.MetroTPBatVersion or 1,   -- >>> TP BAT VERSIONS <<<
+    tpBatCameraLockEnabled = _G._YaisGetTPBatCameraLock and _G._YaisGetTPBatCameraLock() or false,
+    tpBatEnabled = _G.YaisTPBatOn == true,
+    tpBatVersion = _G.YaisTPBatVersion or 1,   -- >>> TP BAT VERSIONS <<<
     batCounterEnabled = batCounterEnabled,
     batCounterMode = batCounterMode,
     medCounterEnabled = medCounterEnabled,
-    antiBatEnabled = _G.MetroAntiBatEnabled == true,   -- >>> ANTI BAT <<<
-    antiTPBatEnabled = _G.MetroAntiTPBatEnabled == true,   -- >>> ANTI TP BAT <<<
-    antiTPBatSpam    = _G.MetroAntiTPBatSpam == true,      -- >>> ANTI TP BAT <<<
-    antiTPBatVersion = _G.MetroAntiTPBatVersion or 1,      -- >>> ANTI TP BAT <<<
+    antiBatEnabled = _G.YaisAntiBatEnabled == true,   -- >>> ANTI BAT <<<
+    antiTPBatEnabled = _G.YaisAntiTPBatEnabled == true,   -- >>> ANTI TP BAT <<<
+    antiTPBatSpam    = _G.YaisAntiTPBatSpam == true,      -- >>> ANTI TP BAT <<<
+    antiTPBatVersion = _G.YaisAntiTPBatVersion or 1,      -- >>> ANTI TP BAT <<<
     -- Durante un Instant Reset l'Anti Void e' sospeso: si salva comunque
     -- acceso, altrimenti un salvataggio in quella finestra lo spegnerebbe
     -- per la prossima sessione.
-    antiVoidEnabled = (_G.MetroAntiVoidEnabled == true)
-                   or (_G._MetroAntiVoidPaused == true),   -- >>> ANTI VOID <<<
-    rainbowJoystickEnabled = _G.MetroRainbowJoystickEnabled == true,   -- >>> RAINBOW MOBILE JOYSTICK <<<
+    antiVoidEnabled = (_G.YaisAntiVoidEnabled == true)
+                   or (_G._YaisAntiVoidPaused == true),   -- >>> ANTI VOID <<<
+    rainbowJoystickEnabled = _G.YaisRainbowJoystickEnabled == true,   -- >>> RAINBOW MOBILE JOYSTICK <<<
 
     safeMode = antiKickEnabled == true,
     espEnabled = espEnabled,
@@ -5405,21 +5405,21 @@ function collectMetroConfig()
     fpsBoostEnabled = fpsBoostEnabled,
     antiLagVisualEnabled = antiLagVisualEnabled,
     vividGraphicsEnabled = vividGraphicsEnabled,
-    vividSaturation = _G._MetroVivid.saturation,
-    vividBloomIntensity = _G._MetroVivid.bloomIntensity,
-    vividBloomSize = _G._MetroVivid.bloomSize,
-    vividDofFocus = _G._MetroVivid.dofFocus,
-    vividSunIntensity = _G._MetroVivid.sunIntensity,
+    vividSaturation = _G._YaisVivid.saturation,
+    vividBloomIntensity = _G._YaisVivid.bloomIntensity,
+    vividBloomSize = _G._YaisVivid.bloomSize,
+    vividDofFocus = _G._YaisVivid.dofFocus,
+    vividSunIntensity = _G._YaisVivid.sunIntensity,
     xrayEnabled = xrayEnabled,
-    brainrotXRayEnabled = _G.MetroBrainrotXRayEnabled == true,   -- >>> BRAINROT X-RAY <<<
+    brainrotXRayEnabled = _G.YaisBrainrotXRayEnabled == true,   -- >>> BRAINROT X-RAY <<<
     highPingWarningEnabled = highPingWarningEnabled,
-    kickWarningEnabled = _G._MetroKickWarn.enabled == true,
-    ultimateAntiKick = _G.MetroUAKEnabled == true,
+    kickWarningEnabled = _G._YaisKickWarn.enabled == true,
+    ultimateAntiKick = _G.YaisUAKEnabled == true,
     fovEnabled = fovEnabled,
     fovValue = fovValue,
     noCamCollisionEnabled = noCamCollisionEnabled,
     motionBlurEnabled = motionBlurEnabled,
-    noPlayerCollisionEnabled = _G.MetroNoPlayerCollisionEnabled,
+    noPlayerCollisionEnabled = _G.YaisNoPlayerCollisionEnabled,
     unwalkEnabled = unwalkEnabled,
     skyTheme = skyTheme,
     autoLeftEnabled = autoLeftEnabled,
@@ -5427,16 +5427,16 @@ function collectMetroConfig()
     -- >>> AUTO PLAY <<< lato rilevato + server in cui e' stato rilevato.
     -- Questi tre restano vuoti se non si e' nel posto di gioco previsto:
     -- e' li' che sta il controllo, non qui.
-    autoPlayJob  = _G.MetroAutoPlay and _G.MetroAutoPlay.saveJob or nil,
-    autoPlaySide = _G.MetroAutoPlay and _G.MetroAutoPlay.saveSide or nil,
+    autoPlayJob  = _G.YaisAutoPlay and _G.YaisAutoPlay.saveJob or nil,
+    autoPlaySide = _G.YaisAutoPlay and _G.YaisAutoPlay.saveSide or nil,
     currentBackground = currentBackground,
     customBgIds = customBgIds,
     customBgSelected = customBgSelected,
-    tabPosition = _G._MetroTabPosition,   -- >>> TAB POSITION <<<
-    customFont = _G.MetroFontChoice or "Default",
-    titleStyle = _G.MetroTitleStyle,       -- >>> TITLE STYLE <<<
-    MetroGuiScaleValue = MetroGuiScaleValue,
-    MetroProgressBarScaleValue = MetroProgressBarScaleValue,
+    tabPosition = _G._YaisTabPosition,   -- >>> TAB POSITION <<<
+    customFont = _G.YaisFontChoice or "Default",
+    titleStyle = _G.YaisTitleStyle,       -- >>> TITLE STYLE <<<
+    YaisGuiScaleValue = YaisGuiScaleValue,
+    YaisProgressBarScaleValue = YaisProgressBarScaleValue,
     introEnabled = _introEnabled == true,
     selectedIntroMusic = selectedIntroMusic,
     musicSelectedSong = selectedMusicSong,
@@ -5445,28 +5445,28 @@ function collectMetroConfig()
     musicAutoPlayNext = musicAutoPlayNext == true,
     musicShuffleEnabled = musicShuffleEnabled == true,
     musicLoopEnabled = musicLoopEnabled == true,
-    guiLocked = _G.MetroGuiLocked == true,
-    hideMobileButtons = _G.MetroHideMobileButtons == true,
-    mobileHideList    = _G.MetroMobileHideList,   -- >>> HIDE PER BOTTONE <<<
-    MetroMobileButtonScale = _G.MetroMobileButtonScale,
-    mobileButtonPositions = collectMetroMobileButtonPositions(),
+    guiLocked = _G.YaisGuiLocked == true,
+    hideMobileButtons = _G.YaisHideMobileButtons == true,
+    mobileHideList    = _G.YaisMobileHideList,   -- >>> HIDE PER BOTTONE <<<
+    YaisMobileButtonScale = _G.YaisMobileButtonScale,
+    mobileButtonPositions = collectYaisMobileButtonPositions(),
     stretchCurrentIndex = savedStretchIdx,
     stretchEnabled = savedStretchEn,
     headlessEnabled = headlessEnabled == true,
     korbloxEnabled = korbloxEnabled == true,
 
-    rainbowToolsEnabled     = _G.MetroRainbowToolsEnabled == true,
-    transparentToolsEnabled = _G.MetroTransparentToolsEnabled == true,
-    customToolsEnabled      = _G.MetroCustomToolsEnabled == true,
-    customToolSkinBat       = (_G.MetroCustomToolSkins and _G.MetroCustomToolSkins.Bat) or "DiamondSword",
-    customToolSkinMedusa    = (_G.MetroCustomToolSkins and _G.MetroCustomToolSkins.Medusa) or "GoldenDesertEagle",
-    customSoundsEnabled     = _G.MetroCustomSoundsEnabled == true,
+    rainbowToolsEnabled     = _G.YaisRainbowToolsEnabled == true,
+    transparentToolsEnabled = _G.YaisTransparentToolsEnabled == true,
+    customToolsEnabled      = _G.YaisCustomToolsEnabled == true,
+    customToolSkinBat       = (_G.YaisCustomToolSkins and _G.YaisCustomToolSkins.Bat) or "DiamondSword",
+    customToolSkinMedusa    = (_G.YaisCustomToolSkins and _G.YaisCustomToolSkins.Medusa) or "GoldenDesertEagle",
+    customSoundsEnabled     = _G.YaisCustomSoundsEnabled == true,
 
     selectedAnimPackIndex = selectedAnimPackIndex or 1,
-    customAnimIds = _G.MetroCustomAnimIds,   -- >>> CUSTOM ANIM PACK <<<
+    customAnimIds = _G.YaisCustomAnimIds,   -- >>> CUSTOM ANIM PACK <<<
     animPackSavedIndex = _animPackSavedIndex or 1,
     avatarChanger = (function()
-      local ac = _G._MetroAvatarChanger
+      local ac = _G._YaisAvatarChanger
       if not ac then return nil end
       local t = {}
       for k,v in pairs(ac) do t[k]={enabled=v.enabled,savedId=v.savedId,savedName=v.savedName} end
@@ -5475,11 +5475,11 @@ function collectMetroConfig()
   }
 end
 
-function saveMetroConfig()
+function saveYaisConfig()
   if not canSaveConfig then return end
   pcall(function()
-    _Metro_writefile(CONFIG_FILE, HttpService:JSONEncode(collectMetroConfig()))
-    _Metro_writefile(KEYBINDS_CONFIG_FILE, HttpService:JSONEncode(collectMetroKeybindConfig()))
+    _Yais_writefile(CONFIG_FILE, HttpService:JSONEncode(collectYaisConfig()))
+    _Yais_writefile(KEYBINDS_CONFIG_FILE, HttpService:JSONEncode(collectYaisKeybindConfig()))
   end)
 end
 
@@ -5504,8 +5504,8 @@ stretchRezConn = nil
 local function applyStretchPreset(index)
     -- Se il tracker è attivo, non siamo in fase di forzatura (lock) e l'utente sceglie un valore diverso da X1,
     -- aggiorna l'indice salvato in modo che il salvataggio usi quello.
-    if not _G._MetroDuelstretchUILock and _G.MetroTrackerActive then
-        _G.MetroTrackerSavedStretchIndex = index
+    if not _G._YaisDuelstretchUILock and _G.YaisTrackerActive then
+        _G.YaisTrackerSavedStretchIndex = index
     end
 
     stretchCurrentIndex = index
@@ -5531,8 +5531,8 @@ local function applyStretchPreset(index)
             end
         end)
     end
-    if not _G._MetroDuelstretchUILock and _G.MetroRefreshStretchSelector then
-        _G.MetroRefreshStretchSelector()
+    if not _G._YaisDuelstretchUILock and _G.YaisRefreshStretchSelector then
+        _G.YaisRefreshStretchSelector()
     end
 end
 
@@ -5561,28 +5561,28 @@ _G.StretchRez = {
     getOrder = function() return stretchPresetOrder end,
 }
 
-function loadMetroConfig()
-  if not canSaveConfig or not _Metro_isfile(CONFIG_FILE) then return end
+function loadYaisConfig()
+  if not canSaveConfig or not _Yais_isfile(CONFIG_FILE) then return end
   local ok, data = pcall(function()
-    return HttpService:JSONDecode(_Metro_readfile(CONFIG_FILE))
+    return HttpService:JSONDecode(_Yais_readfile(CONFIG_FILE))
   end)
   if not ok or type(data) ~= "table" then return end
   savedConfig = data
   local keybindData = data
   pcall(function()
-    if _Metro_isfile(KEYBINDS_CONFIG_FILE) then
-      local kb = HttpService:JSONDecode(_Metro_readfile(KEYBINDS_CONFIG_FILE))
+    if _Yais_isfile(KEYBINDS_CONFIG_FILE) then
+      local kb = HttpService:JSONDecode(_Yais_readfile(KEYBINDS_CONFIG_FILE))
       if type(kb) == "table" then keybindData = kb end
     end
   end)
   savedMainPositionTable = data.mainPosition
   savedMiniPositionTable = nil
   savedStealBarPositionTable = type(data.stealBarPosition) == "table" and data.stealBarPosition or nil
-  _G.MetroGuiLocked = data.guiLocked == true
-  _G.MetroHideMobileButtons = data.hideMobileButtons == true
-  _G.MetroMobileHideList = (type(data.mobileHideList) == "table") and data.mobileHideList or {}
-  _G.MetroMobileButtonScale = math.clamp(tonumber(data.MetroMobileButtonScale) or tonumber(_G.MetroMobileButtonScale) or 0.75, 0.30, 1.35)
-  _G.MetroMobileButtonPositions = type(data.mobileButtonPositions) == "table" and data.mobileButtonPositions or {}
+  _G.YaisGuiLocked = data.guiLocked == true
+  _G.YaisHideMobileButtons = data.hideMobileButtons == true
+  _G.YaisMobileHideList = (type(data.mobileHideList) == "table") and data.mobileHideList or {}
+  _G.YaisMobileButtonScale = math.clamp(tonumber(data.YaisMobileButtonScale) or tonumber(_G.YaisMobileButtonScale) or 0.75, 0.30, 1.35)
+  _G.YaisMobileButtonPositions = type(data.mobileButtonPositions) == "table" and data.mobileButtonPositions or {}
   applySavedKeybinds(keybindData.keybinds)
   if keybindData.tpDownKeybind ~= nil then
     if tostring(keybindData.tpDownKeybind) == "None" then
@@ -5604,39 +5604,39 @@ function loadMetroConfig()
   currentSpeedMode = data.currentSpeedMode or currentSpeedMode
   if currentSpeedMode ~= "Normal" and currentSpeedMode ~= "Carry" and currentSpeedMode ~= "Lagger" and currentSpeedMode ~= "Lagger Carry" then currentSpeedMode = "Normal" end
   autoCarrySpeedEnabled = data.autoCarrySpeedEnabled == true
-  _G._MetroAutoCarryMode = (data.autoCarryMode == "SOFT") and "SOFT" or "NORMAL"
+  _G._YaisAutoCarryMode = (data.autoCarryMode == "SOFT") and "SOFT" or "NORMAL"
   autoTPEnabled = data.autoTPEnabled == true
   autoTPHeight = tonumber(data.autoTPHeight) or autoTPHeight
   -- >>> TP DOWN METHOD <<<
   local _tpm = data.tpDownMethod
-  _G._MetroTPDownMethod = (_tpm == "SLOW" or _tpm == "ZIGZAG") and _tpm or "NORMAL"
+  _G._YaisTPDownMethod = (_tpm == "SLOW" or _tpm == "ZIGZAG") and _tpm or "NORMAL"
   infJumpEnabled = data.infJumpEnabled == true
   if data.infJumpMode == "MANUAL" then infJumpMode = "MANUAL" else infJumpMode = "HOLD" end
-  _G.MetroLookAtEnabled = data.lookAtEnabled == true
-  _G.MetroLookAtRadius  = math.clamp(tonumber(data.lookAtRadius) or 20, 1, 200)
+  _G.YaisLookAtEnabled = data.lookAtEnabled == true
+  _G.YaisLookAtRadius  = math.clamp(tonumber(data.lookAtRadius) or 20, 1, 200)
   antiRagdollEnabled = data.antiRagdollEnabled == true
-  _G._MetroAntiRagdollMode = (data.antiRagdollMode == "V2") and "V2" or "V1"
+  _G._YaisAntiRagdollMode = (data.antiRagdollMode == "V2") and "V2" or "V1"
   -- >>> TP RAGDOLL <<< il watcher va acceso o spento davvero, non basta
   -- il flag: e' lui che guarda lo stato del personaggio.
-  if _G.MetroTPRagdoll and _G.MetroTPRagdoll.set then
-    pcall(_G.MetroTPRagdoll.set, data.tpRagdollEnabled == true)
+  if _G.YaisTPRagdoll and _G.YaisTPRagdoll.set then
+    pcall(_G.YaisTPRagdoll.set, data.tpRagdollEnabled == true)
   else
-    _G.MetroTPRagdollEnabled = data.tpRagdollEnabled == true
+    _G.YaisTPRagdollEnabled = data.tpRagdollEnabled == true
   end
   antiDieEnabled = data.antiDieEnabled == true
-  _G._MetroAntiDieUserWanted = antiDieEnabled
+  _G._YaisAntiDieUserWanted = antiDieEnabled
   selectedDropMode = data.selectedDropMode or selectedDropMode
-  _G.MetroInstantResetVersion = math.clamp(tonumber(data.instantResetVersion) or 1, 1, 2)
-  if _G.MetroAfterDrop then
-    _G.MetroAfterDrop.enabled = data.afterDropEnabled == true
-    _G.MetroAfterDrop.action  = (data.afterDropAction == "TPBAT") and "TPBAT" or "AIMBOT"
+  _G.YaisInstantResetVersion = math.clamp(tonumber(data.instantResetVersion) or 1, 1, 2)
+  if _G.YaisAfterDrop then
+    _G.YaisAfterDrop.enabled = data.afterDropEnabled == true
+    _G.YaisAfterDrop.action  = (data.afterDropAction == "TPBAT") and "TPBAT" or "AIMBOT"
   end
   if selectedDropMode ~= "Stand Still" then selectedDropMode = "TP UP" end
   selectedStealMode = data.selectedStealMode or selectedStealMode
   if selectedStealMode ~= "Semi" then selectedStealMode = "Normal" end
-  _G.MetroRadiusCircleEnabled = data.radiusCircleEnabled == true   -- >>> RADIUS CIRCLE <<<
+  _G.YaisRadiusCircleEnabled = data.radiusCircleEnabled == true   -- >>> RADIUS CIRCLE <<<
   if type(data.radiusCircleColor) == "table" then
-    _G.MetroRadiusCircleColor = Color3.fromRGB(
+    _G.YaisRadiusCircleColor = Color3.fromRGB(
       math.clamp(tonumber(data.radiusCircleColor[1]) or 230, 0, 255),
       math.clamp(tonumber(data.radiusCircleColor[2]) or 230, 0, 255),
       math.clamp(tonumber(data.radiusCircleColor[3]) or 230, 0, 255)
@@ -5645,54 +5645,54 @@ function loadMetroConfig()
   selectedSemiMode = data.selectedSemiMode or selectedSemiMode
   if selectedSemiMode ~= "V2" and selectedSemiMode ~= "V3" then selectedSemiMode = "V1" end
   autoStealEnabled = data.autoStealEnabled == true
-  _G._MetroDuelsyncAfterHit.enabled = data.syncAfterHitEnabled == true
-  if type(data.MetroDuelstealRadii) == "table" then
-    _G.MetroDuelstealRadii.Normal = tonumber(data.MetroDuelstealRadii.Normal) or _G.MetroDuelstealRadii.Normal or 62
-    _G.MetroDuelstealRadii.Semi = tonumber(data.MetroDuelstealRadii.Semi) or _G.MetroDuelstealRadii.Semi or 60
-    _G.MetroDuelstealRadii.SemiV2Radius = tonumber(data.MetroDuelstealRadii.SemiV2Radius) or _G.MetroDuelstealRadii.SemiV2Radius or 60
-    _G.MetroDuelstealRadii.SemiV2SemiRadius = tonumber(data.MetroDuelstealRadii.SemiV2SemiRadius) or _G.MetroDuelstealRadii.SemiV2SemiRadius or 8
+  _G._YaisDuelsyncAfterHit.enabled = data.syncAfterHitEnabled == true
+  if type(data.YaisDuelstealRadii) == "table" then
+    _G.YaisDuelstealRadii.Normal = tonumber(data.YaisDuelstealRadii.Normal) or _G.YaisDuelstealRadii.Normal or 62
+    _G.YaisDuelstealRadii.Semi = tonumber(data.YaisDuelstealRadii.Semi) or _G.YaisDuelstealRadii.Semi or 60
+    _G.YaisDuelstealRadii.SemiV2Radius = tonumber(data.YaisDuelstealRadii.SemiV2Radius) or _G.YaisDuelstealRadii.SemiV2Radius or 60
+    _G.YaisDuelstealRadii.SemiV2SemiRadius = tonumber(data.YaisDuelstealRadii.SemiV2SemiRadius) or _G.YaisDuelstealRadii.SemiV2SemiRadius or 8
   end
   -- Fix: aggiorna il corretto slot di StealRadii in base al modo selezionato
   local _loadedRadius = tonumber(data.autoStealRadius) or autoStealRadius
-  if not (type(data.MetroDuelstealRadii) == "table") then
-    -- Config vecchio senza MetroDuelstealRadii: usa autoStealRadius per il modo corretto
+  if not (type(data.YaisDuelstealRadii) == "table") then
+    -- Config vecchio senza YaisDuelstealRadii: usa autoStealRadius per il modo corretto
     if selectedStealMode == "Semi" then
-      _G.MetroDuelstealRadii.Semi = _loadedRadius
+      _G.YaisDuelstealRadii.Semi = _loadedRadius
     else
-      _G.MetroDuelstealRadii.Normal = _loadedRadius
+      _G.YaisDuelstealRadii.Normal = _loadedRadius
     end
   end
   autoStealRadius = _loadedRadius
   -- Ripristina valori semi steal
-  -- (MetroDuelsemiSteal non è ancora inizializzato qui, li salviamo in pending)
-  _G._MetroDuelsemiStealPending = {
+  -- (YaisDuelsemiSteal non è ancora inizializzato qui, li salviamo in pending)
+  _G._YaisDuelsemiStealPending = {
     autoGrabStopTime       = math.clamp(tonumber(data.semiAutoGrabStopTime) or 1.29, 0.01, 1.29),
     autoGrabStopPercent    = math.clamp(tonumber(data.semiAutoGrabStopPercent) or 75, 1, 100),
     autoGrabSetDelayRadius = tonumber(data.semiAutoGrabDelayRadius) or 8,
   }
-  if _G.MetroDuelsemiSteal then
-    local A = _G.MetroDuelsemiSteal
-    A.autoGrabStopTime       = _G._MetroDuelsemiStealPending.autoGrabStopTime
-    A.autoGrabStopPercent    = _G._MetroDuelsemiStealPending.autoGrabStopPercent
-    A.autoGrabSetDelayRadius = _G._MetroDuelsemiStealPending.autoGrabSetDelayRadius
+  if _G.YaisDuelsemiSteal then
+    local A = _G.YaisDuelsemiSteal
+    A.autoGrabStopTime       = _G._YaisDuelsemiStealPending.autoGrabStopTime
+    A.autoGrabStopPercent    = _G._YaisDuelsemiStealPending.autoGrabStopPercent
+    A.autoGrabSetDelayRadius = _G._YaisDuelsemiStealPending.autoGrabSetDelayRadius
     A.autoGrabStopEnabled    = true
   end
   -- Applica i radii SemiV2 all'engine se già inizializzato
-  if _G.MetroDuelsemiV2Steal then
-    local B = _G.MetroDuelsemiV2Steal
-    B.radius     = _G.MetroDuelstealRadii.SemiV2Radius     or B.radius     or 60
-    B.semiRadius = _G.MetroDuelstealRadii.SemiV2SemiRadius or B.semiRadius or 8
+  if _G.YaisDuelsemiV2Steal then
+    local B = _G.YaisDuelsemiV2Steal
+    B.radius     = _G.YaisDuelstealRadii.SemiV2Radius     or B.radius     or 60
+    B.semiRadius = _G.YaisDuelstealRadii.SemiV2SemiRadius or B.semiRadius or 8
   end
   if selectedStealMode == "Normal" then
-    _G.MetroDuelstealRadii.Normal = _G.MetroDuelstealRadii.Normal or autoStealRadius or 62
-    autoStealRadius = _G.MetroDuelstealRadii.Normal
+    _G.YaisDuelstealRadii.Normal = _G.YaisDuelstealRadii.Normal or autoStealRadius or 62
+    autoStealRadius = _G.YaisDuelstealRadii.Normal
   elseif selectedSemiMode == "V2" then
     -- In Semi V2 autoStealRadius non viene usato per il radius del loop; usa SemiV2Radius
-    _G.MetroDuelstealRadii.SemiV2Radius = _G.MetroDuelstealRadii.SemiV2Radius or 60
-    autoStealRadius = _G.MetroDuelstealRadii.SemiV2Radius
+    _G.YaisDuelstealRadii.SemiV2Radius = _G.YaisDuelstealRadii.SemiV2Radius or 60
+    autoStealRadius = _G.YaisDuelstealRadii.SemiV2Radius
   else
-    _G.MetroDuelstealRadii.Semi = _G.MetroDuelstealRadii.Semi or autoStealRadius or 60
-    autoStealRadius = _G.MetroDuelstealRadii.Semi
+    _G.YaisDuelstealRadii.Semi = _G.YaisDuelstealRadii.Semi or autoStealRadius or 60
+    autoStealRadius = _G.YaisDuelstealRadii.Semi
   end
   selectedAimbotMode = data.selectedAimbotMode or selectedAimbotMode
   -- compatibilita' con le config salvate prima della rinomina in Bat Aimbot V1/V2
@@ -5705,63 +5705,63 @@ function loadMetroConfig()
   LAGGER_AIMBOT_SPEED = tonumber(data.LAGGER_AIMBOT_SPEED) or LAGGER_AIMBOT_SPEED
   local _v2Spd = data.BAT_AIMBOT_V2_SPEED or data.ANTI_BYPASS_AIMBOT_SPEED
   local _v2Lag = data.BAT_AIMBOT_V2_LAGGER_SPEED or data.ANTI_BYPASS_LAGGER_AIMBOT_SPEED
-  _G.MetroBatAimbotV2Speed = tonumber(_v2Spd) or _G.MetroBatAimbotV2Speed or 58
+  _G.YaisBatAimbotV2Speed = tonumber(_v2Spd) or _G.YaisBatAimbotV2Speed or 58
   if _v2Lag == nil or tonumber(_v2Lag) == 58 then
-    _G.MetroBatAimbotV2LaggerSpeed = 40
+    _G.YaisBatAimbotV2LaggerSpeed = 40
   else
-    _G.MetroBatAimbotV2LaggerSpeed = tonumber(_v2Lag) or 40
+    _G.YaisBatAimbotV2LaggerSpeed = tonumber(_v2Lag) or 40
   end
   TP_BAT_SPEED = tonumber(data.TP_BAT_SPEED) or TP_BAT_SPEED or 58
   autoSwingEnabled = data.autoSwingEnabled == true
   mirrorTPDownEnabled = data.mirrorTPDownEnabled == true
-  _G.MetroNormalAimbotOn = data.normalAimbotEnabled == true
-  _G.MetroBatAimbotV2On = (data.batAimbotV2Enabled == true) or (data.antiBypassAimbotEnabled == true)
+  _G.YaisNormalAimbotOn = data.normalAimbotEnabled == true
+  _G.YaisBatAimbotV2On = (data.batAimbotV2Enabled == true) or (data.antiBypassAimbotEnabled == true)
   -- >>> AIMBOT CHASE MODE BEGIN
-  _G._MetroAimbotChase = _G._MetroAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
-  _G._MetroAimbotChase.V1 = (data.aimbotChaseV1 == "BYPASS") and "BYPASS" or "NORMAL"
-  _G._MetroAimbotChase.V2 = (data.aimbotChaseV2 == "BYPASS") and "BYPASS" or "NORMAL"
+  _G._YaisAimbotChase = _G._YaisAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
+  _G._YaisAimbotChase.V1 = (data.aimbotChaseV1 == "BYPASS") and "BYPASS" or "NORMAL"
+  _G._YaisAimbotChase.V2 = (data.aimbotChaseV2 == "BYPASS") and "BYPASS" or "NORMAL"
   -- <<< AIMBOT CHASE MODE END
   tpBatAutoSwingEnabled = data.tpBatAutoSwingEnabled == true
-  -- Il do-block TP Bat viene eseguito DOPO loadMetroConfig, quindi il bridge
-  -- _G._MetroDuelsetTPBatCameraLock non esiste ancora qui. Usiamo un pending value
-  -- (stesso pattern di _MetroDuelsemiStealPending) che il do-block consuma all'avvio.
-  if _G._MetroDuelsetTPBatCameraLock then
-    _G._MetroDuelsetTPBatCameraLock(data.tpBatCameraLockEnabled == true)
+  -- Il do-block TP Bat viene eseguito DOPO loadYaisConfig, quindi il bridge
+  -- _G._YaisDuelsetTPBatCameraLock non esiste ancora qui. Usiamo un pending value
+  -- (stesso pattern di _YaisDuelsemiStealPending) che il do-block consuma all'avvio.
+  if _G._YaisDuelsetTPBatCameraLock then
+    _G._YaisDuelsetTPBatCameraLock(data.tpBatCameraLockEnabled == true)
   else
-    _G._MetroTPBatCameraLockPending = data.tpBatCameraLockEnabled == true
+    _G._YaisTPBatCameraLockPending = data.tpBatCameraLockEnabled == true
   end
-  _G.MetroTPBatOn = data.tpBatEnabled == true
+  _G.YaisTPBatOn = data.tpBatEnabled == true
   -- >>> TP BAT VERSIONS <<<
-  _G.MetroTPBatVersion = math.clamp(tonumber(data.tpBatVersion) or 1, 1, 5)
+  _G.YaisTPBatVersion = math.clamp(tonumber(data.tpBatVersion) or 1, 1, 5)
   batCounterEnabled = data.batCounterEnabled == true
   if data.batCounterMode == "V2" then batCounterMode = "V2" else batCounterMode = "V1" end
   medCounterEnabled = data.medCounterEnabled == true
 
-  _G.MetroAntiBatEnabled          = data.antiBatEnabled == true   -- >>> ANTI BAT <<<
+  _G.YaisAntiBatEnabled          = data.antiBatEnabled == true   -- >>> ANTI BAT <<<
 
   antiKickEnabled = data.safeMode == true
   espEnabled = data.espEnabled == true
-  _G.MetroESPOn = espEnabled   -- >>> ANTI VOID <<<
+  _G.YaisESPOn = espEnabled   -- >>> ANTI VOID <<<
   showTrackerEnabled = data.showTrackerEnabled == true
   ragdollCountdownEnabled = data.ragdollCountdownEnabled == true
   fpsBoostEnabled = data.fpsBoostEnabled == true
   antiLagVisualEnabled = data.antiLagVisualEnabled == true
   vividGraphicsEnabled = data.vividGraphicsEnabled == true
-  if data.vividSaturation then _G._MetroVivid.saturation = math.clamp(tonumber(data.vividSaturation) or 0.6, 0, 2) end
-  if data.vividBloomIntensity then _G._MetroVivid.bloomIntensity = math.clamp(tonumber(data.vividBloomIntensity) or 0.8, 0, 3) end
-  if data.vividBloomSize then _G._MetroVivid.bloomSize = math.clamp(tonumber(data.vividBloomSize) or 24, 1, 56) end
-  if data.vividDofFocus then _G._MetroVivid.dofFocus = math.clamp(tonumber(data.vividDofFocus) or 25, 1, 100) end
-  if data.vividSunIntensity then _G._MetroVivid.sunIntensity = math.clamp(tonumber(data.vividSunIntensity) or 0.2, 0, 1) end
+  if data.vividSaturation then _G._YaisVivid.saturation = math.clamp(tonumber(data.vividSaturation) or 0.6, 0, 2) end
+  if data.vividBloomIntensity then _G._YaisVivid.bloomIntensity = math.clamp(tonumber(data.vividBloomIntensity) or 0.8, 0, 3) end
+  if data.vividBloomSize then _G._YaisVivid.bloomSize = math.clamp(tonumber(data.vividBloomSize) or 24, 1, 56) end
+  if data.vividDofFocus then _G._YaisVivid.dofFocus = math.clamp(tonumber(data.vividDofFocus) or 25, 1, 100) end
+  if data.vividSunIntensity then _G._YaisVivid.sunIntensity = math.clamp(tonumber(data.vividSunIntensity) or 0.2, 0, 1) end
   xrayEnabled = data.xrayEnabled == true
-  _G.MetroBrainrotXRayEnabled = data.brainrotXRayEnabled == true   -- >>> BRAINROT X-RAY <<<
+  _G.YaisBrainrotXRayEnabled = data.brainrotXRayEnabled == true   -- >>> BRAINROT X-RAY <<<
   highPingWarningEnabled = data.highPingWarningEnabled == true
-  _G._MetroKickWarn.enabled = data.kickWarningEnabled == true
-  _G.MetroUAKEnabled = data.ultimateAntiKick == true
+  _G._YaisKickWarn.enabled = data.kickWarningEnabled == true
+  _G.YaisUAKEnabled = data.ultimateAntiKick == true
   fovEnabled = data.fovEnabled == true
   fovValue = tonumber(data.fovValue) or fovValue
   noCamCollisionEnabled = data.noCamCollisionEnabled == true
   motionBlurEnabled = data.motionBlurEnabled == true
-  _G.MetroNoPlayerCollisionEnabled = data.noPlayerCollisionEnabled == true
+  _G.YaisNoPlayerCollisionEnabled = data.noPlayerCollisionEnabled == true
   unwalkEnabled = data.unwalkEnabled == true
   skyTheme = (type(data.skyTheme) == "string" and data.skyTheme) or skyTheme
   -- Migrazione: vecchio preset "Tech" rinominato in "Cyber"
@@ -5772,7 +5772,7 @@ function loadMetroConfig()
       local savedOn  = data.stretchEnabled == true
       -- >>> STRETCH REZ <<< il valore scelto nella tendina: X1 non e' una
       -- scelta possibile, quindi si ricade su X1.5.
-      _G.MetroDuelstretchPick = (savedIdx > 1) and savedIdx or 2
+      _G.YaisDuelstretchPick = (savedIdx > 1) and savedIdx or 2
       -- Ripristina l'indice e lo stato (X1 = off, qualsiasi altro = on)
       if savedOn and savedIdx ~= 1 then
           applyStretchPreset(savedIdx)
@@ -5788,43 +5788,43 @@ function loadMetroConfig()
   -- restore(), che e' dove sta tutta la regola.
   _G._AmbAutoPlaySavedJob  = (type(data.autoPlayJob) == "string" and data.autoPlayJob ~= "") and data.autoPlayJob or nil
   _G._AmbAutoPlaySavedSide = (data.autoPlaySide == "L" or data.autoPlaySide == "R") and data.autoPlaySide or nil
-  if _G.MetroAutoPlay and _G.MetroAutoPlay.restore then
-    pcall(_G.MetroAutoPlay.restore)
+  if _G.YaisAutoPlay and _G.YaisAutoPlay.restore then
+    pcall(_G.YaisAutoPlay.restore)
   end
   headlessEnabled = data.headlessEnabled == true
   korbloxEnabled = data.korbloxEnabled == true
 
   -- >>> ANTI TP BAT <<<
-  _G.MetroAntiTPBatEnabled        = data.antiTPBatEnabled == true
-  _G.MetroAntiTPBatSpam           = data.antiTPBatSpam == true
-  _G.MetroAntiTPBatVersion        = math.clamp(tonumber(data.antiTPBatVersion) or 1, 1, 4)
-  _G.MetroAntiVoidEnabled         = data.antiVoidEnabled == true   -- >>> ANTI VOID <<<
+  _G.YaisAntiTPBatEnabled        = data.antiTPBatEnabled == true
+  _G.YaisAntiTPBatSpam           = data.antiTPBatSpam == true
+  _G.YaisAntiTPBatVersion        = math.clamp(tonumber(data.antiTPBatVersion) or 1, 1, 4)
+  _G.YaisAntiVoidEnabled         = data.antiVoidEnabled == true   -- >>> ANTI VOID <<<
   -- >>> RAINBOW MOBILE JOYSTICK BEGIN
   -- Qui si legge soltanto: il modulo non esiste ancora a questo punto del
   -- file, l'avvio avviene subito dopo la sua definizione.
-  _G.MetroRainbowJoystickEnabled  = data.rainbowJoystickEnabled == true
+  _G.YaisRainbowJoystickEnabled  = data.rainbowJoystickEnabled == true
   -- <<< RAINBOW MOBILE JOYSTICK END
-  _G.MetroRainbowToolsEnabled     = data.rainbowToolsEnabled == true
-  _G.MetroTransparentToolsEnabled = data.transparentToolsEnabled == true
-  _G.MetroCustomToolsEnabled      = data.customToolsEnabled == true
-  _G.MetroCustomToolSkins = _G.MetroCustomToolSkins or {}
-  _G.MetroCustomToolSkins.Bat    = data.customToolSkinBat or "DiamondSword"
-  _G.MetroCustomToolSkins.Medusa = data.customToolSkinMedusa or "GoldenDesertEagle" 
-  _G.MetroCustomSoundsEnabled     = data.customSoundsEnabled == true
+  _G.YaisRainbowToolsEnabled     = data.rainbowToolsEnabled == true
+  _G.YaisTransparentToolsEnabled = data.transparentToolsEnabled == true
+  _G.YaisCustomToolsEnabled      = data.customToolsEnabled == true
+  _G.YaisCustomToolSkins = _G.YaisCustomToolSkins or {}
+  _G.YaisCustomToolSkins.Bat    = data.customToolSkinBat or "DiamondSword"
+  _G.YaisCustomToolSkins.Medusa = data.customToolSkinMedusa or "GoldenDesertEagle" 
+  _G.YaisCustomSoundsEnabled     = data.customSoundsEnabled == true
 
   if type(data.avatarChanger) == "table" then
-    -- _G._MetroAvatarChanger non esiste ancora (viene creato dopo),
+    -- _G._YaisAvatarChanger non esiste ancora (viene creato dopo),
     -- salviamo i dati in pending e li applichiamo all'inizializzazione del blocco
-    _G._MetroAvatarChangerPending = data.avatarChanger
+    _G._YaisAvatarChangerPending = data.avatarChanger
   end
   selectedAnimPackIndex = math.clamp(tonumber(data.selectedAnimPackIndex) or 1, 1, 7)
   _animPackSavedIndex = math.clamp(tonumber(data.animPackSavedIndex) or 1, 1, 7)
   -- >>> CUSTOM ANIM PACK BEGIN
   if type(data.customAnimIds) == "table" then
-    for _, slot in ipairs(_G.MetroCustomAnimSlots) do
+    for _, slot in ipairs(_G.YaisCustomAnimSlots) do
       local v = data.customAnimIds[slot]
       -- Solo cifre: qualsiasi altra cosa e' spazzatura e va scartata.
-      _G.MetroCustomAnimIds[slot] =
+      _G.YaisCustomAnimIds[slot] =
         (type(v) == "string" and v:match("^%d+$")) and v or ""
     end
   end
@@ -5851,18 +5851,18 @@ function loadMetroConfig()
   end
 end
 
-loadMetroConfig()
+loadYaisConfig()
 
 
-_G.MetroCounterState = _G.MetroCounterState or {}
-_G.MetroCounterState.batConn = nil
-_G.MetroCounterState.batDebounce = false
-_G.MetroCounterState.medConns = _G.MetroCounterState.medConns or {}
-_G.MetroCounterState.medDebounce = false
-_G.MetroCounterState.medLastUsed = _G.MetroCounterState.medLastUsed or 0
-_G.MetroMedusaCooldown = 25
+_G.YaisCounterState = _G.YaisCounterState or {}
+_G.YaisCounterState.batConn = nil
+_G.YaisCounterState.batDebounce = false
+_G.YaisCounterState.medConns = _G.YaisCounterState.medConns or {}
+_G.YaisCounterState.medDebounce = false
+_G.YaisCounterState.medLastUsed = _G.YaisCounterState.medLastUsed or 0
+_G.YaisMedusaCooldown = 25
 
-function _G.MetroFindMedusa()
+function _G.YaisFindMedusa()
   local c = LP.Character
   if not c then return nil end
   for _, t in ipairs(c:GetChildren()) do
@@ -5883,16 +5883,16 @@ function _G.MetroFindMedusa()
   return nil
 end
 
-function _G.MetroUseMedusaCounter()
+function _G.YaisUseMedusaCounter()
   if not medCounterEnabled then return end
-  if _G.MetroCounterState.medDebounce then return end
-  if tick() - (_G.MetroCounterState.medLastUsed or 0) < _G.MetroMedusaCooldown then return end
+  if _G.YaisCounterState.medDebounce then return end
+  if tick() - (_G.YaisCounterState.medLastUsed or 0) < _G.YaisMedusaCooldown then return end
   local c = LP.Character
   if not c then return end
-  _G.MetroCounterState.medDebounce = true
-  local med = _G.MetroFindMedusa()
+  _G.YaisCounterState.medDebounce = true
+  local med = _G.YaisFindMedusa()
   if not med then
-    _G.MetroCounterState.medDebounce = false
+    _G.YaisCounterState.medDebounce = false
     return
   end
   if med.Parent ~= c then
@@ -5901,55 +5901,55 @@ function _G.MetroUseMedusaCounter()
     task.wait(0.05)
   end
   pcall(function() med:Activate() end)
-  _G.MetroCounterState.medLastUsed = tick()
-  _G.MetroCounterState.medDebounce = false
+  _G.YaisCounterState.medLastUsed = tick()
+  _G.YaisCounterState.medDebounce = false
 end
 
-function _G.MetroOnMedusaAnchorChanged(part)
+function _G.YaisOnMedusaAnchorChanged(part)
   return part:GetPropertyChangedSignal("Anchored"):Connect(function()
     if part.Anchored and part.Transparency == 1 then
       if medCounterEnabled then
-        _G.MetroUseMedusaCounter()
+        _G.YaisUseMedusaCounter()
       end
     end
   end)
 end
 
-function _G.MetroDuelstartMedCounter(char)
-  _G.MetroDuelstopMedCounter()
+function _G.YaisDuelstartMedCounter(char)
+  _G.YaisDuelstopMedCounter()
   char = char or LP.Character
   if not char then return end
   for _, part in ipairs(char:GetDescendants()) do
     if part:IsA("BasePart") then
-      table.insert(_G.MetroCounterState.medConns, _G.MetroOnMedusaAnchorChanged(part))
+      table.insert(_G.YaisCounterState.medConns, _G.YaisOnMedusaAnchorChanged(part))
     end
   end
-  table.insert(_G.MetroCounterState.medConns, char.DescendantAdded:Connect(function(part)
+  table.insert(_G.YaisCounterState.medConns, char.DescendantAdded:Connect(function(part)
     if part:IsA("BasePart") then
-      table.insert(_G.MetroCounterState.medConns, _G.MetroOnMedusaAnchorChanged(part))
+      table.insert(_G.YaisCounterState.medConns, _G.YaisOnMedusaAnchorChanged(part))
     end
   end))
 end
 
-function _G.MetroDuelstopMedCounter()
-  for _, c in pairs(_G.MetroCounterState.medConns or {}) do
+function _G.YaisDuelstopMedCounter()
+  for _, c in pairs(_G.YaisCounterState.medConns or {}) do
     pcall(function() c:Disconnect() end)
   end
-  _G.MetroCounterState.medConns = {}
-  _G.MetroCounterState.medDebounce = false
+  _G.YaisCounterState.medConns = {}
+  _G.YaisCounterState.medDebounce = false
 end
 
 -- true SOLO durante la finestra di counter del Bat Counter V2:
 -- fa ignorare al TP Bat la distanza minima di snap (come il Bat Aimbot V2)
-_G.MetroBatCounterV2On = false
+_G.YaisBatCounterV2On = false
 
-_G.MetroBatCounterSlapList = {"Bat", "Slap", "Iron Slap", "Gold Slap", "Diamond Slap", "Emerald Slap", "Ruby Slap", "Dark Matter Slap", "Flame Slap", "Nuclear Slap", "Galaxy Slap", "Glitched Slap"}
+_G.YaisBatCounterSlapList = {"Bat", "Slap", "Iron Slap", "Gold Slap", "Diamond Slap", "Emerald Slap", "Ruby Slap", "Dark Matter Slap", "Flame Slap", "Nuclear Slap", "Galaxy Slap", "Glitched Slap"}
 
-function _G.MetroFindBatForCounter()
+function _G.YaisFindBatForCounter()
   local c = LP.Character
   if not c then return nil end
   local bp = LP:FindFirstChildOfClass("Backpack") or LP:FindFirstChild("Backpack")
-  for _, name in ipairs(_G.MetroBatCounterSlapList) do
+  for _, name in ipairs(_G.YaisBatCounterSlapList) do
     local t = c:FindFirstChild(name) or (bp and bp:FindFirstChild(name))
     if t then return t end
   end
@@ -5964,7 +5964,7 @@ function _G.MetroFindBatForCounter()
   return nil
 end
 
-function _G.MetroDuelswingBatForCounter(bat, char)
+function _G.YaisDuelswingBatForCounter(bat, char)
   if not bat or not char then return end
   local hum = char:FindFirstChildOfClass("Humanoid")
   if bat.Parent ~= char then
@@ -5983,7 +5983,7 @@ function _G.MetroDuelswingBatForCounter(bat, char)
   end
 end
 
-function _G.MetroCounterIsRagdoll(hum)
+function _G.YaisCounterIsRagdoll(hum)
   if not hum then return false end
   local st = hum:GetState()
   return st == Enum.HumanoidStateType.Physics
@@ -5993,7 +5993,7 @@ function _G.MetroCounterIsRagdoll(hum)
 end
 
 -- Versione usata dal bat counter: esclude FallingDown (piccoli bump non devono triggerare)
-function _G.MetroCounterIsRagdollForBat(hum)
+function _G.YaisCounterIsRagdollForBat(hum)
   if not hum then return false end
   local st = hum:GetState()
   return st == Enum.HumanoidStateType.Physics
@@ -6012,30 +6012,30 @@ end
 -- Il lock e' a TEMPO, non sullo stato: se il watcher non vede nulla
 -- il counter parte normalmente.
 -- ============================================================
-_G.MetroBatCounterRagdollSeconds = _G.MetroBatCounterRagdollSeconds or 2.6
-_G.MetroBatCounterEnemyLock = _G.MetroBatCounterEnemyLock or {}
-_G.MetroBatCounterWatchConns = _G.MetroBatCounterWatchConns or {}
+_G.YaisBatCounterRagdollSeconds = _G.YaisBatCounterRagdollSeconds or 2.6
+_G.YaisBatCounterEnemyLock = _G.YaisBatCounterEnemyLock or {}
+_G.YaisBatCounterWatchConns = _G.YaisBatCounterWatchConns or {}
 
-function _G.MetroBCMarkEnemyRagdoll(plr)
+function _G.YaisBCMarkEnemyRagdoll(plr)
   if not plr or plr == LP then return end
-  local secs = tonumber(_G.MetroBatCounterRagdollSeconds) or 2.6
-  _G.MetroBatCounterEnemyLock[plr] = tick() + secs
+  local secs = tonumber(_G.YaisBatCounterRagdollSeconds) or 2.6
+  _G.YaisBatCounterEnemyLock[plr] = tick() + secs
 end
 
-function _G.MetroDuelstopBatCounterWatcher()
-  local conns = _G.MetroBatCounterWatchConns
+function _G.YaisDuelstopBatCounterWatcher()
+  local conns = _G.YaisBatCounterWatchConns
   for k, c in pairs(conns) do
     pcall(function() c:Disconnect() end)
     conns[k] = nil
   end
-  for k in pairs(_G.MetroBatCounterEnemyLock) do
-    _G.MetroBatCounterEnemyLock[k] = nil
+  for k in pairs(_G.YaisBatCounterEnemyLock) do
+    _G.YaisBatCounterEnemyLock[k] = nil
   end
 end
 
-function _G.MetroDuelstartBatCounterWatcher()
-  _G.MetroDuelstopBatCounterWatcher()
-  local conns = _G.MetroBatCounterWatchConns
+function _G.YaisDuelstartBatCounterWatcher()
+  _G.YaisDuelstopBatCounterWatcher()
+  local conns = _G.YaisBatCounterWatchConns
 
   local function hookChar(plr, char)
     if not char then return end
@@ -6043,7 +6043,7 @@ function _G.MetroDuelstartBatCounterWatcher()
     if conns[key] then pcall(function() conns[key]:Disconnect() end) end
     conns[key] = char.DescendantAdded:Connect(function(d)
       if d:IsA("BallSocketConstraint") then
-        _G.MetroBCMarkEnemyRagdoll(plr)
+        _G.YaisBCMarkEnemyRagdoll(plr)
       end
     end)
   end
@@ -6060,7 +6060,7 @@ function _G.MetroDuelstartBatCounterWatcher()
 
   conns["_playerAdded"] = Players.PlayerAdded:Connect(watchPlayer)
   conns["_playerRemoving"] = Players.PlayerRemoving:Connect(function(plr)
-    _G.MetroBatCounterEnemyLock[plr] = nil
+    _G.YaisBatCounterEnemyLock[plr] = nil
     local ka = tostring(plr.UserId) .. "_added"
     local kc = tostring(plr.UserId) .. "_char"
     if conns[ka] then pcall(function() conns[ka]:Disconnect() end) conns[ka] = nil end
@@ -6073,7 +6073,7 @@ function _G.MetroDuelstartBatCounterWatcher()
 end
 
 -- Giocatore piu' vicino a noi (vivo), senza limiti di distanza
-function _G.MetroGetNearestEnemy()
+function _G.YaisGetNearestEnemy()
   local char = LP.Character
   local hrp = char and char:FindFirstChild("HumanoidRootPart")
   if not hrp then return nil end
@@ -6097,20 +6097,20 @@ function _G.MetroGetNearestEnemy()
 end
 
 -- true se il nemico piu' vicino e' stato ragdollato da meno di 2.6s
-function _G.MetroIsNearestEnemyRagdolled()
-  local plr = _G.MetroGetNearestEnemy()
+function _G.YaisIsNearestEnemyRagdolled()
+  local plr = _G.YaisGetNearestEnemy()
   if not plr then return false end
-  local lockUntil = _G.MetroBatCounterEnemyLock[plr]
+  local lockUntil = _G.YaisBatCounterEnemyLock[plr]
   return lockUntil ~= nil and lockUntil > tick()
 end
 
-function _G.MetroDuelstartBatCounter()
-  if _G.MetroCounterState.batConn then return end
-  _G.MetroCounterState.batDebounce = false
-  if _G.MetroDuelstartBatCounterWatcher then pcall(_G.MetroDuelstartBatCounterWatcher) end
-  _G.MetroCounterState.batConn = RunService.Heartbeat:Connect(function()
+function _G.YaisDuelstartBatCounter()
+  if _G.YaisCounterState.batConn then return end
+  _G.YaisCounterState.batDebounce = false
+  if _G.YaisDuelstartBatCounterWatcher then pcall(_G.YaisDuelstartBatCounterWatcher) end
+  _G.YaisCounterState.batConn = RunService.Heartbeat:Connect(function()
     if not batCounterEnabled then return end
-    if _G.MetroCounterState.batDebounce then return end
+    if _G.YaisCounterState.batDebounce then return end
     local char = LP.Character
     if not char then return end
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -6120,33 +6120,33 @@ function _G.MetroDuelstartBatCounter()
     -- Di regola il counter risponde a un hit, quindi qui non deve partire.
     -- Vale per V1 e V2: passano tutte e due da questo punto.
     if hum.Health <= 0 then return end
-    if _G._MetroInstantResetBusy then return end
-    if _G.MetroCounterIsRagdollForBat(hum) then
-      _G.MetroCounterState.batDebounce = true
+    if _G._YaisInstantResetBusy then return end
+    if _G.YaisCounterIsRagdollForBat(hum) then
+      _G.YaisCounterState.batDebounce = true
       -- ANTI DIE QUI, non dentro il task.spawn piu' sotto. Li' arrivava
       -- 0.05s dopo, e questo ramo parte proprio perche' sei GIA' a terra
       -- ragdollato: 0.05s in quella situazione sono un'eternita'. Ora la
       -- protezione sale nello stesso frame in cui il ragdoll viene visto,
       -- prima di qualunque attesa, teletrasporto o swing.
-      if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
+      if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
       if batCounterMode == "V2" then
         -- Se il nemico e' dentro il lock di 2.6s il counter NON parte e questo
         -- hit viene SALTATO del tutto (niente attesa, niente ricontrollo):
         -- il debounce si riapre solo quando usciamo dal nostro ragdoll,
         -- cosi' e' pronto per la volta successiva.
-        if _G.MetroIsNearestEnemyRagdolled then
-          local okRag, enemyRag = pcall(_G.MetroIsNearestEnemyRagdolled)
+        if _G.YaisIsNearestEnemyRagdolled then
+          local okRag, enemyRag = pcall(_G.YaisIsNearestEnemyRagdolled)
           if okRag and enemyRag then
             task.spawn(function()
               local t0 = tick()
               while tick() - t0 < 10 do
                 local c2 = LP.Character
                 local h2 = c2 and c2:FindFirstChildOfClass("Humanoid")
-                if not h2 or not _G.MetroCounterIsRagdollForBat(h2) then break end
+                if not h2 or not _G.YaisCounterIsRagdollForBat(h2) then break end
                 task.wait(0.1)
               end
               task.wait(0.2)
-              _G.MetroCounterState.batDebounce = false
+              _G.YaisCounterState.batDebounce = false
             end)
             return
           end
@@ -6154,20 +6154,20 @@ function _G.MetroDuelstartBatCounter()
         -- V2: salva CFrame, avvia tp bat in parallelo, dopo 0.4s ferma e ritorna
         task.spawn(function()
           task.wait(0.05)
-          local wasTPBatOn = _G.MetroTPBatOn == true
+          local wasTPBatOn = _G.YaisTPBatOn == true
           local hrpNow = char and char:FindFirstChild("HumanoidRootPart")
           local savedCF = hrpNow and hrpNow.CFrame or nil
           -- tp bat parte. Il flag dice al TP Bat di ignorare la distanza minima
           -- di 8 stud, esattamente come fa il Bat Aimbot V2.
-          _G.MetroBatCounterV2On = true
-          if _G.MetroAntiDieAutoSync then _G.MetroAntiDieAutoSync() end
+          _G.YaisBatCounterV2On = true
+          if _G.YaisAntiDieAutoSync then _G.YaisAntiDieAutoSync() end
           if not wasTPBatOn then
-            _G.MetroTPBatSilent = true
-            if _G.MetroDuelstartTPBat then pcall(_G.MetroDuelstartTPBat) end
-            if _G.MetroRefreshMobileButtonStates then pcall(_G.MetroRefreshMobileButtonStates) end
+            _G.YaisTPBatSilent = true
+            if _G.YaisDuelstartTPBat then pcall(_G.YaisDuelstartTPBat) end
+            if _G.YaisRefreshMobileButtonStates then pcall(_G.YaisRefreshMobileButtonStates) end
           end
-          local bat = _G.MetroFindBatForCounter()
-          if bat then task.spawn(function() _G.MetroDuelswingBatForCounter(bat, char) end) end
+          local bat = _G.YaisFindBatForCounter()
+          if bat then task.spawn(function() _G.YaisDuelswingBatForCounter(bat, char) end) end
 
           -- SNAP PROPRIO DEL COUNTER (non dipende dal loop del TP Bat).
           -- Il loop del TP Bat puo' non partire (Safe Mode), essere bloccato
@@ -6181,7 +6181,7 @@ function _G.MetroDuelstartBatCounter()
             local h2 = c2 and c2:FindFirstChild("HumanoidRootPart")
             local hum2 = c2 and c2:FindFirstChildOfClass("Humanoid")
             if not h2 or not hum2 or hum2.Health <= 0 then return end
-            local t2 = _G.MetroGetNearestEnemy and _G.MetroGetNearestEnemy() or nil
+            local t2 = _G.YaisGetNearestEnemy and _G.YaisGetNearestEnemy() or nil
             local tc2 = t2 and t2.Character
             local tr2 = tc2 and tc2:FindFirstChild("HumanoidRootPart")
             if not tr2 then return end
@@ -6189,8 +6189,8 @@ function _G.MetroDuelstartBatCounter()
             -- Se il nemico si e' tpato nel void si va sul punto d'origine,
             -- altrimenti lo snap ci porterebbe fuori mappa dietro di lui.
             local _bcPos = tr2.Position
-            if _G.MetroAntiVoid then
-              _bcPos = _G.MetroAntiVoid.posForPart(tr2, _bcPos)
+            if _G.YaisAntiVoid then
+              _bcPos = _G.YaisAntiVoid.posForPart(tr2, _bcPos)
             end
             -- <<< ANTI VOID END
             pcall(function()
@@ -6202,12 +6202,12 @@ function _G.MetroDuelstartBatCounter()
 
           task.wait(0.4)
           if snapConn then pcall(function() snapConn:Disconnect() end) snapConn = nil end
-          _G.MetroBatCounterV2On = false
-          if _G.MetroAntiDieAutoSync then _G.MetroAntiDieAutoSync() end
+          _G.YaisBatCounterV2On = false
+          if _G.YaisAntiDieAutoSync then _G.YaisAntiDieAutoSync() end
           if not wasTPBatOn then
-            if _G.MetroDuelstopTPBat then pcall(_G.MetroDuelstopTPBat) end
-            _G.MetroTPBatSilent = false
-            if _G.MetroRefreshMobileButtonStates then pcall(_G.MetroRefreshMobileButtonStates) end
+            if _G.YaisDuelstopTPBat then pcall(_G.YaisDuelstopTPBat) end
+            _G.YaisTPBatSilent = false
+            if _G.YaisRefreshMobileButtonStates then pcall(_G.YaisRefreshMobileButtonStates) end
           end
           if savedCF then
             local hrpBack = char and char:FindFirstChild("HumanoidRootPart")
@@ -6219,51 +6219,51 @@ function _G.MetroDuelstartBatCounter()
             end
           end
           task.wait(0.5)
-          _G.MetroCounterState.batDebounce = false
+          _G.YaisCounterState.batDebounce = false
         end)
       else
         -- V1: look at + bat partono insieme, dopo 0.7s si ripristina look at
         task.spawn(function()
-          local wasLookAtEnabled = _G.MetroLookAtEnabled
-          local savedRadius = _G.MetroLookAtRadius
-          _G.MetroLookAtRadius = math.huge
+          local wasLookAtEnabled = _G.YaisLookAtEnabled
+          local savedRadius = _G.YaisLookAtRadius
+          _G.YaisLookAtRadius = math.huge
           -- look at e bat partono insieme
-          if _G.MetroDuelstartLookAt then pcall(_G.MetroDuelstartLookAt) end
-          local bat = _G.MetroFindBatForCounter()
-          if bat then task.spawn(function() _G.MetroDuelswingBatForCounter(bat, char) end) end
+          if _G.YaisDuelstartLookAt then pcall(_G.YaisDuelstartLookAt) end
+          local bat = _G.YaisFindBatForCounter()
+          if bat then task.spawn(function() _G.YaisDuelswingBatForCounter(bat, char) end) end
           task.wait(0.7)
-          _G.MetroLookAtRadius = savedRadius
+          _G.YaisLookAtRadius = savedRadius
           if wasLookAtEnabled then
-            if _G.MetroDuelstartLookAt then pcall(_G.MetroDuelstartLookAt) end
+            if _G.YaisDuelstartLookAt then pcall(_G.YaisDuelstartLookAt) end
           else
-            if _G.MetroDuelstopLookAt then pcall(_G.MetroDuelstopLookAt) end
+            if _G.YaisDuelstopLookAt then pcall(_G.YaisDuelstopLookAt) end
           end
           task.wait(0.5)
-          _G.MetroCounterState.batDebounce = false
+          _G.YaisCounterState.batDebounce = false
         end)
       end
     end
   end)
 end
 
-function _G.MetroDuelstopBatCounter()
-  if _G.MetroCounterState.batConn then
-    _G.MetroCounterState.batConn:Disconnect()
-    _G.MetroCounterState.batConn = nil
+function _G.YaisDuelstopBatCounter()
+  if _G.YaisCounterState.batConn then
+    _G.YaisCounterState.batConn:Disconnect()
+    _G.YaisCounterState.batConn = nil
   end
-  _G.MetroCounterState.batDebounce = false
-  _G.MetroBatCounterV2On = false
+  _G.YaisCounterState.batDebounce = false
+  _G.YaisBatCounterV2On = false
   -- Il watcher dei ragdoll nemici serve anche al TP Ragdoll: se e' acceso
   -- lui, si lascia in piedi invece di spegnerlo insieme al Bat Counter.
-  if not _G.MetroTPRagdollEnabled then
-    if _G.MetroDuelstopBatCounterWatcher then pcall(_G.MetroDuelstopBatCounterWatcher) end
+  if not _G.YaisTPRagdollEnabled then
+    if _G.YaisDuelstopBatCounterWatcher then pcall(_G.YaisDuelstopBatCounterWatcher) end
   end
 end
 
-startBatCounter = _G.MetroDuelstartBatCounter
-stopBatCounter = _G.MetroDuelstopBatCounter
-setupMedusaCounter = _G.MetroDuelstartMedCounter
-stopMedusaCounter = _G.MetroDuelstopMedCounter
+startBatCounter = _G.YaisDuelstartBatCounter
+stopBatCounter = _G.YaisDuelstopBatCounter
+setupMedusaCounter = _G.YaisDuelstartMedCounter
+stopMedusaCounter = _G.YaisDuelstopMedCounter
 
 -- ============================================================
 -- NO PLAYER COLLISION v3 (event-driven)
@@ -6278,13 +6278,13 @@ stopMedusaCounter = _G.MetroDuelstopMedCounter
 --   4. Spegne anche le TUE parti: sono le uniche di cui hai il network
 --      ownership, quindi replicano davvero sul client dell'altro.
 --   5. Ref-count: TP Bat e toggle utente possono tenerla accesa insieme
---      senza pestarsi i piedi (MetroNoCollisionAcquire/Release).
+--      senza pestarsi i piedi (YaisNoCollisionAcquire/Release).
 -- Tutto dentro un do-end: non consuma slot locals nel main chunk.
 -- ============================================================
-_G.MetroNoPlayerCollisionState = _G.MetroNoPlayerCollisionState or {}
+_G.YaisNoPlayerCollisionState = _G.YaisNoPlayerCollisionState or {}
 
 do
-  local NPC = _G.MetroNoPlayerCollisionState
+  local NPC = _G.YaisNoPlayerCollisionState
   NPC.connections = NPC.connections or {}
   NPC.parts       = NPC.parts or {}       -- part -> {conn, destroy, cc, ct}
   NPC.charConns   = NPC.charConns or {}   -- character -> {conns}
@@ -6534,16 +6534,16 @@ do
 
   -- ---------- API ref-count ----------
   -- Permette a TP Bat e toggle utente di tenerla accesa insieme.
-  function _G.MetroNoCollisionAcquire(tag)
+  function _G.YaisNoCollisionAcquire(tag)
     NPC.holders[tag or "default"] = true
     startCore()
   end
 
-  function _G.MetroNoCollisionRelease(tag)
+  function _G.YaisNoCollisionRelease(tag)
     NPC.holders[tag or "default"] = nil
     -- Il toggle utente vince sempre: finche' e' acceso non si spegne nulla,
     -- anche se il tag "user" si fosse perso per strada.
-    if _G.MetroNoPlayerCollisionEnabled == true then
+    if _G.YaisNoPlayerCollisionEnabled == true then
       NPC.holders["user"] = true
       rescan()
       return
@@ -6552,23 +6552,23 @@ do
   end
 end
 
--- Toggle utente (chiamato dalla UI e da applyMetroConfig)
+-- Toggle utente (chiamato dalla UI e da applyYaisConfig)
 function enableNoPlayerCollision()
-  _G.MetroNoPlayerCollisionEnabled = true
-  _G.MetroNoCollisionAcquire("user")
+  _G.YaisNoPlayerCollisionEnabled = true
+  _G.YaisNoCollisionAcquire("user")
 end
 
 function disableNoPlayerCollision()
-  _G.MetroNoPlayerCollisionEnabled = false
-  _G.MetroNoCollisionRelease("user")
+  _G.YaisNoPlayerCollisionEnabled = false
+  _G.YaisNoCollisionRelease("user")
 end
 
 -- Compatibilita' con il vecchio nome usato altrove nello script
-function _G.MetroDuelsetOtherPlayerCollision(state)
+function _G.YaisDuelsetOtherPlayerCollision(state)
   if state == false then
-    _G.MetroNoCollisionAcquire("legacy")
+    _G.YaisNoCollisionAcquire("legacy")
   else
-    _G.MetroNoCollisionRelease("legacy")
+    _G.YaisNoCollisionRelease("legacy")
   end
 end
 
@@ -6662,7 +6662,7 @@ do
   end
 
   LP.CharacterAdded:Connect(function(char)
-    _G._MetroWaitCharReady(char, 10)
+    _G._YaisWaitCharReady(char, 10)
     -- Animate arriva dopo Head/HRP/Humanoid: senza questa attesa
     -- lo script non verrebbe disabilitato e le animazioni resterebbero.
     pcall(function() char:WaitForChild("Animate", 3) end)
@@ -6745,7 +6745,7 @@ do
   -- nuova animazione non prendeva il controllo finche' non respawnavi,
   -- perche' solo allora l'Humanoid vecchio moriva insieme alle connessioni.
   -- Ora si tengono in una lista e si chiudono a ogni stop.
-  _G._MetroAnimPackConns = _G._MetroAnimPackConns or {}
+  _G._YaisAnimPackConns = _G._YaisAnimPackConns or {}
   -- <<< CUSTOM ANIM PACK END
 
   local function _animStopAll()
@@ -6754,10 +6754,10 @@ do
     end
     _animPackTracks = {}
     -- >>> CUSTOM ANIM PACK BEGIN
-    for _, c in ipairs(_G._MetroAnimPackConns) do
+    for _, c in ipairs(_G._YaisAnimPackConns) do
       pcall(function() c:Disconnect() end)
     end
-    _G._MetroAnimPackConns = {}
+    _G._YaisAnimPackConns = {}
     -- <<< CUSTOM ANIM PACK END
   end
 
@@ -6768,8 +6768,8 @@ do
   -- fa Uranium: non si forza niente su uno slot vuoto.
   local function _animCustomPack()
     local t, any = {}, false
-    for _, slot in ipairs(_G.MetroCustomAnimSlots) do
-      local id = _G.MetroCustomAnimIds[slot]
+    for _, slot in ipairs(_G.YaisCustomAnimSlots) do
+      local id = _G.YaisCustomAnimIds[slot]
       if id and id ~= "" then
         t[slot] = "rbxassetid://" .. id
         any = true
@@ -6874,7 +6874,7 @@ do
 
     -- Hookiamo gli eventi PRIMA del play iniziale
     -- >>> CUSTOM ANIM PACK BEGIN: ogni connessione va registrata <<<
-    local _conns = _G._MetroAnimPackConns
+    local _conns = _G._YaisAnimPackConns
     table.insert(_conns, humanoid.Running:Connect(function(speed)
       if not _animPackSystemEnabled then return end
       local state = humanoid:GetState()
@@ -6939,13 +6939,13 @@ do
     end
   end
 
-  -- Flag condiviso tra MetroDuelsetAnimPack e stopUnwalk override:
+  -- Flag condiviso tra YaisDuelsetAnimPack e stopUnwalk override:
   -- alzato quando è il pack stesso a chiamare stopUnwalk (non l'utente),
   -- così stopUnwalk non fa il ripristino automatico in quel caso.
   local _packCallingStop = false
 
   -- Funzione pubblica: applica un pack per indice (1=NONE, 2-6=pack 1-5)
-  _G.MetroDuelsetAnimPack = function(index)
+  _G.YaisDuelsetAnimPack = function(index)
     index = math.clamp(tonumber(index) or 1, 1, 7)   -- 7 = CUSTOM
 
     if index == 1 then
@@ -6991,10 +6991,10 @@ do
 
     if setAnimPackVisual then setAnimPackVisual(selectedAnimPackIndex) end
     -- >>> VISIBILE SOLO CON CUSTOM <<<
-    if _G.MetroCustomAnimSetRowVisible then
-      _G.MetroCustomAnimSetRowVisible(selectedAnimPackIndex == 7, true)
+    if _G.YaisCustomAnimSetRowVisible then
+      _G.YaisCustomAnimSetRowVisible(selectedAnimPackIndex == 7, true)
     end
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
   -- Override di startUnwalk/stopUnwalk per gestire l'interazione col pack
@@ -7028,8 +7028,8 @@ do
       _animPackSavedIndex = 1
       _animPackUnwalkWasActive = false
       task.delay(0.25, function()
-        if not unwalkEnabled and _G.MetroDuelsetAnimPack then
-          _G.MetroDuelsetAnimPack(idx)
+        if not unwalkEnabled and _G.YaisDuelsetAnimPack then
+          _G.YaisDuelsetAnimPack(idx)
         end
       end)
     end
@@ -7039,11 +7039,11 @@ do
   -- Chiamata dal picker ogni volta che un ID viene aggiunto o tolto:
   -- se CUSTOM e' la selezione attiva il sistema va ricaricato subito,
   -- altrimenti la modifica si vedrebbe solo al respawn.
-  function _G.MetroReloadCustomAnimPack()
+  function _G.YaisReloadCustomAnimPack()
     if selectedAnimPackIndex ~= 7 then return end
     local char = LP.Character
     if not char then return end
-    if _G.MetroHasCustomAnim() then
+    if _G.YaisHasCustomAnim() then
       -- Si riparte da zero: _animStartSystem chiama _animStopAll, che ora
       -- chiude anche le connessioni, quindi il set nuovo e' l'unico attivo
       -- e l'asset appena inserito si applica subito, senza reset.
@@ -7058,7 +7058,7 @@ do
 
   -- Avvio automatico del pack quando il personaggio riappare
   LP.CharacterAdded:Connect(function(newChar)
-    _G._MetroWaitCharReady(newChar, 10)
+    _G._YaisWaitCharReady(newChar, 10)
     pcall(function() newChar:WaitForChild("Animate", 3) end)
     if _animPackSystemEnabled and selectedAnimPackIndex ~= 1 then
       task.spawn(function() _animStartSystem(newChar) end)
@@ -7074,7 +7074,7 @@ end
 
 
 
-function _G.MetroDuelsafeModeGetCountdownLabel()
+function _G.YaisDuelsafeModeGetCountdownLabel()
   local ok, label = pcall(function()
     return LP.PlayerGui
       and LP.PlayerGui:FindFirstChild("DuelsMachineTopFrame")
@@ -7085,7 +7085,7 @@ function _G.MetroDuelsafeModeGetCountdownLabel()
   return (ok and label) or nil
 end
 
-function _G.MetroDuelsafeModeCountdownNumber(text)
+function _G.YaisDuelsafeModeCountdownNumber(text)
   local t = tostring(text or ""):upper():gsub("^%s+", ""):gsub("%s+$", "")
   if t == "GO" or t == "START" or t == "READY" then return true end
   local n = tonumber(t)
@@ -7094,8 +7094,8 @@ end
 
 -- Il numero che il cartello sta mostrando, oppure nil se non e' un conto
 -- alla rovescia. "GO"/"START" valgono 0: il conto e' finito.
-function _G.MetroDuelsafeModeCountdownValue()
-  local label = _G.MetroDuelsafeModeGetCountdownLabel()
+function _G.YaisDuelsafeModeCountdownValue()
+  local label = _G.YaisDuelsafeModeGetCountdownLabel()
   if not label then return nil end
   local t = tostring(label.Text or ""):upper():gsub("^%s+", ""):gsub("%s+$", "")
   if t == "GO" or t == "START" or t == "READY" then return 0 end
@@ -7104,26 +7104,26 @@ function _G.MetroDuelsafeModeCountdownValue()
   return nil
 end
 
-function _G.MetroDuelsafeModeInDuelCountdown()
-  local label = _G.MetroDuelsafeModeGetCountdownLabel()
-  return label and _G.MetroDuelsafeModeCountdownNumber(label.Text) or false
+function _G.YaisDuelsafeModeInDuelCountdown()
+  local label = _G.YaisDuelsafeModeGetCountdownLabel()
+  return label and _G.YaisDuelsafeModeCountdownNumber(label.Text) or false
 end
 
-_G.MetroDuelsafeModeBlockedTools = {
+_G.YaisDuelsafeModeBlockedTools = {
   bat=true, slap=true, sword=true, gun=true, pistol=true, rifle=true,
   medusa=true, hammer=true, axe=true, knife=true, katana=true, blade=true, fist=true,
 }
 
-function _G.MetroDuelsafeModeIsCarryableTool(tool)
+function _G.YaisDuelsafeModeIsCarryableTool(tool)
   if not tool or not tool:IsA("Tool") then return false end
   local name = tool.Name:lower()
-  for word in pairs(_G.MetroDuelsafeModeBlockedTools) do
+  for word in pairs(_G.YaisDuelsafeModeBlockedTools) do
     if name:find(word, 1, true) then return false end
   end
   return true
 end
 
-function _G.MetroDuelsafeModeHoldingBrainrot()
+function _G.YaisDuelsafeModeHoldingBrainrot()
   local ok, val = pcall(function() return LP:GetAttribute("Stealing") end)
   if ok and val == true then return true end
   local ok2, val2 = pcall(function() return LP:GetAttribute("AntiKick") end)
@@ -7155,63 +7155,63 @@ function _G.MetroDuelsafeModeHoldingBrainrot()
   return false
 end
 
-function _G.MetroDuelsafeModeIsLocked()
+function _G.YaisDuelsafeModeIsLocked()
   -- TP Ragdoll in corso: qui il blocco vale SEMPRE, anche a Safe Mode
   -- spenta. Non e' una precauzione come le altre, e' che in quei
   -- millesimi ti stai spostando a forza e qualunque automatismo che ti
   -- muove ti porterebbe altrove a meta' strada.
-  if _G.MetroTPRagdollBusy == true then return true end
+  if _G.YaisTPRagdollBusy == true then return true end
   if not antiKickEnabled then return false end
-  return _G.MetroDuelsafeModeInDuelCountdown() or _G.MetroDuelsafeModeHoldingBrainrot()
+  return _G.YaisDuelsafeModeInDuelCountdown() or _G.YaisDuelsafeModeHoldingBrainrot()
 end
 
-function _G.MetroDuelsafeModeForceStop(reason)
+function _G.YaisDuelsafeModeForceStop(reason)
   local stopped = false
-  if _G.MetroNormalAimbotOn and _G.MetroDuelstopNormalAimbot then _G.MetroDuelstopNormalAimbot(); stopped = true end
-  if _G.MetroBatAimbotV2On and _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2(false); stopped = true end
-  if _G.MetroTPBatOn and _G.MetroDuelstopTPBat then _G.MetroDuelstopTPBat(); stopped = true end
+  if _G.YaisNormalAimbotOn and _G.YaisDuelstopNormalAimbot then _G.YaisDuelstopNormalAimbot(); stopped = true end
+  if _G.YaisBatAimbotV2On and _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2(false); stopped = true end
+  if _G.YaisTPBatOn and _G.YaisDuelstopTPBat then _G.YaisDuelstopTPBat(); stopped = true end
   if autoLeftEnabled then
     autoLeftEnabled = false
-    if _G.MetroDuelsetAutoLeftVisual then _G.MetroDuelsetAutoLeftVisual(false) end
-    if _G.MetroDuelstopAutoLeft then _G.MetroDuelstopAutoLeft() end
+    if _G.YaisDuelsetAutoLeftVisual then _G.YaisDuelsetAutoLeftVisual(false) end
+    if _G.YaisDuelstopAutoLeft then _G.YaisDuelstopAutoLeft() end
     stopped = true
   end
   if autoRightEnabled then
     autoRightEnabled = false
-    if _G.MetroDuelsetAutoRightVisual then _G.MetroDuelsetAutoRightVisual(false) end
-    if _G.MetroDuelstopAutoRight then _G.MetroDuelstopAutoRight() end
+    if _G.YaisDuelsetAutoRightVisual then _G.YaisDuelsetAutoRightVisual(false) end
+    if _G.YaisDuelstopAutoRight then _G.YaisDuelstopAutoRight() end
     stopped = true
   end
   if stopped and showActionNotification then pcall(function() showActionNotification(reason or "SAFE MODE LOCK") end) end
 end
 
-function _G.MetroDuelsafeModeTryStart()
-  if _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-    _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK")
+function _G.YaisDuelsafeModeTryStart()
+  if _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+    _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK")
     return false
   end
   return true
 end
 
-_G.MetroDuelsafeModeMonitorStarted = _G.MetroDuelsafeModeMonitorStarted or false
-if not _G.MetroDuelsafeModeMonitorStarted then
-  _G.MetroDuelsafeModeMonitorStarted = true
+_G.YaisDuelsafeModeMonitorStarted = _G.YaisDuelsafeModeMonitorStarted or false
+if not _G.YaisDuelsafeModeMonitorStarted then
+  _G.YaisDuelsafeModeMonitorStarted = true
   RunService.Heartbeat:Connect(function()
-    if antiKickEnabled and _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-      _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK")
+    if antiKickEnabled and _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+      _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK")
     end
   end)
 end
 
 LP.CharacterAdded:Connect(function(char)
-  _G._MetroWaitCharReady(char, 10)
-  if medCounterEnabled then _G.MetroDuelstartMedCounter(char) end
-  if batCounterEnabled then _G.MetroDuelstartBatCounter() end
+  _G._YaisWaitCharReady(char, 10)
+  if medCounterEnabled then _G.YaisDuelstartMedCounter(char) end
+  if batCounterEnabled then _G.YaisDuelstartBatCounter() end
 end)
 
-_G.MetroNormalAimbot = _G.MetroNormalAimbot or {conn = nil, target = nil, swingCooldown = false}
+_G.YaisNormalAimbot = _G.YaisNormalAimbot or {conn = nil, target = nil, swingCooldown = false}
 
-function _G.MetroFindAimbotBat()
+function _G.YaisFindAimbotBat()
   local char = LP.Character
   if not char then return nil end
   for _, tool in ipairs(char:GetChildren()) do
@@ -7230,7 +7230,7 @@ function _G.MetroFindAimbotBat()
   return nil
 end
 
-function _G.MetroGetClosestAimbotTarget()
+function _G.YaisGetClosestAimbotTarget()
   local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
   if not root then return nil end
   local closest, minDist = nil, math.huge
@@ -7244,8 +7244,8 @@ function _G.MetroGetClosestAimbotTarget()
         -- altrimenti il bersaglio risulta lontanissimo e il trigger
         -- dei 4 stud del V2 non scatta mai.
         local tPos = tRoot.Position
-        if _G.MetroAntiVoid then
-          tPos = _G.MetroAntiVoid.posFor(plr, tPos)
+        if _G.YaisAntiVoid then
+          tPos = _G.YaisAntiVoid.posFor(plr, tPos)
         end
         local dist = (tPos - root.Position).Magnitude
         -- <<< ANTI VOID END
@@ -7259,90 +7259,90 @@ function _G.MetroGetClosestAimbotTarget()
   return closest
 end
 
-function _G.MetroGetNormalAimbotSpeed()
+function _G.YaisGetNormalAimbotSpeed()
   if currentSpeedMode == "Lagger" or currentSpeedMode == "Lagger Carry" then
     return tonumber(LAGGER_AIMBOT_SPEED) or 40
   end
   return tonumber(AIMBOT_SPEED) or 58
 end
 
-function _G.MetroGetBatAimbotV2Speed()
+function _G.YaisGetBatAimbotV2Speed()
   if currentSpeedMode == "Lagger" or currentSpeedMode == "Lagger Carry" then
-    return tonumber(_G.MetroBatAimbotV2LaggerSpeed) or 40
+    return tonumber(_G.YaisBatAimbotV2LaggerSpeed) or 40
   end
-  return tonumber(_G.MetroBatAimbotV2Speed) or 58
+  return tonumber(_G.YaisBatAimbotV2Speed) or 58
 end
 
-function _G.MetroGetSelectedAimbotSpeedValues()
+function _G.YaisGetSelectedAimbotSpeedValues()
   if selectedAimbotMode == "V2" then
-    return tonumber(_G.MetroBatAimbotV2Speed) or 58, tonumber(_G.MetroBatAimbotV2LaggerSpeed) or 40
+    return tonumber(_G.YaisBatAimbotV2Speed) or 58, tonumber(_G.YaisBatAimbotV2LaggerSpeed) or 40
   end
   return tonumber(AIMBOT_SPEED) or 58, tonumber(LAGGER_AIMBOT_SPEED) or 40
 end
 
-function _G.MetroDuelsetSelectedAimbotSpeedValues(normalValue, laggerValue)
+function _G.YaisDuelsetSelectedAimbotSpeedValues(normalValue, laggerValue)
   if selectedAimbotMode == "V2" then
-    if normalValue then _G.MetroBatAimbotV2Speed = normalValue end
-    if laggerValue then _G.MetroBatAimbotV2LaggerSpeed = laggerValue end
+    if normalValue then _G.YaisBatAimbotV2Speed = normalValue end
+    if laggerValue then _G.YaisBatAimbotV2LaggerSpeed = laggerValue end
   else
     if normalValue then AIMBOT_SPEED = normalValue end
     if laggerValue then LAGGER_AIMBOT_SPEED = laggerValue end
   end
 end
 
-function _G.MetroRefreshAimbotSpeedBoxes()
-  local n, l = _G.MetroGetSelectedAimbotSpeedValues()
-  if _G.MetroAimbotSpeedBox then _G.MetroAimbotSpeedBox.Text = tostring(n) end
-  if _G.MetroLaggerAimbotSpeedBox then _G.MetroLaggerAimbotSpeedBox.Text = tostring(l) end
+function _G.YaisRefreshAimbotSpeedBoxes()
+  local n, l = _G.YaisGetSelectedAimbotSpeedValues()
+  if _G.YaisAimbotSpeedBox then _G.YaisAimbotSpeedBox.Text = tostring(n) end
+  if _G.YaisLaggerAimbotSpeedBox then _G.YaisLaggerAimbotSpeedBox.Text = tostring(l) end
 end
 
-function _G.MetroDuelstartNormalAimbot(keepV2)
+function _G.YaisDuelstartNormalAimbot(keepV2)
   -- Anti Die SUBITO, prima riga della funzione. Stava nel wrapper in fondo
   -- al file: funzionava solo per chi chiamava il nome globale DOPO che i
   -- wrapper erano stati installati, e chi entrava per altre strade (o
   -- prima) partiva scoperto. Qui non c'e' strada che lo salti.
-  if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
-  if _G.MetroDuelsafeModeTryStart and not _G.MetroDuelsafeModeTryStart() then return false end
-  if _G.MetroDuelstopAutoTPForAction then _G.MetroDuelstopAutoTPForAction() end
+  if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
+  if _G.YaisDuelsafeModeTryStart and not _G.YaisDuelsafeModeTryStart() then return false end
+  if _G.YaisDuelstopAutoTPForAction then _G.YaisDuelstopAutoTPForAction() end
   -- keepV2 = true quando e' il Bat Aimbot V2 a usare questo chase come fase 1
   if not keepV2 then
-    if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2(false) end
-    _G.MetroBatAimbotV2On = false
+    if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2(false) end
+    _G.YaisBatAimbotV2On = false
   end
-  _G.MetroNormalAimbotOn = true
-  if _G.MetroDuelstartChaseRagdollWatcher then _G.MetroDuelstartChaseRagdollWatcher() end
-  if _G.MetroNormalAimbot.conn then
-    _G.MetroNormalAimbot.conn:Disconnect()
-    _G.MetroNormalAimbot.conn = nil
+  _G.YaisNormalAimbotOn = true
+  if _G.YaisDuelstartChaseRagdollWatcher then _G.YaisDuelstartChaseRagdollWatcher() end
+  if _G.YaisNormalAimbot.conn then
+    _G.YaisNormalAimbot.conn:Disconnect()
+    _G.YaisNormalAimbot.conn = nil
   end
   local hum0 = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
   if hum0 then hum0.AutoRotate = false end
-  _G.MetroNormalAimbot.conn = RunService.RenderStepped:Connect(function()
-    if not _G.MetroNormalAimbotOn then return end
+  _G.YaisNormalAimbot.conn = RunService.RenderStepped:Connect(function()
+    if not _G.YaisNormalAimbotOn then return end
     local char = LP.Character
     if not char then return end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
-    local bat = char:FindFirstChildOfClass("Tool") or _G.MetroFindAimbotBat()
+    local bat = char:FindFirstChildOfClass("Tool") or _G.YaisFindAimbotBat()
     if bat and bat.Parent ~= char then
       pcall(function() hum:EquipTool(bat) end)
     end
-    local target = _G.MetroGetClosestAimbotTarget()
+    local target = _G.YaisGetClosestAimbotTarget()
     if not target then return end
-    _G.MetroNormalAimbot.target = target
+    _G.YaisNormalAimbot.target = target
 
     -- >>> AIMBOT CHASE MODE BEGIN
     -- Se l'aimbot attivo e' in BYPASS si usa l'inseguimento alternativo.
-    local _chaseKey  = (_G.MetroBatAimbotV2On == true) and "V2" or "V1"
-    local _chaseMode = (_G._MetroAimbotChase and _G._MetroAimbotChase[_chaseKey]) or "NORMAL"
+    local _chaseKey  = (_G.YaisBatAimbotV2On == true) and "V2" or "V1"
+    local _chaseMode = (_G._YaisAimbotChase and _G._YaisAimbotChase[_chaseKey]) or "NORMAL"
     if _chaseMode == "BYPASS" then
       local myPos     = root.Position
       local targetPos = target.Position
       -- >>> ANTI VOID BEGIN
-      if _G.MetroAntiVoid then
-        targetPos = _G.MetroAntiVoid.posForPart(target, targetPos)
+      if _G.YaisAntiVoid then
+        targetPos = _G.YaisAntiVoid.posForPart(target, targetPos)
       end
       -- <<< ANTI VOID END
       local direction = targetPos - myPos
@@ -7351,20 +7351,20 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
       -- >>> PATHFINDING <<< percorso vero verso il bersaglio, come Auto
       -- Left/Right ma DINAMICO: il nemico si muove, quindi il percorso si
       -- ricalcola spesso (0.35s) e subito se si e' spostato di 4 studs.
-      if _G.MetroPathfind and flatDir.Magnitude > 0 then
-        local pd = _G.MetroPathfind.dirTo("aimbot", myPos, targetPos,
+      if _G.YaisPathfind and flatDir.Magnitude > 0 then
+        local pd = _G.YaisPathfind.dirTo("aimbot", myPos, targetPos,
                      {recompute = 0.35, drift = 4})
         if pd then flatDir = pd end
       end
 
-      local chaseSpeed = (_G.MetroBatAimbotV2On == true)
-        and (_G.MetroGetBatAimbotV2Speed and _G.MetroGetBatAimbotV2Speed() or _G.MetroGetNormalAimbotSpeed())
-        or _G.MetroGetNormalAimbotSpeed()
+      local chaseSpeed = (_G.YaisBatAimbotV2On == true)
+        and (_G.YaisGetBatAimbotV2Speed and _G.YaisGetBatAimbotV2Speed() or _G.YaisGetNormalAimbotSpeed())
+        or _G.YaisGetNormalAimbotSpeed()
 
       -- >>> BAT AIMBOT V2: inseguimento alla stessa altezza del nemico <<<
       -- Il V1 sale di 3.7 stud e si stacca da terra; il V2 no, va dritto
       -- addosso al player restando al suo livello.
-      local _isV2 = (_G.MetroBatAimbotV2On == true)
+      local _isV2 = (_G.YaisBatAimbotV2On == true)
       local desiredHeight = targetPos.Y + (_isV2 and 0 or 3.7)
       local yVel = (desiredHeight - myPos.Y) * 19.5
       if not _isV2 and hum.FloorMaterial ~= Enum.Material.Air then yVel = math.max(yVel, 13) end
@@ -7389,12 +7389,12 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
       -- che il ramo Normal non ha, ed e' il motivo per cui in Bypass il
       -- V1 iniziava a menare solo una volta arrivato addosso al nemico
       -- invece che dall'accensione.
-      if autoSwingEnabled and bat and _G.MetroBatAimbotV2On ~= true
-        and not _G.MetroNormalAimbot.swingCooldown then
-        _G.MetroNormalAimbot.swingCooldown = true
+      if autoSwingEnabled and bat and _G.YaisBatAimbotV2On ~= true
+        and not _G.YaisNormalAimbot.swingCooldown then
+        _G.YaisNormalAimbot.swingCooldown = true
         pcall(function() bat:Activate() end)
         task.delay(0.08, function()
-          if _G.MetroNormalAimbot then _G.MetroNormalAimbot.swingCooldown = false end
+          if _G.YaisNormalAimbot then _G.YaisNormalAimbot.swingCooldown = false end
         end)
       end
       return
@@ -7405,8 +7405,8 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
     local myPos = root.Position
     local targetPos = target.Position
     -- >>> ANTI VOID BEGIN
-    if _G.MetroAntiVoid then
-      local gp, isGhost = _G.MetroAntiVoid.posForPart(target, targetPos)
+    if _G.YaisAntiVoid then
+      local gp, isGhost = _G.YaisAntiVoid.posForPart(target, targetPos)
       targetPos = gp
       -- fuori zona non c'e' niente da predire: il bersaglio e' fermo
       if isGhost then targetVel = Vector3.zero end
@@ -7415,7 +7415,7 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
     -- >>> BAT AIMBOT V2: nessuna predizione <<<
     -- Il V1 anticipa il bersaglio (velocita' * 0.14 + un pezzo di LookVector);
     -- il V2 punta la posizione reale, senza anticipo.
-    local _isV2 = (_G.MetroBatAimbotV2On == true)
+    local _isV2 = (_G.YaisBatAimbotV2On == true)
     local predictPos = targetPos
     if not _isV2 then
       predictPos = targetPos + targetVel * 0.14 + target.CFrame.LookVector * 0.3
@@ -7427,14 +7427,14 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
     flatDir = flatDir.Unit
     -- >>> PATHFINDING <<< come nel ramo Bypass. La mira resta sul
     -- bersaglio, non sulla direzione del waypoint.
-    if _G.MetroPathfind then
-      local pd = _G.MetroPathfind.dirTo("aimbot", myPos, targetPos,
+    if _G.YaisPathfind then
+      local pd = _G.YaisPathfind.dirTo("aimbot", myPos, targetPos,
                    {recompute = 0.35, drift = 4})
       if pd then flatDir = pd end
     end
-    local chaseSpeed = (_G.MetroBatAimbotV2On == true)
-      and (_G.MetroGetBatAimbotV2Speed and _G.MetroGetBatAimbotV2Speed() or _G.MetroGetNormalAimbotSpeed())
-      or _G.MetroGetNormalAimbotSpeed()
+    local chaseSpeed = (_G.YaisBatAimbotV2On == true)
+      and (_G.YaisGetBatAimbotV2Speed and _G.YaisGetBatAimbotV2Speed() or _G.YaisGetNormalAimbotSpeed())
+      or _G.YaisGetNormalAimbotSpeed()
     -- >>> BAT AIMBOT V2: inseguimento alla stessa altezza del nemico <<<
     -- Il V1 sale di 3.7 stud e si stacca da terra; il V2 no, va dritto
     -- addosso al player restando al suo livello.
@@ -7467,32 +7467,32 @@ function _G.MetroDuelstartNormalAimbot(keepV2)
       root.AssemblyAngularVelocity = root.CFrame:VectorToWorldSpace(Vector3.new(rx * 42, ry * 42, rz * 42))
     end
     -- Col V2 lo swing appartiene al TP Bat, non al chase
-    if autoSwingEnabled and bat and _G.MetroBatAimbotV2On ~= true
-      and not _G.MetroNormalAimbot.swingCooldown then
-      _G.MetroNormalAimbot.swingCooldown = true
+    if autoSwingEnabled and bat and _G.YaisBatAimbotV2On ~= true
+      and not _G.YaisNormalAimbot.swingCooldown then
+      _G.YaisNormalAimbot.swingCooldown = true
       pcall(function() bat:Activate() end)
       task.delay(0.08, function()
-        if _G.MetroNormalAimbot then _G.MetroNormalAimbot.swingCooldown = false end
+        if _G.YaisNormalAimbot then _G.YaisNormalAimbot.swingCooldown = false end
       end)
     end
   end)
-  if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+  if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
 end
 
-function _G.MetroDuelstopNormalAimbot()
-  _G.MetroNormalAimbotOn = false
-  if _G.MetroDuelstopChaseRagdollWatcher then _G.MetroDuelstopChaseRagdollWatcher() end
+function _G.YaisDuelstopNormalAimbot()
+  _G.YaisNormalAimbotOn = false
+  if _G.YaisDuelstopChaseRagdollWatcher then _G.YaisDuelstopChaseRagdollWatcher() end
   -- Percorso buttato: al prossimo inseguimento si riparte da dove sei
   -- adesso, non da waypoint calcolati per un bersaglio vecchio.
-  if _G.MetroPathfind then pcall(_G.MetroPathfind.reset, "aimbot") end
-  if _G.MetroNormalAimbot and _G.MetroNormalAimbot.conn then
-    _G.MetroNormalAimbot.conn:Disconnect()
-    _G.MetroNormalAimbot.conn = nil
+  if _G.YaisPathfind then pcall(_G.YaisPathfind.reset, "aimbot") end
+  if _G.YaisNormalAimbot and _G.YaisNormalAimbot.conn then
+    _G.YaisNormalAimbot.conn:Disconnect()
+    _G.YaisNormalAimbot.conn = nil
   end
-  if _G.MetroNormalAimbot then
-    _G.MetroNormalAimbot.target = nil
-    _G.MetroNormalAimbot.swingCooldown = false
+  if _G.YaisNormalAimbot then
+    _G.YaisNormalAimbot.target = nil
+    _G.YaisNormalAimbot.swingCooldown = false
   end
   local c = LP.Character
   local root = c and c:FindFirstChild("HumanoidRootPart")
@@ -7502,8 +7502,8 @@ function _G.MetroDuelstopNormalAimbot()
   end
   local hum2 = c and c:FindFirstChildOfClass("Humanoid")
   if hum2 then hum2.AutoRotate = true end
-  if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+  if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
 end
 
 -- ===== BAT AIMBOT V2 =====
@@ -7512,10 +7512,10 @@ end
 -- BAT_AIMBOT_V2_TP_DISTANCE stud dal nemico, passa il controllo al TP Bat.
 -- In questa fase il TP Bat ignora la sua distanza minima di 8 stud: lo snap
 -- avviene comunque. Il TP Bat avviato a mano continua invece a rispettarla.
-_G.MetroBatAimbotV2State = _G.MetroBatAimbotV2State or {conn = nil}
-_G.MetroBatAimbotV2TPDistance = 4
+_G.YaisBatAimbotV2State = _G.YaisBatAimbotV2State or {conn = nil}
+_G.YaisBatAimbotV2TPDistance = 4
 
-function _G.MetroBatAimbotV2GetClosest()
+function _G.YaisBatAimbotV2GetClosest()
   local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
   if not root then return nil, math.huge end
   local closest, minDist = nil, math.huge
@@ -7529,8 +7529,8 @@ function _G.MetroBatAimbotV2GetClosest()
         -- altrimenti il bersaglio risulta lontanissimo e il trigger
         -- dei 4 stud del V2 non scatta mai.
         local tPos = tRoot.Position
-        if _G.MetroAntiVoid then
-          tPos = _G.MetroAntiVoid.posFor(plr, tPos)
+        if _G.YaisAntiVoid then
+          tPos = _G.YaisAntiVoid.posFor(plr, tPos)
         end
         local dist = (tPos - root.Position).Magnitude
         -- <<< ANTI VOID END
@@ -7545,61 +7545,61 @@ function _G.MetroBatAimbotV2GetClosest()
 end
 
 -- Fase 1: chase con la logica del V1 (il flag keepV2 evita che il V1 spenga il V2)
-function _G.MetroBatAimbotV2StartChase()
-  if _G.MetroDuelstartNormalAimbot then _G.MetroDuelstartNormalAimbot(true) end
+function _G.YaisBatAimbotV2StartChase()
+  if _G.YaisDuelstartNormalAimbot then _G.YaisDuelstartNormalAimbot(true) end
 end
 
-function _G.MetroDuelstartBatAimbotV2()
+function _G.YaisDuelstartBatAimbotV2()
   -- Anti Die SUBITO, prima riga della funzione. Stava nel wrapper in fondo
   -- al file: funzionava solo per chi chiamava il nome globale DOPO che i
   -- wrapper erano stati installati, e chi entrava per altre strade (o
   -- prima) partiva scoperto. Qui non c'e' strada che lo salti.
-  if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
-  if _G.MetroDuelsafeModeTryStart and not _G.MetroDuelsafeModeTryStart() then return false end
-  if _G.MetroDuelstopAutoTPForAction then _G.MetroDuelstopAutoTPForAction() end
-  _G.MetroBatAimbotV2On = true
+  if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
+  if _G.YaisDuelsafeModeTryStart and not _G.YaisDuelsafeModeTryStart() then return false end
+  if _G.YaisDuelstopAutoTPForAction then _G.YaisDuelstopAutoTPForAction() end
+  _G.YaisBatAimbotV2On = true
   selectedAimbotMode = "V2"
-  _G.MetroBatAimbotV2StartChase()
-  if _G.MetroBatAimbotV2State.conn then
-    _G.MetroBatAimbotV2State.conn:Disconnect()
-    _G.MetroBatAimbotV2State.conn = nil
+  _G.YaisBatAimbotV2StartChase()
+  if _G.YaisBatAimbotV2State.conn then
+    _G.YaisBatAimbotV2State.conn:Disconnect()
+    _G.YaisBatAimbotV2State.conn = nil
   end
-  _G.MetroBatAimbotV2State.conn = RunService.Heartbeat:Connect(function()
-    if not _G.MetroBatAimbotV2On then return end
+  _G.YaisBatAimbotV2State.conn = RunService.Heartbeat:Connect(function()
+    if not _G.YaisBatAimbotV2On then return end
     -- Mentre il TP Bat e' attivo comanda lui: nessun chase in parallelo.
-    if _G.MetroTPBatOn then return end
-    local target, dist = _G.MetroBatAimbotV2GetClosest()
-    local trigger = tonumber(_G.MetroBatAimbotV2TPDistance) or 4
+    if _G.YaisTPBatOn then return end
+    local target, dist = _G.YaisBatAimbotV2GetClosest()
+    local trigger = tonumber(_G.YaisBatAimbotV2TPDistance) or 4
     if target and dist <= trigger then
       -- Fase 2: entro i 5 stud subentra il TP Bat (senza limite di distanza)
       -- Chiamata automatica: il bottone mobile del TP Bat resta spento.
-      _G.MetroTPBatSilent = true
+      _G.YaisTPBatSilent = true
       -- Lo swing parte solo 0.05s dopo l'inizio del TP
-      _G._MetroV2SwingGate = tick() + 0.05
-      if _G.MetroDuelstartTPBat then _G.MetroDuelstartTPBat() end
-    elseif not _G.MetroNormalAimbotOn then
+      _G._YaisV2SwingGate = tick() + 0.05
+      if _G.YaisDuelstartTPBat then _G.YaisDuelstartTPBat() end
+    elseif not _G.YaisNormalAimbotOn then
       -- Il TP Bat si e' spento (es. nemico ragdollato): si torna al chase V1.
       -- Piccolo cooldown per non ritentare ad ogni frame se lo start viene bloccato.
       local now = tick()
-      if now - (_G.MetroBatAimbotV2State.lastChase or 0) >= 0.15 then
-        _G.MetroBatAimbotV2State.lastChase = now
-        _G.MetroBatAimbotV2StartChase()
+      if now - (_G.YaisBatAimbotV2State.lastChase or 0) >= 0.15 then
+        _G.YaisBatAimbotV2State.lastChase = now
+        _G.YaisBatAimbotV2StartChase()
       end
     end
   end)
-  if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+  if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
 end
 
-function _G.MetroDuelstopBatAimbotV2(keepVisual)
-  _G.MetroBatAimbotV2On = false
-  if _G.MetroDuelstopChaseRagdollWatcher then _G.MetroDuelstopChaseRagdollWatcher() end
-  if _G.MetroBatAimbotV2State and _G.MetroBatAimbotV2State.conn then
-    _G.MetroBatAimbotV2State.conn:Disconnect()
-    _G.MetroBatAimbotV2State.conn = nil
+function _G.YaisDuelstopBatAimbotV2(keepVisual)
+  _G.YaisBatAimbotV2On = false
+  if _G.YaisDuelstopChaseRagdollWatcher then _G.YaisDuelstopChaseRagdollWatcher() end
+  if _G.YaisBatAimbotV2State and _G.YaisBatAimbotV2State.conn then
+    _G.YaisBatAimbotV2State.conn:Disconnect()
+    _G.YaisBatAimbotV2State.conn = nil
   end
-  if _G.MetroNormalAimbotOn and _G.MetroDuelstopNormalAimbot then _G.MetroDuelstopNormalAimbot() end
-  if _G.MetroTPBatOn and _G.MetroDuelstopTPBat then _G.MetroDuelstopTPBat() end
+  if _G.YaisNormalAimbotOn and _G.YaisDuelstopNormalAimbot then _G.YaisDuelstopNormalAimbot() end
+  if _G.YaisTPBatOn and _G.YaisDuelstopTPBat then _G.YaisDuelstopTPBat() end
   local c = LP.Character
   local root = c and c:FindFirstChild("HumanoidRootPart")
   if root then
@@ -7612,44 +7612,44 @@ function _G.MetroDuelstopBatAimbotV2(keepVisual)
     hum.PlatformStand = false
     pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
   end
-  if keepVisual ~= false and _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+  if keepVisual ~= false and _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
 end
 
-function _G.MetroToggleSelectedAimbot()
+function _G.YaisToggleSelectedAimbot()
   if selectedAimbotMode == "V2" then
-    if _G.MetroBatAimbotV2On then
-      if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2() else _G.MetroBatAimbotV2On = false end
+    if _G.YaisBatAimbotV2On then
+      if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2() else _G.YaisBatAimbotV2On = false end
     else
-      if _G.MetroDuelstopNormalAimbot then _G.MetroDuelstopNormalAimbot() end
-      if _G.MetroDuelstartBatAimbotV2 then _G.MetroDuelstartBatAimbotV2() else _G.MetroBatAimbotV2On = true end
+      if _G.YaisDuelstopNormalAimbot then _G.YaisDuelstopNormalAimbot() end
+      if _G.YaisDuelstartBatAimbotV2 then _G.YaisDuelstartBatAimbotV2() else _G.YaisBatAimbotV2On = true end
     end
   else
-    if _G.MetroNormalAimbotOn then
-      _G.MetroDuelstopNormalAimbot()
+    if _G.YaisNormalAimbotOn then
+      _G.YaisDuelstopNormalAimbot()
     else
-      if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2(false) else _G.MetroBatAimbotV2On = false end
-      _G.MetroDuelstartNormalAimbot()
+      if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2(false) else _G.YaisBatAimbotV2On = false end
+      _G.YaisDuelstartNormalAimbot()
     end
   end
-  if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  saveMetroConfig()
+  if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  saveYaisConfig()
 end
 
-function _G.MetroRefreshAimbotVisual()
-  if _G.MetroAimbotSetVisual then
+function _G.YaisRefreshAimbotVisual()
+  if _G.YaisAimbotSetVisual then
     if selectedAimbotMode == "V2" then
-      _G.MetroAimbotSetVisual(_G.MetroBatAimbotV2On == true)
+      _G.YaisAimbotSetVisual(_G.YaisBatAimbotV2On == true)
     else
-      _G.MetroAimbotSetVisual(_G.MetroNormalAimbotOn == true)
+      _G.YaisAimbotSetVisual(_G.YaisNormalAimbotOn == true)
     end
   end
 end
 
-_G.MetroNormalAimbotStart = _G.MetroDuelstartNormalAimbot
-_G.MetroNormalAimbotStop = _G.MetroDuelstopNormalAimbot
-_G.MetroBatAimbotV2Start = _G.MetroDuelstartBatAimbotV2
-_G.MetroBatAimbotV2Stop = _G.MetroDuelstopBatAimbotV2
+_G.YaisNormalAimbotStart = _G.YaisDuelstartNormalAimbot
+_G.YaisNormalAimbotStop = _G.YaisDuelstopNormalAimbot
+_G.YaisBatAimbotV2Start = _G.YaisDuelstartBatAimbotV2
+_G.YaisBatAimbotV2Stop = _G.YaisDuelstopBatAimbotV2
 
 -- Mirror TP Down
 -- Helpers interne nel do-block: liberano 6 slot locals dal main chunk.
@@ -7660,7 +7660,7 @@ do
   local mirrorTPLastTeleport = 0
 
   local function mirrorTPAimbotActive()
-    return (_G.MetroNormalAimbotOn == true) or (_G.MetroBatAimbotV2On == true) or (_G.MetroTPBatOn == true)
+    return (_G.YaisNormalAimbotOn == true) or (_G.YaisBatAimbotV2On == true) or (_G.YaisTPBatOn == true)
   end
 
   local function mirrorTPTeleportDown()
@@ -7702,10 +7702,10 @@ do
     end
   end)
 
-  function _G.MetroDuelsetMirrorTPDown(enabled)
+  function _G.YaisDuelsetMirrorTPDown(enabled)
     mirrorTPDownEnabled = enabled == true
     if not mirrorTPDownEnabled then table.clear(mirrorTPPreviousY) end
-    if _G.MetroMirrorTPDownSetVisual then _G.MetroMirrorTPDownSetVisual(mirrorTPDownEnabled) end
+    if _G.YaisMirrorTPDownSetVisual then _G.YaisMirrorTPDownSetVisual(mirrorTPDownEnabled) end
   end
 end -- fine do-block mirrorTP
 
@@ -7723,12 +7723,12 @@ do
   local tpBatSwingCooldown = 0
   local TP_BAT_SWING_COOLDOWN = 0.08
   local tpBatPlayerConns = {}
-  -- Consuma il pending value lasciato da loadMetroConfig (che gira prima di questo do-block)
-  local tpBatCameraLockEnabled = _G._MetroTPBatCameraLockPending == true
-  _G._MetroTPBatCameraLockPending = nil
+  -- Consuma il pending value lasciato da loadYaisConfig (che gira prima di questo do-block)
+  local tpBatCameraLockEnabled = _G._YaisTPBatCameraLockPending == true
+  _G._YaisTPBatCameraLockPending = nil
   -- Bridge su _G per l'accesso esterno al do-block (save/load/UI/reset)
-  _G._MetroGetTPBatCameraLock = function() return tpBatCameraLockEnabled end
-  _G._MetroDuelsetTPBatCameraLock = function(v) tpBatCameraLockEnabled = v end
+  _G._YaisGetTPBatCameraLock = function() return tpBatCameraLockEnabled end
+  _G._YaisDuelsetTPBatCameraLock = function(v) tpBatCameraLockEnabled = v end
 
   -- ============================================================
   -- NO-COLLISION: delegata al modulo No Player Collision v3.
@@ -7739,11 +7739,11 @@ do
   -- Ora si limita a prenotare/rilasciare il modulo col tag "tpbat".
   -- ============================================================
   local function acquireNoCollision()
-      if _G.MetroNoCollisionAcquire then _G.MetroNoCollisionAcquire("tpbat") end
+      if _G.YaisNoCollisionAcquire then _G.YaisNoCollisionAcquire("tpbat") end
   end
 
   local function releaseNoCollision()
-      if _G.MetroNoCollisionRelease then _G.MetroNoCollisionRelease("tpbat") end
+      if _G.YaisNoCollisionRelease then _G.YaisNoCollisionRelease("tpbat") end
   end
 
   -- ============================================================
@@ -7775,11 +7775,11 @@ do
   -- AUTO SWING
   -- ============================================================
   local function trySwingBat()
-      if _G.MetroBatAimbotV2On == true then
+      if _G.YaisBatAimbotV2On == true then
         -- Chiamato dal Bat Aimbot V2: comanda l'Auto Swing del V2,
         -- non quello del TP Bat. Parte 0.05s dopo l'inizio del TP.
         if not autoSwingEnabled then return end
-        if tick() < (_G._MetroV2SwingGate or 0) then return end
+        if tick() < (_G._YaisV2SwingGate or 0) then return end
       elseif not tpBatAutoSwingEnabled then
         return
       end
@@ -7806,12 +7806,12 @@ do
   local function onEnemyRagdollStarted()
       if not tpBatEnabled then return end
       -- Disattivazione ISTANTANEA al rilevamento hit (nessun cooldown)
-      if _G.MetroBatAimbotV2On then
+      if _G.YaisBatAimbotV2On then
           -- Questo TP Bat e' la fase 2 del Bat Aimbot V2: l'hit spegne tutto il V2,
           -- cosi' il chase non riparte piu' da solo.
-          if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2() return end
+          if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2() return end
       end
-      _G.MetroDuelstopTPBat()
+      _G.YaisDuelstopTPBat()
   end
 
   local function setupEnemyRagdollDetector(enemyChar)
@@ -7878,7 +7878,7 @@ do
     v5RadiusMin = 1.5,
     v5RadiusMax = 3,
   }
-  _G._MetroTPB = TPB   -- tuning esterno (facoltativo)
+  _G._YaisTPB = TPB   -- tuning esterno (facoltativo)
 
   -- Velocita' del bersaglio filtrata (stessa formula delle logiche V2..V5)
   local function tpBatTrackVel(tr)
@@ -7929,8 +7929,8 @@ do
       -- >>> ANTI VOID BEGIN
       -- Nemico tpato nel void: si lavora sul punto d'origine.
       local _tpRaw, _tpGhost = tr.Position, false
-      if _G.MetroAntiVoid then
-          _tpRaw, _tpGhost = _G.MetroAntiVoid.posForPart(tr, tr.Position)
+      if _G.YaisAntiVoid then
+          _tpRaw, _tpGhost = _G.YaisAntiVoid.posForPart(tr, tr.Position)
       end
       -- PhysicsRepRootPart si aggancia al nemico solo se e' ancora in mappa.
       if sethiddenproperty then
@@ -7943,9 +7943,9 @@ do
       -- <<< ANTI VOID END
 
       -- Bat Aimbot V2 / Bat Counter V2 => SEMPRE V1
-      local forcedV1 = (_G.MetroBatAimbotV2On == true)
-                    or (_G.MetroBatCounterV2On == true)
-      local ver = forcedV1 and 1 or math.clamp(tonumber(_G.MetroTPBatVersion) or 1, 1, 5)
+      local forcedV1 = (_G.YaisBatAimbotV2On == true)
+                    or (_G.YaisBatCounterV2On == true)
+      local ver = forcedV1 and 1 or math.clamp(tonumber(_G.YaisTPBatVersion) or 1, 1, 5)
 
       if ver == 1 then
           -- ---------- V1: logica originale ----------
@@ -8047,38 +8047,38 @@ do
   end
 
   -- Cambio versione (UI / keybind). Non riavvia il TP Bat: il dispatcher
-  -- legge _G.MetroTPBatVersion ad ogni frame.
-  function _G.MetroDuelsetTPBatVersion(v)
+  -- legge _G.YaisTPBatVersion ad ogni frame.
+  function _G.YaisDuelsetTPBatVersion(v)
       v = math.clamp(tonumber(v) or 1, 1, 5)
-      _G.MetroTPBatVersion = v
+      _G.YaisTPBatVersion = v
       TPB.orbitAngle = 0
       TPB.spinAngle = 0
       table.clear(TPB.velHist)
-      if _G._MetroTPBatSetVersionVisual then _G._MetroTPBatSetVersionVisual(v) end
-      if saveMetroConfig then saveMetroConfig() end
+      if _G._YaisTPBatSetVersionVisual then _G._YaisTPBatSetVersionVisual(v) end
+      if saveYaisConfig then saveYaisConfig() end
       return v
   end
   -- <<< TP BAT VERSIONS END
 
 -- ===== AVVIO / ARRESTO =====
-function _G.MetroDuelstartTPBat()
+function _G.YaisDuelstartTPBat()
   -- Anti Die SUBITO, prima riga della funzione. Stava nel wrapper in fondo
   -- al file: funzionava solo per chi chiamava il nome globale DOPO che i
   -- wrapper erano stati installati, e chi entrava per altre strade (o
   -- prima) partiva scoperto. Qui non c'e' strada che lo salti.
-  if _G.MetroAntiDieArmNow then pcall(_G.MetroAntiDieArmNow) end
+  if _G.YaisAntiDieArmNow then pcall(_G.YaisAntiDieArmNow) end
     if tpBatEnabled then return end
-    if _G.MetroDuelsafeModeTryStart and not _G.MetroDuelsafeModeTryStart() then return false end
+    if _G.YaisDuelsafeModeTryStart and not _G.YaisDuelsafeModeTryStart() then return false end
 
     -- Ferma gli altri aimbot se attivi
-    if _G.MetroDuelstopNormalAimbot then _G.MetroDuelstopNormalAimbot() end
+    if _G.YaisDuelstopNormalAimbot then _G.YaisDuelstopNormalAimbot() end
     -- Se e' il Bat Aimbot V2 a chiamarci non spegniamo il V2: e' la sua fase 2.
-    if not _G.MetroBatAimbotV2On then
-        if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2(false) end
+    if not _G.YaisBatAimbotV2On then
+        if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2(false) end
     end
 
     tpBatEnabled = true
-    _G.MetroTPBatOn = true
+    _G.YaisTPBatOn = true
 
     -- Prenota la no-collision per tutta la durata del TP Bat
     acquireNoCollision()
@@ -8113,17 +8113,17 @@ function _G.MetroDuelstartTPBat()
         end
     end)
 
-    if _G.MetroTPBatSetVisual then _G.MetroTPBatSetVisual(true) end
-    if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-    saveMetroConfig()
+    if _G.YaisTPBatSetVisual then _G.YaisTPBatSetVisual(true) end
+    if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+    saveYaisConfig()
     return true
 end
 
-function _G.MetroDuelstopTPBat()
+function _G.YaisDuelstopTPBat()
     tpBatEnabled = false
-    _G.MetroTPBatOn = false
-    if not (_G.MetroBatAimbotV2On == true) and not (_G.MetroCounterState and _G.MetroCounterState.batDebounce == true) then
-        _G.MetroTPBatSilent = false
+    _G.YaisTPBatOn = false
+    if not (_G.YaisBatAimbotV2On == true) and not (_G.YaisCounterState and _G.YaisCounterState.batDebounce == true) then
+        _G.YaisTPBatSilent = false
     end
 
     -- Disconnetti tutti i loop IMMEDIATAMENTE
@@ -8152,9 +8152,9 @@ function _G.MetroDuelstopTPBat()
     table.clear(TPB.velHist)
 
     -- Aggiorna UI immediatamente
-    if _G.MetroTPBatSetVisual then _G.MetroTPBatSetVisual(false) end
-    if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-    saveMetroConfig()
+    if _G.YaisTPBatSetVisual then _G.YaisTPBatSetVisual(false) end
+    if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+    saveYaisConfig()
 
     -- Rilascia la prenotazione. Se il toggle No Player Collision e' acceso
     -- il modulo resta attivo; altrimenti ripristina i valori ORIGINALI di
@@ -8164,20 +8164,20 @@ function _G.MetroDuelstopTPBat()
     end)
 end
 
-function _G.MetroToggleTPBat()
+function _G.YaisToggleTPBat()
     -- Toggle manuale: il bottone mobile deve accendersi
-    _G.MetroTPBatSilent = false
+    _G.YaisTPBatSilent = false
     if tpBatEnabled then
-        _G.MetroDuelstopTPBat()
+        _G.YaisDuelstopTPBat()
     else
-        _G.MetroDuelstartTPBat()
+        _G.YaisDuelstartTPBat()
     end
 end
 
 
 end -- fine do-block tpBat
 
-_G.MetroTPBatOn = false  -- viene aggiornato dalle funzioni
+_G.YaisTPBatOn = false  -- viene aggiornato dalle funzioni
 
 -- ========================================================
 -- RAGDOLL DETECTOR PER IL CHASE (Bat Aimbot V1 / V2)
@@ -8194,13 +8194,13 @@ do
   local function onChaseEnemyRagdollStarted()
     if not chaseRagdollEnabled then return end
     -- Se il TP Bat sta girando comanda il suo detector interno.
-    if _G.MetroTPBatOn then return end
+    if _G.YaisTPBatOn then return end
     -- Disattivazione ISTANTANEA al rilevamento hit (nessun cooldown)
-    if _G.MetroBatAimbotV2On then
+    if _G.YaisBatAimbotV2On then
       -- V2: si spegne tutto (chase + TP Bat), non riparte da solo.
-      if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2() end
-    elseif _G.MetroNormalAimbotOn then
-      if _G.MetroDuelstopNormalAimbot then _G.MetroDuelstopNormalAimbot() end
+      if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2() end
+    elseif _G.YaisNormalAimbotOn then
+      if _G.YaisDuelstopNormalAimbot then _G.YaisDuelstopNormalAimbot() end
     end
   end
 
@@ -8233,7 +8233,7 @@ do
   end
 
   -- Avviato da StartNormalAimbot (vale sia per il V1 che per la fase 1 del V2)
-  function _G.MetroDuelstartChaseRagdollWatcher()
+  function _G.YaisDuelstartChaseRagdollWatcher()
     if chaseRagdollEnabled then return end
     chaseRagdollEnabled = true
     if chaseRagdollAddedConn then chaseRagdollAddedConn:Disconnect() end
@@ -8251,7 +8251,7 @@ do
   end
 
   -- Fermato da StopNormalAimbot / StopBatAimbotV2
-  function _G.MetroDuelstopChaseRagdollWatcher()
+  function _G.YaisDuelstopChaseRagdollWatcher()
     chaseRagdollEnabled = false
     if chaseRagdollAddedConn then
       chaseRagdollAddedConn:Disconnect()
@@ -8272,23 +8272,23 @@ end
 -- Se il TP Bat attivo appartiene alla fase 2 del Bat Aimbot V2, il V2 viene
 -- smontato del tutto e si riparte con un TP Bat normale, cosi' le due logiche
 -- non si intrecciano.
-function _G.MetroToggleTPBatManual()
+function _G.YaisToggleTPBatManual()
   -- Avvio manuale: il bottone mobile deve accendersi
-  _G.MetroTPBatSilent = false
-  if _G.MetroBatAimbotV2On then
-    if _G.MetroDuelstopBatAimbotV2 then _G.MetroDuelstopBatAimbotV2() end
-    if _G.MetroDuelstartTPBat then _G.MetroDuelstartTPBat() end
+  _G.YaisTPBatSilent = false
+  if _G.YaisBatAimbotV2On then
+    if _G.YaisDuelstopBatAimbotV2 then _G.YaisDuelstopBatAimbotV2() end
+    if _G.YaisDuelstartTPBat then _G.YaisDuelstartTPBat() end
     return
   end
-  if _G.MetroToggleTPBat then
-    _G.MetroToggleTPBat()
-  elseif _G.MetroDuelstartTPBat and _G.MetroDuelstopTPBat then
-    if _G.MetroTPBatOn then _G.MetroDuelstopTPBat() else _G.MetroDuelstartTPBat() end
+  if _G.YaisToggleTPBat then
+    _G.YaisToggleTPBat()
+  elseif _G.YaisDuelstartTPBat and _G.YaisDuelstopTPBat then
+    if _G.YaisTPBatOn then _G.YaisDuelstopTPBat() else _G.YaisDuelstartTPBat() end
   end
 end
 
-_G.__MetroDuelsetupNormalAutoSteal = function()
-  _G.MetroNormalSteal = _G.MetroNormalSteal or {
+_G.__YaisDuelsetupNormalAutoSteal = function()
+  _G.YaisNormalSteal = _G.YaisNormalSteal or {
     enabled = false,
     radius = 62,
     duration = 1.3,
@@ -8303,9 +8303,9 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
     lastSteal = 0,
     cooldown = 0.08,
   }
-  if _G.MetroNormalSteal.stealConn then pcall(function() _G.MetroNormalSteal.stealConn:Disconnect() end); _G.MetroNormalSteal.stealConn = nil end
-  _G.MetroNormalSteal.enabled = false
-  _G.MetroNormalSteal.isStealing = false
+  if _G.YaisNormalSteal.stealConn then pcall(function() _G.YaisNormalSteal.stealConn:Disconnect() end); _G.YaisNormalSteal.stealConn = nil end
+  _G.YaisNormalSteal.enabled = false
+  _G.YaisNormalSteal.isStealing = false
 
   local function barProgress(p)
     p = math.clamp(tonumber(p) or 0, 0, 1)
@@ -8339,7 +8339,7 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
   end
 
   local function scanPlots()
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     a.animals = {}
     local plots = workspace:FindFirstChild("Plots")
     if not plots then return end
@@ -8367,13 +8367,13 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
   end
 
   local function ensureScanner()
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     if a.scannerStarted then return end
     a.scannerStarted = true
     task.spawn(function()
       task.wait(1)
-      while _G.MetroNormalSteal do
-        if _G.MetroNormalSteal.enabled then
+      while _G.YaisNormalSteal do
+        if _G.YaisNormalSteal.enabled then
           pcall(scanPlots)
         end
         task.wait(3)
@@ -8383,7 +8383,7 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
 
   local function findPrompt(data)
     if not data then return nil end
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     local cached = a.promptCache[data.uid]
     if cached and cached.Parent then return cached end
     local plots = workspace:FindFirstChild("Plots")
@@ -8404,7 +8404,7 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
   end
 
   local function cacheCallbacks(prompt)
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     if a.internalCache[prompt] then return end
     local data = {hold = {}, trigger = {}, ready = true}
     pcall(function()
@@ -8425,14 +8425,14 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
   -- Stesso identico check delle modalita' Semi: distanza dal prompt vivo
   -- (prompt.Parent.Parent = la parte Spawn), non da una posizione salvata.
   local function stillInRange(prompt)
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     local root = getRoot()
     if not root or not prompt.Parent or not prompt.Parent.Parent then return false end
     return (root.Position - prompt.Parent.Parent.Position).Magnitude <= (tonumber(a.radius) or 62)
   end
 
   local function doSteal(prompt)
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     if not prompt or not prompt.Parent or a.isStealing then return end
     if tick() - (a.lastSteal or 0) < (a.cooldown or 0.08) then return end
     cacheCallbacks(prompt)
@@ -8480,7 +8480,7 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
   end
 
   local function nearestAnimal()
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     local root = getRoot()
     if not root then return nil end
     local radius = tonumber(a.radius) or 62
@@ -8501,16 +8501,16 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
     -- vuota si usciva subito senza bersaglio invece di ripiegare sulla
     -- scansione propria. Era per quello che la Normal sembrava morta
     -- finche' non passavi da Semi e tornavi indietro.
-    if _G.MetroDuelstealAnimals then
-      local list = _G.MetroDuelstealAnimals()
+    if _G.YaisDuelstealAnimals then
+      local list = _G.YaisDuelstealAnimals()
       if type(list) == "table" and #list > 0 then
         local best, bestDist = nil, math.huge
         for _, data in ipairs(list) do
-          local mine = _G.MetroDuelstealIsMyBase and _G.MetroDuelstealIsMyBase(data)
-          local occupied = (not _G.MetroDuelstealSlotOccupied)
-                           or _G.MetroDuelstealSlotOccupied(data)
+          local mine = _G.YaisDuelstealIsMyBase and _G.YaisDuelstealIsMyBase(data)
+          local occupied = (not _G.YaisDuelstealSlotOccupied)
+                           or _G.YaisDuelstealSlotOccupied(data)
           if not mine and occupied then
-            local pos = _G.MetroDuelstealAnimalPos and _G.MetroDuelstealAnimalPos(data)
+            local pos = _G.YaisDuelstealAnimalPos and _G.YaisDuelstealAnimalPos(data)
             if pos then
               local dist = (root.Position - pos).Magnitude
               if dist <= radius and dist < bestDist then
@@ -8543,20 +8543,20 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
     return best
   end
 
-  _G.MetroNormalAutoStealSetRadius = function(v)
-    _G.MetroNormalSteal.radius = tonumber(v) or _G.MetroNormalSteal.radius or 62
+  _G.YaisNormalAutoStealSetRadius = function(v)
+    _G.YaisNormalSteal.radius = tonumber(v) or _G.YaisNormalSteal.radius or 62
   end
 
-  _G.MetroNormalAutoStealStop = function()
-    local a = _G.MetroNormalSteal
+  _G.YaisNormalAutoStealStop = function()
+    local a = _G.YaisNormalSteal
     a.enabled = false
     a.isStealing = false
     if a.stealConn then a.stealConn:Disconnect(); a.stealConn = nil end
     resetBar()
   end
 
-  _G.MetroNormalAutoStealStart = function()
-    local a = _G.MetroNormalSteal
+  _G.YaisNormalAutoStealStart = function()
+    local a = _G.YaisNormalSteal
     a.radius = tonumber(autoStealRadius) or a.radius or 62
     a.duration = 1.3
     a.enabled = true
@@ -8564,11 +8564,11 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
     pcall(scanPlots)
     -- Lista condivisa con la Semi: va fatta partire, se no resta vuota e
     -- nearestAnimal non ha niente su cui lavorare.
-    if _G.MetroDuelstealEnsureScan then pcall(_G.MetroDuelstealEnsureScan) end
+    if _G.YaisDuelstealEnsureScan then pcall(_G.YaisDuelstealEnsureScan) end
     if a.stealConn then a.stealConn:Disconnect(); a.stealConn = nil end
     a.stealConn = RunService.Heartbeat:Connect(function()
       if not a.enabled then return end
-      if selectedStealMode ~= "Normal" then _G.MetroNormalAutoStealStop(); return end
+      if selectedStealMode ~= "Normal" then _G.YaisNormalAutoStealStop(); return end
       if a.isStealing then return end
       local target = nearestAnimal()
       if not target then return end
@@ -8577,32 +8577,32 @@ _G.__MetroDuelsetupNormalAutoSteal = function()
     end)
   end
 
-  _G.MetroNormalAutoStealSync = function()
+  _G.YaisNormalAutoStealSync = function()
     if selectedStealMode == "Normal" and autoStealEnabled then
-      _G.MetroNormalAutoStealStart()
+      _G.YaisNormalAutoStealStart()
     else
-      _G.MetroNormalAutoStealStop()
+      _G.YaisNormalAutoStealStop()
     end
   end
 end
 
-_G.__MetroDuelsetupNormalAutoSteal()
+_G.__YaisDuelsetupNormalAutoSteal()
 
-_G.__MetroDuelsetupSemiAutoSteal = function()
-  _G.MetroDuelsemiSteal = _G.MetroDuelsemiSteal or {}
-  local A = _G.MetroDuelsemiSteal
+_G.__YaisDuelsetupSemiAutoSteal = function()
+  _G.YaisDuelsemiSteal = _G.YaisDuelsemiSteal or {}
+  local A = _G.YaisDuelsemiSteal
   if A.conn then pcall(function() A.conn:Disconnect() end); A.conn = nil end
   A.enabled    = false
   A.cooldown   = A.cooldown   or 0.05
   A.primeRange = A.primeRange or 80
   A.radius     = tonumber(autoStealRadius) or A.radius or 60
-  -- applica valori salvati dal config (loadMetroConfig gira prima di questo setup)
-  local pending = _G._MetroDuelsemiStealPending
+  -- applica valori salvati dal config (loadYaisConfig gira prima di questo setup)
+  local pending = _G._YaisDuelsemiStealPending
   A.autoGrabStopTime       = (pending and pending.autoGrabStopTime)       or A.autoGrabStopTime       or 1.29
   A.autoGrabStopPercent    = (pending and pending.autoGrabStopPercent)    or A.autoGrabStopPercent    or 75
   A.autoGrabSetDelayRadius = (pending and pending.autoGrabSetDelayRadius) or A.autoGrabSetDelayRadius or 8
   A.autoGrabStopEnabled    = true
-  _G._MetroDuelsemiStealPending = nil
+  _G._YaisDuelsemiStealPending = nil
 
 
   A.conn = A.conn
@@ -8979,9 +8979,9 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
   -- dall'AnimalList del plot, quindi contiene solo gli slot che hanno
   -- davvero un animale sopra. Esposta su _G perche' il blocco della
   -- Normal sta prima di questo nel file e non vede questi local.
-  _G.MetroDuelstealAnimals   = function() return A.animals end
-  _G.MetroDuelstealAnimalPos = function(d) return animalPos(d) end
-  _G.MetroDuelstealIsMyBase  = function(d) return isMyBaseAnimal(d) end
+  _G.YaisDuelstealAnimals   = function() return A.animals end
+  _G.YaisDuelstealAnimalPos = function(d) return animalPos(d) end
+  _G.YaisDuelstealIsMyBase  = function(d) return isMyBaseAnimal(d) end
 
   -- Lo slot ha ANCORA un animale sopra, adesso.
   -- La lista viene ricostruita ogni 5 secondi, quindi da sola non basta:
@@ -8990,7 +8990,7 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
   -- valida. Le cache dei plot sono invece aggiornate dal vivo dai
   -- RemoteEvent del Synchronizer: chiedendo a loro si sa in quell'istante
   -- se lo slot e' occupato.
-  _G.MetroDuelstealSlotOccupied = function(d)
+  _G.YaisDuelstealSlotOccupied = function(d)
     if not d or not d.plot or not d.slot then return false end
     local cache = A.plotSync and A.plotSync.caches and A.plotSync.caches[d.plot]
     local list = cache and cache.AnimalList
@@ -9006,7 +9006,7 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
   local function ensureScanThread()
     if A.scanThread then return end
     A.scanThread = task.spawn(function()
-      while _G.MetroDuelsemiSteal do
+      while _G.YaisDuelsemiSteal do
         -- Lo scan gira anche per la Normal, che ora legge da qui.
         if A.enabled or selectedStealMode == "Semi"
            or (selectedStealMode == "Normal" and autoStealEnabled) then
@@ -9021,17 +9021,17 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
   -- ma il thread che la riempie partiva SOLO dall'avvio della Semi: senza
   -- aver mai acceso la Semi la lista restava vuota e la Normal non
   -- trovava mai un bersaglio. Da qui la puo' far partire chiunque.
-  _G.MetroDuelstealEnsureScan = function()
+  _G.YaisDuelstealEnsureScan = function()
     ensureScanThread()
     task.spawn(function() pcall(scanAllPlots) end)
   end
 
-  _G.MetroDuelsemiAutoStealSetRadius = function(v)
+  _G.YaisDuelsemiAutoStealSetRadius = function(v)
     local n = tonumber(v)
     if n then A.radius = n end
   end
 
-  _G.MetroDuelsemiAutoStealStop = function()
+  _G.YaisDuelsemiAutoStealStop = function()
     A.enabled = false
     if A.conn then A.conn:Disconnect(); A.conn = nil end
     A.state.active = false
@@ -9039,7 +9039,7 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
     barReset()
   end
 
-  _G.MetroDuelsemiAutoStealStart = function()
+  _G.YaisDuelsemiAutoStealStart = function()
     A.radius = tonumber(autoStealRadius) or A.radius or 60
     A.enabled = true
     ensureSync()
@@ -9048,7 +9048,7 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
     if A.conn then A.conn:Disconnect(); A.conn = nil end
     A.conn = RunService.Heartbeat:Connect(function()
       if not A.enabled then return end
-      if selectedStealMode ~= "Semi" then _G.MetroDuelsemiAutoStealStop(); return end
+      if selectedStealMode ~= "Semi" then _G.YaisDuelsemiAutoStealStop(); return end
       if A.state.active then return end
       local target = pickClosest()
       if not target then return end
@@ -9057,21 +9057,21 @@ _G.__MetroDuelsetupSemiAutoSteal = function()
     end)
   end
 
-  _G.MetroDuelsemiAutoStealSync = function()
+  _G.YaisDuelsemiAutoStealSync = function()
     if selectedStealMode == "Semi" and autoStealEnabled then
-      _G.MetroDuelsemiAutoStealStart()
+      _G.YaisDuelsemiAutoStealStart()
     else
-      _G.MetroDuelsemiAutoStealStop()
+      _G.YaisDuelsemiAutoStealStop()
     end
   end
 end
 
-_G.__MetroDuelsetupSemiAutoSteal()
+_G.__YaisDuelsetupSemiAutoSteal()
 
--- ===== SEMI V2 ENGINE (logica da Metro.lua standalone) =====
-_G.__MetroDuelsetupSemiV2AutoSteal = function()
-  _G.MetroDuelsemiV2Steal = _G.MetroDuelsemiV2Steal or {}
-  local B = _G.MetroDuelsemiV2Steal
+-- ===== SEMI V2 ENGINE (logica da Yais.lua standalone) =====
+_G.__YaisDuelsetupSemiV2AutoSteal = function()
+  _G.YaisDuelsemiV2Steal = _G.YaisDuelsemiV2Steal or {}
+  local B = _G.YaisDuelsemiV2Steal
   if B.conn then pcall(function() B.conn:Disconnect() end); B.conn = nil end
   B.enabled    = false
   -- Valori hardcoded (non mostrati in settings)
@@ -9079,9 +9079,9 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
   B.holdMax    = 2.69
   B.entryDelay = 0.3
   B.cooldown   = 0.05
-  -- Radius (prime range) e SemiRadius (steal range) presi da MetroDuelstealRadii
-  B.radius     = tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2Radius) or B.radius or 60
-  B.semiRadius = tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or B.semiRadius or 8
+  -- Radius (prime range) e SemiRadius (steal range) presi da YaisDuelstealRadii
+  B.radius     = tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2Radius) or B.radius or 60
+  B.semiRadius = tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or B.semiRadius or 8
   B.plotSync   = B.plotSync or {caches = {}, connections = {}}
   B.animals    = B.animals or {}
   B.promptCache = B.promptCache or {}
@@ -9393,19 +9393,19 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
   local function ensureScanThread()
     if B.scanThread then return end
     B.scanThread = task.spawn(function()
-      while _G.MetroDuelsemiV2Steal do
+      while _G.YaisDuelsemiV2Steal do
         if B.enabled or (selectedStealMode == "Semi" and selectedSemiMode == "V2") then pcall(scanAllPlots) end
         task.wait(5)
       end
     end)
   end
 
-  _G.MetroDuelsemiV2SetRadius = function(v)
+  _G.YaisDuelsemiV2SetRadius = function(v)
     local n = tonumber(v)
     if n then B.radius = n end
   end
 
-  _G.MetroDuelsemiV2SetSemiRadius = function(v)
+  _G.YaisDuelsemiV2SetSemiRadius = function(v)
     local n = tonumber(v)
     if n then B.semiRadius = n end
   end
@@ -9428,7 +9428,7 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
     end)
   end)
 
-  _G.MetroDuelsemiV2AutoStealStop = function()
+  _G.YaisDuelsemiV2AutoStealStop = function()
     B.enabled = false
     if B.conn then B.conn:Disconnect(); B.conn = nil end
     B.state.active  = false
@@ -9437,9 +9437,9 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
     barReset()
   end
 
-  _G.MetroDuelsemiV2AutoStealStart = function()
-    B.radius     = tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2Radius)     or B.radius     or 60
-    B.semiRadius = tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or B.semiRadius or 8
+  _G.YaisDuelsemiV2AutoStealStart = function()
+    B.radius     = tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2Radius)     or B.radius     or 60
+    B.semiRadius = tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or B.semiRadius or 8
     B.enabled = true
     ensureSync()
     ensureScanThread()
@@ -9447,7 +9447,7 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
     if B.conn then B.conn:Disconnect(); B.conn = nil end
     B.conn = RunService.Heartbeat:Connect(function()
       if not B.enabled then return end
-      if selectedStealMode ~= "Semi" or selectedSemiMode ~= "V2" then _G.MetroDuelsemiV2AutoStealStop(); return end
+      if selectedStealMode ~= "Semi" or selectedSemiMode ~= "V2" then _G.YaisDuelsemiV2AutoStealStop(); return end
       if B.state.active then return end
       local target = pickClosest()
       if not target then return end
@@ -9456,36 +9456,36 @@ _G.__MetroDuelsetupSemiV2AutoSteal = function()
     end)
   end
 
-  _G.MetroDuelsemiV2AutoStealSync = function()
+  _G.YaisDuelsemiV2AutoStealSync = function()
     if selectedStealMode == "Semi" and selectedSemiMode == "V2" and autoStealEnabled then
-      _G.MetroDuelsemiV2AutoStealStart()
+      _G.YaisDuelsemiV2AutoStealStart()
     else
-      _G.MetroDuelsemiV2AutoStealStop()
+      _G.YaisDuelsemiV2AutoStealStop()
     end
   end
 end
 
-_G.__MetroDuelsetupSemiV2AutoSteal()
+_G.__YaisDuelsetupSemiV2AutoSteal()
 
-_G.MetroAutoStealSync = function()
+_G.YaisAutoStealSync = function()
   if not autoStealEnabled then
-    if _G.MetroNormalAutoStealStop then _G.MetroNormalAutoStealStop() end
-    if _G.MetroDuelsemiAutoStealStop then _G.MetroDuelsemiAutoStealStop() end
-    if _G.MetroDuelsemiV2AutoStealStop then _G.MetroDuelsemiV2AutoStealStop() end
+    if _G.YaisNormalAutoStealStop then _G.YaisNormalAutoStealStop() end
+    if _G.YaisDuelsemiAutoStealStop then _G.YaisDuelsemiAutoStealStop() end
+    if _G.YaisDuelsemiV2AutoStealStop then _G.YaisDuelsemiV2AutoStealStop() end
     return
   end
   if selectedStealMode == "Normal" then
-    if _G.MetroDuelsemiAutoStealStop then _G.MetroDuelsemiAutoStealStop() end
-    if _G.MetroDuelsemiV2AutoStealStop then _G.MetroDuelsemiV2AutoStealStop() end
-    if _G.MetroNormalAutoStealSync then _G.MetroNormalAutoStealSync() end
+    if _G.YaisDuelsemiAutoStealStop then _G.YaisDuelsemiAutoStealStop() end
+    if _G.YaisDuelsemiV2AutoStealStop then _G.YaisDuelsemiV2AutoStealStop() end
+    if _G.YaisNormalAutoStealSync then _G.YaisNormalAutoStealSync() end
   elseif selectedStealMode == "Semi" then
-    if _G.MetroNormalAutoStealStop then _G.MetroNormalAutoStealStop() end
+    if _G.YaisNormalAutoStealStop then _G.YaisNormalAutoStealStop() end
     if selectedSemiMode == "V2" then
-      if _G.MetroDuelsemiAutoStealStop then _G.MetroDuelsemiAutoStealStop() end
-      if _G.MetroDuelsemiV2AutoStealSync then _G.MetroDuelsemiV2AutoStealSync() end
+      if _G.YaisDuelsemiAutoStealStop then _G.YaisDuelsemiAutoStealStop() end
+      if _G.YaisDuelsemiV2AutoStealSync then _G.YaisDuelsemiV2AutoStealSync() end
     else
-      if _G.MetroDuelsemiV2AutoStealStop then _G.MetroDuelsemiV2AutoStealStop() end
-      if _G.MetroDuelsemiAutoStealSync then _G.MetroDuelsemiAutoStealSync() end
+      if _G.YaisDuelsemiV2AutoStealStop then _G.YaisDuelsemiV2AutoStealStop() end
+      if _G.YaisDuelsemiAutoStealSync then _G.YaisDuelsemiAutoStealSync() end
     end
   end
 end
@@ -9498,16 +9498,16 @@ end
 -- Un token di generazione garantisce che hit multipli in rapida successione
 -- schedulino un solo riavvio (l'ultimo vince).
 -- Definita qui (prima di _doSyncAfterHit) per essere catturata come upvalue corretta.
-local function _isMedusaHit() return (tick() - (_G._MetroMedusaHitTime or 0)) < 4 end
+local function _isMedusaHit() return (tick() - (_G._YaisMedusaHitTime or 0)) < 4 end
 -- Serve anche fuori da questo blocco (TP Ragdoll): li' e' l'unica cosa
 -- che distingue una medusata da una bastonata, e le due vanno trattate in
 -- modo opposto.
-_G._MetroIsMedusaHit = _isMedusaHit
+_G._YaisIsMedusaHit = _isMedusaHit
 
 local function _doSyncAfterHit()
   -- 1) Stop immediato + reset completo stato interno
   if selectedStealMode == "Normal" then
-    local a = _G.MetroNormalSteal
+    local a = _G.YaisNormalSteal
     if a then
       a.enabled = false
       a.isStealing = false
@@ -9518,7 +9518,7 @@ local function _doSyncAfterHit()
     end
   elseif selectedStealMode == "Semi" then
     if selectedSemiMode == "V2" then
-      local B = _G.MetroDuelsemiV2Steal
+      local B = _G.YaisDuelsemiV2Steal
       if B then
         B.enabled = false
         if B.conn then pcall(function() B.conn:Disconnect() end); B.conn = nil end
@@ -9528,7 +9528,7 @@ local function _doSyncAfterHit()
         pcall(function() if _G.StealBar then _G.StealBar.Reset() end end)
       end
     else
-      local A = _G.MetroDuelsemiSteal
+      local A = _G.YaisDuelsemiSteal
       if A then
         A.enabled = false
         if A.conn then pcall(function() A.conn:Disconnect() end); A.conn = nil end
@@ -9545,19 +9545,19 @@ local function _doSyncAfterHit()
   --    Se il ragdoll è causato da medusa aspetta 2.45s, altrimenti 1.45s.
   --    _isMedusaHit() controlla se l'Anchored è stato visto negli ultimi 4s:
   --    medusa freeze → Anchored → poi Physics/Ragdoll, tutto entro ~4s.
-  local myGen = _G._MetroDuelsyncAfterHit.gen
+  local myGen = _G._YaisDuelsyncAfterHit.gen
   local syncDelay = _isMedusaHit() and 2.45 or 1.45
   task.delay(syncDelay, function()
-    if myGen ~= _G._MetroDuelsyncAfterHit.gen then return end
-    _G._MetroDuelsyncAfterHit.wasRagdoll = false
-    if _G._MetroDuelsyncAfterHit.enabled and autoStealEnabled then
+    if myGen ~= _G._YaisDuelsyncAfterHit.gen then return end
+    _G._YaisDuelsyncAfterHit.wasRagdoll = false
+    if _G._YaisDuelsyncAfterHit.enabled and autoStealEnabled then
       if selectedStealMode == "Normal" then
-        if _G.MetroNormalAutoStealStart then pcall(_G.MetroNormalAutoStealStart) end
+        if _G.YaisNormalAutoStealStart then pcall(_G.YaisNormalAutoStealStart) end
       elseif selectedStealMode == "Semi" then
         if selectedSemiMode == "V2" then
-          if _G.MetroDuelsemiV2AutoStealStart then pcall(_G.MetroDuelsemiV2AutoStealStart) end
+          if _G.YaisDuelsemiV2AutoStealStart then pcall(_G.YaisDuelsemiV2AutoStealStart) end
         else
-          if _G.MetroDuelsemiAutoStealStart then pcall(_G.MetroDuelsemiAutoStealStart) end
+          if _G.YaisDuelsemiAutoStealStart then pcall(_G.YaisDuelsemiAutoStealStart) end
         end
       end
     end
@@ -9565,13 +9565,13 @@ local function _doSyncAfterHit()
 end
 
 local function _startSyncAfterHitWatcher()
-  if _G._MetroDuelsyncAfterHit.conn then
-    pcall(function() _G._MetroDuelsyncAfterHit.conn:Disconnect() end)
-    _G._MetroDuelsyncAfterHit.conn = nil
+  if _G._YaisDuelsyncAfterHit.conn then
+    pcall(function() _G._YaisDuelsyncAfterHit.conn:Disconnect() end)
+    _G._YaisDuelsyncAfterHit.conn = nil
   end
-  _G._MetroDuelsyncAfterHit.wasRagdoll = false
-  _G._MetroDuelsyncAfterHit.conn = RunService.Heartbeat:Connect(function()
-    if not _G._MetroDuelsyncAfterHit.enabled then return end
+  _G._YaisDuelsyncAfterHit.wasRagdoll = false
+  _G._YaisDuelsyncAfterHit.conn = RunService.Heartbeat:Connect(function()
+    if not _G._YaisDuelsyncAfterHit.enabled then return end
     if not autoStealEnabled then return end
     local char = LP.Character
     if not char then return end
@@ -9581,23 +9581,23 @@ local function _startSyncAfterHitWatcher()
     -- Solo Physics e Ragdoll; FallingDown escluso intenzionalmente
     local isRagdolled = (state == Enum.HumanoidStateType.Physics or
                          state == Enum.HumanoidStateType.Ragdoll)
-    if isRagdolled and not _G._MetroDuelsyncAfterHit.wasRagdoll then
+    if isRagdolled and not _G._YaisDuelsyncAfterHit.wasRagdoll then
       -- Rising edge: primo frame del ragdoll → agisci subito
-      _G._MetroDuelsyncAfterHit.wasRagdoll = true
-      _G._MetroDuelsyncAfterHit.gen = _G._MetroDuelsyncAfterHit.gen + 1
+      _G._YaisDuelsyncAfterHit.wasRagdoll = true
+      _G._YaisDuelsyncAfterHit.gen = _G._YaisDuelsyncAfterHit.gen + 1
       _doSyncAfterHit()
     elseif not isRagdolled then
-      _G._MetroDuelsyncAfterHit.wasRagdoll = false
+      _G._YaisDuelsyncAfterHit.wasRagdoll = false
     end
   end)
 end
 
 local function _stopSyncAfterHitWatcher()
-  if _G._MetroDuelsyncAfterHit.conn then
-    pcall(function() _G._MetroDuelsyncAfterHit.conn:Disconnect() end)
-    _G._MetroDuelsyncAfterHit.conn = nil
+  if _G._YaisDuelsyncAfterHit.conn then
+    pcall(function() _G._YaisDuelsyncAfterHit.conn:Disconnect() end)
+    _G._YaisDuelsyncAfterHit.conn = nil
   end
-  _G._MetroDuelsyncAfterHit.wasRagdoll = false
+  _G._YaisDuelsyncAfterHit.wasRagdoll = false
 end
 
 _startSyncAfterHitWatcher()
@@ -9636,11 +9636,11 @@ _startSyncAfterHitWatcher()
 --
 -- Tutto su _G: zero local aggiunti al chunk principale.
 -- ============================================================
-_G.MetroTPRagdoll = _G.MetroTPRagdoll or {}
-_G.MetroTPRagdollEnabled = _G.MetroTPRagdollEnabled == true
-_G.MetroTPRagdollBusy = false
+_G.YaisTPRagdoll = _G.YaisTPRagdoll or {}
+_G.YaisTPRagdollEnabled = _G.YaisTPRagdollEnabled == true
+_G.YaisTPRagdollBusy = false
 
-_G.MetroTPRagdoll.cfg = {
+_G.YaisTPRagdoll.cfg = {
   -- Due momenti distinti, tutti contati dall'istante del colpo.
   BLOCK = 1.15,   -- si blocca quello che ti muove, e parte il TP Down
   PIVOT = 1.25,   -- i tre salti
@@ -9661,9 +9661,9 @@ _G.MetroTPRagdoll.cfg = {
   },
 }
 
-function _G.MetroTPRagdoll.run()
-  local T = _G.MetroTPRagdoll
-  local side = _G.MetroAutoPlay and _G.MetroAutoPlay.side
+function _G.YaisTPRagdoll.run()
+  local T = _G.YaisTPRagdoll
+  local side = _G.YaisAutoPlay and _G.YaisAutoPlay.side
   if side ~= "L" and side ~= "R" then return end
   local pts = T.cfg[side]
   if not pts then return end
@@ -9677,15 +9677,15 @@ function _G.MetroTPRagdoll.run()
   -- poi ti si sposta a forza.
   task.delay(T.cfg.BLOCK, function()
     if myGen ~= T.gen then return end
-    _G.MetroTPRagdollBusy = true
-    if _G.MetroDuelsafeModeForceStop then
-      pcall(_G.MetroDuelsafeModeForceStop, "TP RAGDOLL")
+    _G.YaisTPRagdollBusy = true
+    if _G.YaisDuelsafeModeForceStop then
+      pcall(_G.YaisDuelsafeModeForceStop, "TP RAGDOLL")
     end
     -- TP Down, e sempre quello NORMAL anche se hai scelto Slow Fall o
     -- ZigZag: quelli scendono piano, e qui di tempo ce n'e' un decimo di
     -- secondo prima dei salti. Serve ad arrivare a terra prima di essere
     -- spostato, cosi' la quota da cui partono i pivot e' quella buona.
-    if _G.MetroRunTPDown then pcall(_G.MetroRunTPDown, true) end
+    if _G.YaisRunTPDown then pcall(_G.YaisRunTPDown, true) end
   end)
 
   -- PIVOT - I SALTI.
@@ -9693,7 +9693,7 @@ function _G.MetroTPRagdoll.run()
     if myGen ~= T.gen then return end
     local char = LP.Character
     if not char then
-      _G.MetroTPRagdollBusy = false
+      _G.YaisTPRagdollBusy = false
       return
     end
     for _, pos in ipairs(pts) do
@@ -9713,36 +9713,36 @@ function _G.MetroTPRagdoll.run()
       -- sia davvero assestata.
       task.wait(T.cfg.STEP)
     end
-    _G.MetroTPRagdollBusy = false
+    _G.YaisTPRagdollBusy = false
     T.done = myGen
   end)
 end
 
-function _G.MetroTPRagdoll.stop()
-  local T = _G.MetroTPRagdoll
+function _G.YaisTPRagdoll.stop()
+  local T = _G.YaisTPRagdoll
   T.gen = (T.gen or 0) + 1
-  _G.MetroTPRagdollBusy = false
+  _G.YaisTPRagdollBusy = false
   if T.conn then pcall(function() T.conn:Disconnect() end); T.conn = nil end
   -- Il registro dei ragdoll nemici si spegne solo se non lo sta usando
   -- anche il Bat Counter.
-  if not batCounterEnabled and _G.MetroDuelstopBatCounterWatcher then
-    pcall(_G.MetroDuelstopBatCounterWatcher)
+  if not batCounterEnabled and _G.YaisDuelstopBatCounterWatcher then
+    pcall(_G.YaisDuelstopBatCounterWatcher)
   end
 end
 
-function _G.MetroTPRagdoll.start()
-  local T = _G.MetroTPRagdoll
+function _G.YaisTPRagdoll.start()
+  local T = _G.YaisTPRagdoll
   if T.conn then pcall(function() T.conn:Disconnect() end) end
   T.was = false
   -- Serve il registro di chi e' stato ragdollato di recente: senza, non
   -- c'e' modo di sapere se il nemico era gia' a terra. E' lo stesso
   -- watcher del Bat Counter, e riavviarlo quando gira gia' non fa danni
   -- (la prima cosa che fa e' ripulirsi).
-  if _G.MetroDuelstartBatCounterWatcher then
-    pcall(_G.MetroDuelstartBatCounterWatcher)
+  if _G.YaisDuelstartBatCounterWatcher then
+    pcall(_G.YaisDuelstartBatCounterWatcher)
   end
   T.conn = RunService.Heartbeat:Connect(function()
-    if not _G.MetroTPRagdollEnabled then return end
+    if not _G.YaisTPRagdollEnabled then return end
     local char = LP.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     -- MORTO, oppure Instant Reset in corso. Gli stessi due casi che il Bat
@@ -9751,12 +9751,12 @@ function _G.MetroTPRagdoll.start()
     -- basta pero' non far partire: se una sequenza era gia' in corso va
     -- anche annullata, se no i salti arriverebbero addosso al cadavere o
     -- al personaggio appena rinato.
-    if not hum or hum.Health <= 0 or _G._MetroInstantResetBusy then
+    if not hum or hum.Health <= 0 or _G._YaisInstantResetBusy then
       T.was = false
       if (T.gen or 0) ~= (T.done or -1) then
         T.gen = (T.gen or 0) + 1
         T.done = T.gen
-        _G.MetroTPRagdollBusy = false
+        _G.YaisTPRagdollBusy = false
       end
       return
     end
@@ -9767,31 +9767,31 @@ function _G.MetroTPRagdoll.start()
     if down and not T.was then
       T.was = true
       -- Medusa: si lascia perdere del tutto.
-      local med = _G._MetroIsMedusaHit and _G._MetroIsMedusaHit() or false
+      local med = _G._YaisIsMedusaHit and _G._YaisIsMedusaHit() or false
       -- NEMICO GIA' A TERRA. Se il piu' vicino e' stato ragdollato da meno
       -- di 2.6 secondi, quello a terra per primo sei stato tu a metterlo:
       -- quindi questo non e' un colpo che hai subito, e' lo strascico dello
       -- scambio. E' lo stesso ragionamento (e lo stesso lock) che usa il
       -- Bat Counter V2 per non contare quell'evento come hit.
-      local enemyDown = _G.MetroIsNearestEnemyRagdolled
-        and _G.MetroIsNearestEnemyRagdolled() or false
-      if not med and not enemyDown then _G.MetroTPRagdoll.run() end
+      local enemyDown = _G.YaisIsNearestEnemyRagdolled
+        and _G.YaisIsNearestEnemyRagdolled() or false
+      if not med and not enemyDown then _G.YaisTPRagdoll.run() end
     elseif not down then
       T.was = false
     end
   end)
 end
 
-function _G.MetroTPRagdoll.set(on)
-  _G.MetroTPRagdollEnabled = on and true or false
-  if _G.MetroTPRagdollEnabled then
-    _G.MetroTPRagdoll.start()
+function _G.YaisTPRagdoll.set(on)
+  _G.YaisTPRagdollEnabled = on and true or false
+  if _G.YaisTPRagdollEnabled then
+    _G.YaisTPRagdoll.start()
   else
-    _G.MetroTPRagdoll.stop()
+    _G.YaisTPRagdoll.stop()
   end
 end
 
-if _G.MetroTPRagdollEnabled then _G.MetroTPRagdoll.start() end
+if _G.YaisTPRagdollEnabled then _G.YaisTPRagdoll.start() end
 
 -- ===== MEDUSA HIT WATCHER (sempre attivo, indipendente dal ragdoll countdown) =====
 -- Flusso medusa: parti diventano Anchored (freeze) → poi si de-anchorano → Physics/Ragdoll.
@@ -9809,7 +9809,7 @@ do
     if not part:IsA("BasePart") then return end
     local c = part:GetPropertyChangedSignal("Anchored"):Connect(function()
       if part.Anchored and part.Transparency == 1 then
-        _G._MetroMedusaHitTime = tick()
+        _G._YaisMedusaHitTime = tick()
       end
     end)
     table.insert(_medusaWatcherConns, c)
@@ -9817,7 +9817,7 @@ do
 
   local function _attachMedusaWatcher(char)
     _clearMedusaWatcher()
-    _G._MetroMedusaHitTime = 0
+    _G._YaisMedusaHitTime = 0
     if not char then return end
 
     for _, part in ipairs(char:GetDescendants()) do
@@ -9829,13 +9829,13 @@ do
   end
 
   if LP.Character then _attachMedusaWatcher(LP.Character) end
-  LP.CharacterAdded:Connect(function(char) _G._MetroWaitCharReady(char, 10); _attachMedusaWatcher(char) end)
+  LP.CharacterAdded:Connect(function(char) _G._YaisWaitCharReady(char, 10); _attachMedusaWatcher(char) end)
 end
 -- ===== FINE MEDUSA HIT WATCHER =====
 
 task.spawn(function()
   while task.wait(30) do
-    saveMetroConfig()
+    saveYaisConfig()
   end
 end)
 
@@ -9853,7 +9853,7 @@ local function getCurrentSpeedValue()
 end
 -- Esposta perche' serve allo ZigZag del TP Down, che sta molto piu' in alto
 -- nel file e non puo' vedere questo local.
-_G.MetroGetCurrentSpeedValue = getCurrentSpeedValue
+_G.YaisGetCurrentSpeedValue = getCurrentSpeedValue
 
 local refreshSpeedModeRows = nil
 
@@ -9864,19 +9864,19 @@ local function setSpeedMode(mode)
   -- Blocca switch SOLO quando siamo in lock (speed bassa)
   -- Permette comunque di switchare tra Carry e Lagger Carry
   -- I restore interni dell'auto switch bypassano questo guard
-  if not _G._MetroAS.restoring and autoCarrySpeedEnabled and _G._MetroAS.locked then
+  if not _G._YaisAS.restoring and autoCarrySpeedEnabled and _G._YaisAS.locked then
     if mode ~= "Carry" and mode ~= "Lagger Carry" then return end
   end
   currentSpeedMode = mode
   if refreshSpeedModeRows then
     refreshSpeedModeRows()
   end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-  saveMetroConfig()
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+  saveYaisConfig()
 end
 
 local function toggleCarryMode()
-  if autoCarrySpeedEnabled and _G._MetroAS.locked then
+  if autoCarrySpeedEnabled and _G._YaisAS.locked then
     -- Mentre lockati: Q porta sempre a Carry (rimuove il lato lagger)
     setSpeedMode("Carry")
     return
@@ -9891,7 +9891,7 @@ local function toggleCarryMode()
 end
 
 local function toggleLaggerMode()
-  if autoCarrySpeedEnabled and _G._MetroAS.locked then
+  if autoCarrySpeedEnabled and _G._YaisAS.locked then
     -- Mentre lockati: R porta sempre a Lagger Carry (aggiunge il lato lagger)
     setSpeedMode("Lagger Carry")
     return
@@ -9957,8 +9957,8 @@ end
 -- ===== NEAREST ANIMAL PER AUTO CARRY SPEED (SOFT) =====
 -- Stessa logica di scan usata dall'Auto Steal (Plots > AnimalPodiums > Base > Spawn),
 -- esclude la propria base tramite PlotSign.YourBase.
-function _G.MetroAutoCarryScanAnimals()
-  local S = _G._MetroAutoCarrySoft
+function _G.YaisAutoCarryScanAnimals()
+  local S = _G._YaisAutoCarrySoft
   local list = {}
   local plots = workspace:FindFirstChild("Plots")
   if not plots then S.animals = list; return end
@@ -9985,15 +9985,15 @@ function _G.MetroAutoCarryScanAnimals()
   S.animals = list
 end
 
-function _G.MetroAutoCarryNearestAnimalDist()
-  local S = _G._MetroAutoCarrySoft
+function _G.YaisAutoCarryNearestAnimalDist()
+  local S = _G._YaisAutoCarrySoft
   local char = LP.Character
   local root = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso"))
   if not root then return math.huge end
   local now = tick()
   if (now - (S.lastScan or 0)) >= (S.scanInterval or 2) then
     S.lastScan = now
-    pcall(_G.MetroAutoCarryScanAnimals)
+    pcall(_G.YaisAutoCarryScanAnimals)
   end
   local rp = root.Position
   local bestDist = math.huge
@@ -10004,9 +10004,9 @@ function _G.MetroAutoCarryNearestAnimalDist()
   return bestDist
 end
 
-function _G.MetroAutoCarryInSoftRadius()
-  local S = _G._MetroAutoCarrySoft
-  return _G.MetroAutoCarryNearestAnimalDist() <= (tonumber(S.radius) or 9.5)
+function _G.YaisAutoCarryInSoftRadius()
+  local S = _G._YaisAutoCarrySoft
+  return _G.YaisAutoCarryNearestAnimalDist() <= (tonumber(S.radius) or 9.5)
 end
 -- ===== FINE NEAREST ANIMAL PER AUTO CARRY SPEED (SOFT) =====
 
@@ -10023,21 +10023,21 @@ local function updateAutoSwitchToCarry()
   -- tutto il countdown, e con il lock attivo Q/R forzano Carry / Lagger Carry.
   -- Quindi rilasciamo il lock e ripristiniamo la mode salvata: durante il countdown
   -- sei libero di stare su Normal o Lagger senza che nulla ti switchi.
-  if _G.MetroDuelsafeModeInDuelCountdown then
-    local okCd, inCd = pcall(_G.MetroDuelsafeModeInDuelCountdown)
+  if _G.YaisDuelsafeModeInDuelCountdown then
+    local okCd, inCd = pcall(_G.YaisDuelsafeModeInDuelCountdown)
     if okCd and inCd then
-      if _G._MetroAS.locked then
-        _G._MetroAS.locked = false
-        if _G._MetroAS.savedMode then
-          _G._MetroAS.restoring = true
-          setSpeedMode(_G._MetroAS.savedMode)
-          _G._MetroAS.restoring = false
-          _G._MetroAS.savedMode = nil
+      if _G._YaisAS.locked then
+        _G._YaisAS.locked = false
+        if _G._YaisAS.savedMode then
+          _G._YaisAS.restoring = true
+          setSpeedMode(_G._YaisAS.savedMode)
+          _G._YaisAS.restoring = false
+          _G._YaisAS.savedMode = nil
         end
       end
       -- Azzerato cosi' a fine countdown l'edge-trigger rivaluta da zero:
       -- se la speed e' ancora bassa rilocka, se e' alta resta libero.
-      _G._MetroAS.wasLow = false
+      _G._YaisAS.wasLow = false
       return
     end
   end
@@ -10045,19 +10045,19 @@ local function updateAutoSwitchToCarry()
   -- SOFT: il lock scatta anche entrando nel raggio di 9.5 stud dall'animale piu' vicino.
   -- Uscendo dal raggio si resta lockati solo se la walkspeed e' sotto 25 (= stai portando),
   -- altrimenti si torna alla mode che era selezionata prima di entrare nel raggio.
-  if _G._MetroAutoCarryMode == "SOFT" then
+  if _G._YaisAutoCarryMode == "SOFT" then
     local inR = false
-    local okR, resR = pcall(_G.MetroAutoCarryInSoftRadius)
+    local okR, resR = pcall(_G.YaisAutoCarryInSoftRadius)
     if okR then inR = resR and true or false end
     isLow = inR or isLow
   end
-  if isLow == _G._MetroAS.wasLow then return end
-  _G._MetroAS.wasLow = isLow
+  if isLow == _G._YaisAS.wasLow then return end
+  _G._YaisAS.wasLow = isLow
   if isLow then
-    _G._MetroAS.locked = true
+    _G._YaisAS.locked = true
     -- Salva solo se non siamo gia in una carry mode (evita di salvare "Carry" come saved)
     if currentSpeedMode ~= "Carry" and currentSpeedMode ~= "Lagger Carry" then
-      _G._MetroAS.savedMode = currentSpeedMode
+      _G._YaisAS.savedMode = currentSpeedMode
       if currentSpeedMode == "Lagger" then
         setSpeedMode("Lagger Carry")
       else
@@ -10068,21 +10068,21 @@ local function updateAutoSwitchToCarry()
     -- Gia in Carry o Lagger Carry: non fa nulla, ma il lock e' gia settato
   else
     -- Speed tornata sopra 25 -> UNLOCK poi ripristina la mode precedente
-    _G._MetroAS.locked = false
-    if _G._MetroAS.savedMode then
-      _G._MetroAS.restoring = true
-      setSpeedMode(_G._MetroAS.savedMode)
-      _G._MetroAS.restoring = false
-      _G._MetroAS.savedMode = nil
+    _G._YaisAS.locked = false
+    if _G._YaisAS.savedMode then
+      _G._YaisAS.restoring = true
+      setSpeedMode(_G._YaisAS.savedMode)
+      _G._YaisAS.restoring = false
+      _G._YaisAS.savedMode = nil
     end
   end
 end
 
 task.spawn(function()
   while true do
-    task.wait(_G._MetroAS.interval)
+    task.wait(_G._YaisAS.interval)
     updateAutoSwitchToCarry()
-    if _G.MetroUpdateKickWarning then pcall(_G.MetroUpdateKickWarning) end
+    if _G.YaisUpdateKickWarning then pcall(_G.YaisUpdateKickWarning) end
   end
 end)
 -- ===== FINE AUTO SWITCH TO CARRY =====
@@ -10099,10 +10099,10 @@ end)
 --
 -- Tutto su _G: non aggiunge nemmeno un local al chunk principale.
 -- ============================================================
-_G.MetroUltimateAntiKick = _G.MetroUltimateAntiKick or {}
-_G.MetroUAKEnabled = _G.MetroUAKEnabled == true
+_G.YaisUltimateAntiKick = _G.YaisUltimateAntiKick or {}
+_G.YaisUAKEnabled = _G.YaisUAKEnabled == true
 
-_G.MetroUltimateAntiKick.cfg = {
+_G.YaisUltimateAntiKick.cfg = {
   RADIUS   = 30,    -- quanto vicino devi essere alla base perche' scatti
   LEAD     = 0.1,   -- quanto prima della scadenza il muro sparisce
   HEIGHT   = 40,    -- altezza del muro
@@ -10114,26 +10114,26 @@ _G.MetroUltimateAntiKick.cfg = {
 -- estremi del muro da alzare. Le coordinate sono solo X/Z: la Y viene
 -- presa dalla tua posizione al momento, cosi' il muro e' sempre alla
 -- quota giusta qualunque sia il piano su cui ti trovi.
-_G.MetroUltimateAntiKick.zones = {
+_G.YaisUltimateAntiKick.zones = {
   { at = {x = -488, z = 24},
     wall = {x1 = -478, z1 = 88, x2 = -422, z2 = 88} },
   { at = {x = -488, z = 95},
     wall = {x1 = -478, z1 = 32, x2 = -422, z2 = 32} },
 }
 
-function _G.MetroUltimateAntiKick.clear()
-  local w = workspace:FindFirstChild("MetroAntiKickWall")
+function _G.YaisUltimateAntiKick.clear()
+  local w = workspace:FindFirstChild("YaisAntiKickWall")
   while w do
     pcall(function() w:Destroy() end)
-    w = workspace:FindFirstChild("MetroAntiKickWall")
+    w = workspace:FindFirstChild("YaisAntiKickWall")
   end
 end
 
 -- Zona in cui ti trovi, o nil. La distanza si misura solo su X/Z: la Y
 -- non deve contare, se no stando su una rampa o saltando la zona non
 -- verrebbe riconosciuta.
-function _G.MetroUltimateAntiKick.zoneFor(pos)
-  local U = _G.MetroUltimateAntiKick
+function _G.YaisUltimateAntiKick.zoneFor(pos)
+  local U = _G.YaisUltimateAntiKick
   for _, z in ipairs(U.zones) do
     local dx = pos.X - z.at.x
     local dz = pos.Z - z.at.z
@@ -10147,14 +10147,14 @@ end
 -- Chiamata dal Kick Warning nel momento in cui il popup appare.
 -- duration = quanto dura il conto alla rovescia, per sapere quando
 -- togliere il muro.
-function _G.MetroUltimateAntiKick.onWarning(duration)
+function _G.YaisUltimateAntiKick.onWarning(duration)
   -- Serve che siano accesi TUTTI E DUE: il muro e' una reazione al popup
   -- del Kick Warning, senza quello non ha nemmeno un momento in cui
   -- alzarsi. Il controllo sta qui e non solo nella UI, cosi' vale anche
   -- se lo stato viene cambiato da config o da codice.
-  if _G.MetroUAKEnabled ~= true then return end
-  if not (_G._MetroKickWarn and _G._MetroKickWarn.enabled == true) then return end
-  local U = _G.MetroUltimateAntiKick
+  if _G.YaisUAKEnabled ~= true then return end
+  if not (_G._YaisKickWarn and _G._YaisKickWarn.enabled == true) then return end
+  local U = _G.YaisUltimateAntiKick
   local char = LP.Character
   local hrp = char and char:FindFirstChild("HumanoidRootPart")
   if not hrp then return end
@@ -10173,7 +10173,7 @@ function _G.MetroUltimateAntiKick.onWarning(duration)
   if length < 0.1 then return end
 
   local part = Instance.new("Part")
-  part.Name        = "MetroAntiKickWall"
+  part.Name        = "YaisAntiKickWall"
   part.Anchored    = true
   part.CanCollide  = true
   part.CanQuery    = false   -- non deve intercettare i raycast del hub
@@ -10202,23 +10202,23 @@ function _G.MetroUltimateAntiKick.onWarning(duration)
 end
 
 -- ===== KICK WARNING (DONT COLLECT / COLLECT NOW) =====
-function _G.MetroDestroyKickWarning()
-  local KW = _G._MetroKickWarn
+function _G.YaisDestroyKickWarning()
+  local KW = _G._YaisKickWarn
   KW.gen = (KW.gen or 0) + 1
   KW.active = false
-  local g = HubGui:FindFirstChild("MetroHubKickWarning")
+  local g = HubGui:FindFirstChild("YaisHubKickWarning")
   if g then pcall(function() g:Destroy() end) end
   -- Popup distrutto a mano: il muro non deve restare in piedi.
-  if _G.MetroUltimateAntiKick then pcall(_G.MetroUltimateAntiKick.clear) end
+  if _G.YaisUltimateAntiKick then pcall(_G.YaisUltimateAntiKick.clear) end
 end
 
-function _G.MetroDuelshowKickWarning()
-  local KW = _G._MetroKickWarn
+function _G.YaisDuelshowKickWarning()
+  local KW = _G._YaisKickWarn
   if KW.active then return end
-  if HubGui:FindFirstChild("MetroHubKickWarning") then return end
+  if HubGui:FindFirstChild("YaisHubKickWarning") then return end
   -- Doppio check: non mostrare il popup durante il countdown del duello
-  if _G.MetroDuelsafeModeInDuelCountdown then
-    local okCd, inCd = pcall(_G.MetroDuelsafeModeInDuelCountdown)
+  if _G.YaisDuelsafeModeInDuelCountdown then
+    local okCd, inCd = pcall(_G.YaisDuelsafeModeInDuelCountdown)
     if okCd and inCd then return end
   end
   -- Il Kick Warning ha la precedenza: se c'e' un Ping Warning a schermo
@@ -10227,7 +10227,7 @@ function _G.MetroDuelshowKickWarning()
   -- e' gia' a tempo, non riparte da zero.
   local KW_ENTER_DELAY = 0
   do
-    local pw = HubGui:FindFirstChild("MetroHubPingWarning")
+    local pw = HubGui:FindFirstChild("YaisHubPingWarning")
     if pw then
       local pwFrame = pw:FindFirstChild("WarningFrame")
       KW_ENTER_DELAY = 0.12
@@ -10249,14 +10249,14 @@ function _G.MetroDuelshowKickWarning()
   -- >>> ULTIMATE ANTI KICK <<< il muro si alza adesso, nello stesso
   -- istante in cui parte il conto alla rovescia, e viene tolto da solo
   -- 0.1s prima della scadenza.
-  if _G.MetroUltimateAntiKick then
-    pcall(_G.MetroUltimateAntiKick.onWarning, DURATION)
+  if _G.YaisUltimateAntiKick then
+    pcall(_G.YaisUltimateAntiKick.onWarning, DURATION)
   end
   local COL_RED   = Color3.fromRGB(0, 0, 0)
   local COL_GREEN = Color3.fromRGB(255, 140, 0)
 
   local gui = Instance.new("ScreenGui")
-  gui.Name = "MetroHubKickWarning"
+  gui.Name = "YaisHubKickWarning"
   gui.ResetOnSpawn = false
   gui.IgnoreGuiInset = true
   gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -10320,8 +10320,8 @@ function _G.MetroDuelshowKickWarning()
   end
 
   local function stillLow()
-    if _G.MetroDuelsafeModeInDuelCountdown then
-      local okCd, inCd = pcall(_G.MetroDuelsafeModeInDuelCountdown)
+    if _G.YaisDuelsafeModeInDuelCountdown then
+      local okCd, inCd = pcall(_G.YaisDuelsafeModeInDuelCountdown)
       if okCd and inCd then return false end
     end
     local c = LP.Character
@@ -10340,7 +10340,7 @@ local function closeKW()
     pcall(function() gui:Destroy() end)
     KW.active = false
     -- Chiusura anticipata (walkspeed risalita): via il muro.
-    if _G.MetroUltimateAntiKick then pcall(_G.MetroUltimateAntiKick.clear) end
+    if _G.YaisUltimateAntiKick then pcall(_G.YaisUltimateAntiKick.clear) end
 end
 
   task.spawn(function()
@@ -10374,18 +10374,18 @@ end
 end
 
 -- Stesso check dell'Auto Switch To Carry: walkspeed sotto 25 (edge-triggered)
-function _G.MetroUpdateKickWarning()
-  local KW = _G._MetroKickWarn
+function _G.YaisUpdateKickWarning()
+  local KW = _G._YaisKickWarn
   local char = LP.Character
   local h = char and char:FindFirstChildOfClass("Humanoid")
   if not h then return end
   -- Durante il countdown del duello la walkspeed viene abbassata dal gioco:
   -- ignora completamente il check e distruggi il popup se fosse aperto.
-  if _G.MetroDuelsafeModeInDuelCountdown then
-    local okCd, inCd = pcall(_G.MetroDuelsafeModeInDuelCountdown)
+  if _G.YaisDuelsafeModeInDuelCountdown then
+    local okCd, inCd = pcall(_G.YaisDuelsafeModeInDuelCountdown)
     if okCd and inCd then
       -- Siamo nel countdown: chiudi il popup se aperto e resetta wasLow
-      if KW.active then pcall(_G.MetroDestroyKickWarning) end
+      if KW.active then pcall(_G.YaisDestroyKickWarning) end
       KW.wasLow = false  -- resettiamo cosi' al termine del countdown riparte da zero
       return
     end
@@ -10398,7 +10398,7 @@ function _G.MetroUpdateKickWarning()
   if isLow == KW.wasLow then return end
   KW.wasLow = isLow
   if isLow then
-    _G.MetroDuelshowKickWarning()
+    _G.YaisDuelshowKickWarning()
   end
 end
 -- ===== FINE KICK WARNING =====
@@ -10426,9 +10426,9 @@ end
 -- Tutto sotto _G per non aggiungere local al chunk principale, che e'
 -- al limite dei 200 registri di Luau.
 -- ============================================================
-_G.MetroPathfind = _G.MetroPathfind or {}
+_G.YaisPathfind = _G.YaisPathfind or {}
 
-_G.MetroPathfind.cfg = {
+_G.YaisPathfind.cfg = {
   PROBE      = 14,    -- quanto avanti si guarda per gli aimbot (studs)
   ANGLES     = {18, 36, 54, 72, 90},  -- sterzate provate, in ordine
   WALL_Y     = 0.6,   -- sopra questo la superficie e' una rampa, non un muro
@@ -10441,7 +10441,7 @@ _G.MetroPathfind.cfg = {
 -- degli altri giocatori. Gli altri player NON sono ostacoli da aggirare:
 -- l'aimbot ci deve andare addosso, sterzare per evitarli sarebbe
 -- esattamente il contrario di quello che serve.
-function _G.MetroPathfind.rayParams()
+function _G.YaisPathfind.rayParams()
   local params = RaycastParams.new()
   local ignore = {}
   local ch = LP.Character
@@ -10458,10 +10458,10 @@ end
 -- true se in quella direzione, entro dist, c'e' qualcosa che blocca
 -- davvero il passaggio. Una rampa o un gradino non bloccano: ci si
 -- cammina sopra, e sterzare per evitarli farebbe girare a vuoto.
-function _G.MetroPathfind.blocked(origin, dir, dist, params)
+function _G.YaisPathfind.blocked(origin, dir, dist, params)
   local res = workspace:Raycast(origin, dir * dist, params)
   if not res then return false end
-  if math.abs(res.Normal.Y) > _G.MetroPathfind.cfg.WALL_Y then return false end
+  if math.abs(res.Normal.Y) > _G.YaisPathfind.cfg.WALL_Y then return false end
   return true
 end
 
@@ -10471,18 +10471,18 @@ end
 -- il giro largo quando ne basta uno stretto. Se nessuna sterzata libera
 -- (vicolo cieco) si tiene la direzione originale, che e' meglio di
 -- fermarsi: la fisica ci fa comunque strisciare lungo il muro.
-function _G.MetroPathfind.steer(origin, dir, dist)
+function _G.YaisPathfind.steer(origin, dir, dist)
   if dir.Magnitude < 0.01 then return dir end
   dir = dir.Unit
-  local C = _G.MetroPathfind.cfg
+  local C = _G.YaisPathfind.cfg
   dist = dist or C.PROBE
-  local params = _G.MetroPathfind.rayParams()
+  local params = _G.YaisPathfind.rayParams()
 
   -- Due altezze: una all'altezza del torso e una piu' bassa, se no i
   -- muretti bassi passano sotto al raggio e non vengono visti.
   local low = origin - Vector3.new(0, 2, 0)
-  if not _G.MetroPathfind.blocked(origin, dir, dist, params)
-     and not _G.MetroPathfind.blocked(low, dir, dist, params) then
+  if not _G.YaisPathfind.blocked(origin, dir, dist, params)
+     and not _G.YaisPathfind.blocked(low, dir, dist, params) then
     return dir
   end
 
@@ -10493,8 +10493,8 @@ function _G.MetroPathfind.steer(origin, dir, dist)
       cand = Vector3.new(cand.X, 0, cand.Z)
       if cand.Magnitude > 0.01 then
         cand = cand.Unit
-        if not _G.MetroPathfind.blocked(origin, cand, dist, params)
-           and not _G.MetroPathfind.blocked(low, cand, dist, params) then
+        if not _G.YaisPathfind.blocked(origin, cand, dist, params)
+           and not _G.YaisPathfind.blocked(low, cand, dist, params) then
           return cand
         end
       end
@@ -10504,10 +10504,10 @@ function _G.MetroPathfind.steer(origin, dir, dist)
 end
 
 -- ---------- percorsi veri, per Auto Left / Auto Right ----------
-_G.MetroPathfind.paths = _G.MetroPathfind.paths or {}
+_G.YaisPathfind.paths = _G.YaisPathfind.paths or {}
 
-function _G.MetroPathfind.reset(key)
-  _G.MetroPathfind.paths[key] = nil
+function _G.YaisPathfind.reset(key)
+  _G.YaisPathfind.paths[key] = nil
 end
 
 -- Ritorna la direzione verso il prossimo waypoint, oppure nil se un
@@ -10518,9 +10518,9 @@ end
 -- un ricalcolo ogni 1.25s va benissimo; dietro a un giocatore che corre
 -- quel percorso e' vecchio dopo pochi metri, quindi chi insegue passa
 -- valori piu' stretti.
-function _G.MetroPathfind.dirTo(key, from, goal, opts)
-  local C = _G.MetroPathfind.cfg
-  local st = _G.MetroPathfind.paths[key]
+function _G.YaisPathfind.dirTo(key, from, goal, opts)
+  local C = _G.YaisPathfind.cfg
+  local st = _G.YaisPathfind.paths[key]
   local now = os.clock()
   local recompute = (opts and tonumber(opts.recompute)) or C.RECOMPUTE
   local drift     = (opts and tonumber(opts.drift))     or C.GOAL_DRIFT
@@ -10531,7 +10531,7 @@ function _G.MetroPathfind.dirTo(key, from, goal, opts)
 
   if not st then
     st = {goal = goal, wp = nil, i = 1, computing = false, last = 0}
-    _G.MetroPathfind.paths[key] = st
+    _G.YaisPathfind.paths[key] = st
   end
 
   -- Calcolo in un task a parte: ComputeAsync cede il controllo e dentro
@@ -10546,9 +10546,9 @@ function _G.MetroPathfind.dirTo(key, from, goal, opts)
         -- Servizio preso al volo e messo in cache: dichiararlo come local
         -- in cima al file costerebbe un registro al chunk principale, che
         -- e' gia' al limite.
-        _G.MetroPathfind.svc = _G.MetroPathfind.svc
+        _G.YaisPathfind.svc = _G.YaisPathfind.svc
           or game:GetService("PathfindingService")
-        local p = _G.MetroPathfind.svc:CreatePath({
+        local p = _G.YaisPathfind.svc:CreatePath({
           AgentRadius = 2.5,
           AgentHeight = 5,
           AgentCanJump = true,
@@ -10557,7 +10557,7 @@ function _G.MetroPathfind.dirTo(key, from, goal, opts)
         p:ComputeAsync(origin, goal)
         return p
       end)
-      local cur = _G.MetroPathfind.paths[key]
+      local cur = _G.YaisPathfind.paths[key]
       if cur ~= st then return end   -- nel frattempo la meta e' cambiata
       st.computing = false
       if ok and path and path.Status == Enum.PathStatus.Success then
@@ -10591,27 +10591,27 @@ function _G.MetroPathfind.dirTo(key, from, goal, opts)
   return nil
 end
 
-_G.MetroAutoPathState = _G.MetroAutoPathState or {leftConn=nil,rightConn=nil,leftPhase=1,rightPhase=1}
-_G.MetroAutoPathPoints = _G.MetroAutoPathPoints or {
+_G.YaisAutoPathState = _G.YaisAutoPathState or {leftConn=nil,rightConn=nil,leftPhase=1,rightPhase=1}
+_G.YaisAutoPathPoints = _G.YaisAutoPathPoints or {
   L1=Vector3.new(-476.48,-6.28,92.73), L2=Vector3.new(-483.12,-4.95,94.80), LFace=Vector3.new(-482.25,-4.96,92.09),
   R1=Vector3.new(-476.16,-6.52,25.62), R2=Vector3.new(-483.06,-5.03,25.48), RFace=Vector3.new(-482.06,-6.93,35.47),
 }
 
-function _G.MetroAutoPathSpeed()
+function _G.YaisAutoPathSpeed()
   if currentSpeedMode == "Lagger" or currentSpeedMode == "Lagger Carry" then
     return LAGGER_SPEED
   end
   return NS
 end
 
-function _G.MetroDuelstopAutoLeft()
-  local S = _G.MetroAutoPathState
+function _G.YaisDuelstopAutoLeft()
+  local S = _G.YaisAutoPathState
   if S.leftConn then S.leftConn:Disconnect(); S.leftConn = nil end
   S.leftPhase = 1
   -- Percorsi buttati: alla prossima accensione si riparte dalla posizione
   -- di allora, non da waypoint calcolati chissa' dove.
-  if _G.MetroPathfind then
-    _G.MetroPathfind.reset("L1"); _G.MetroPathfind.reset("L2")
+  if _G.YaisPathfind then
+    _G.YaisPathfind.reset("L1"); _G.YaisPathfind.reset("L2")
   end
   local char = LP.Character
   local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -10620,12 +10620,12 @@ function _G.MetroDuelstopAutoLeft()
   if hrp then hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0) end
 end
 
-function _G.MetroDuelstopAutoRight()
-  local S = _G.MetroAutoPathState
+function _G.YaisDuelstopAutoRight()
+  local S = _G.YaisAutoPathState
   if S.rightConn then S.rightConn:Disconnect(); S.rightConn = nil end
   S.rightPhase = 1
-  if _G.MetroPathfind then
-    _G.MetroPathfind.reset("R1"); _G.MetroPathfind.reset("R2")
+  if _G.YaisPathfind then
+    _G.YaisPathfind.reset("R1"); _G.YaisPathfind.reset("R2")
   end
   local char = LP.Character
   local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -10634,52 +10634,52 @@ function _G.MetroDuelstopAutoRight()
   if hrp then hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0) end
 end
 
-function _G.MetroDuelsetAutoLeft(on, skipSave)
-  if on and _G.MetroDuelsafeModeTryStart and not _G.MetroDuelsafeModeTryStart() then
+function _G.YaisDuelsetAutoLeft(on, skipSave)
+  if on and _G.YaisDuelsafeModeTryStart and not _G.YaisDuelsafeModeTryStart() then
     autoLeftEnabled = false
-    if _G.MetroDuelsetAutoLeftVisual then _G.MetroDuelsetAutoLeftVisual(false) end
-    if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-    if not skipSave then saveMetroConfig() end
+    if _G.YaisDuelsetAutoLeftVisual then _G.YaisDuelsetAutoLeftVisual(false) end
+    if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+    if not skipSave then saveYaisConfig() end
     return false
   end
   autoLeftEnabled = on and true or false
-  if _G.MetroDuelsetAutoLeftVisual then _G.MetroDuelsetAutoLeftVisual(autoLeftEnabled) end
+  if _G.YaisDuelsetAutoLeftVisual then _G.YaisDuelsetAutoLeftVisual(autoLeftEnabled) end
   if autoLeftEnabled then
     autoRightEnabled = false
-    if _G.MetroDuelsetAutoRightVisual then _G.MetroDuelsetAutoRightVisual(false) end
-    if _G.MetroDuelstopAutoRight then _G.MetroDuelstopAutoRight() end
-    if _G.MetroDuelstartAutoLeft then _G.MetroDuelstartAutoLeft() end
+    if _G.YaisDuelsetAutoRightVisual then _G.YaisDuelsetAutoRightVisual(false) end
+    if _G.YaisDuelstopAutoRight then _G.YaisDuelstopAutoRight() end
+    if _G.YaisDuelstartAutoLeft then _G.YaisDuelstartAutoLeft() end
   else
-    if _G.MetroDuelstopAutoLeft then _G.MetroDuelstopAutoLeft() end
+    if _G.YaisDuelstopAutoLeft then _G.YaisDuelstopAutoLeft() end
   end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-  if not skipSave then saveMetroConfig() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+  if not skipSave then saveYaisConfig() end
 end
 
-function _G.MetroDuelsetAutoRight(on, skipSave)
-  if on and _G.MetroDuelsafeModeTryStart and not _G.MetroDuelsafeModeTryStart() then
+function _G.YaisDuelsetAutoRight(on, skipSave)
+  if on and _G.YaisDuelsafeModeTryStart and not _G.YaisDuelsafeModeTryStart() then
     autoRightEnabled = false
-    if _G.MetroDuelsetAutoRightVisual then _G.MetroDuelsetAutoRightVisual(false) end
-    if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-    if not skipSave then saveMetroConfig() end
+    if _G.YaisDuelsetAutoRightVisual then _G.YaisDuelsetAutoRightVisual(false) end
+    if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+    if not skipSave then saveYaisConfig() end
     return false
   end
   autoRightEnabled = on and true or false
-  if _G.MetroDuelsetAutoRightVisual then _G.MetroDuelsetAutoRightVisual(autoRightEnabled) end
+  if _G.YaisDuelsetAutoRightVisual then _G.YaisDuelsetAutoRightVisual(autoRightEnabled) end
   if autoRightEnabled then
     autoLeftEnabled = false
-    if _G.MetroDuelsetAutoLeftVisual then _G.MetroDuelsetAutoLeftVisual(false) end
-    if _G.MetroDuelstopAutoLeft then _G.MetroDuelstopAutoLeft() end
-    if _G.MetroDuelstartAutoRight then _G.MetroDuelstartAutoRight() end
+    if _G.YaisDuelsetAutoLeftVisual then _G.YaisDuelsetAutoLeftVisual(false) end
+    if _G.YaisDuelstopAutoLeft then _G.YaisDuelstopAutoLeft() end
+    if _G.YaisDuelstartAutoRight then _G.YaisDuelstartAutoRight() end
   else
-    if _G.MetroDuelstopAutoRight then _G.MetroDuelstopAutoRight() end
+    if _G.YaisDuelstopAutoRight then _G.YaisDuelstopAutoRight() end
   end
-  if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
-  if not skipSave then saveMetroConfig() end
+  if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
+  if not skipSave then saveYaisConfig() end
 end
 
-function _G.MetroDuelstartAutoLeft()
-  local S = _G.MetroAutoPathState
+function _G.YaisDuelstartAutoLeft()
+  local S = _G.YaisAutoPathState
   if S.leftConn then S.leftConn:Disconnect() end
   S.leftPhase = 1
   S.leftConn = RunService.Heartbeat:Connect(function()
@@ -10691,18 +10691,18 @@ function _G.MetroDuelstartAutoLeft()
     local st = hum:GetState()
     if hum.PlatformStand or st == Enum.HumanoidStateType.Physics or st == Enum.HumanoidStateType.Ragdoll then
       hum:Move(Vector3.zero, false)
-      if _G.MetroDuelsetAutoLeft then _G.MetroDuelsetAutoLeft(false) end
+      if _G.YaisDuelsetAutoLeft then _G.YaisDuelsetAutoLeft(false) end
       return
     end
-    local P = _G.MetroAutoPathPoints
-    local spd = _G.MetroAutoPathSpeed()
+    local P = _G.YaisAutoPathPoints
+    local spd = _G.YaisAutoPathSpeed()
     if S.leftPhase == 1 then
       local tgt = Vector3.new(P.L1.X, hrp.Position.Y, P.L1.Z)
       if (tgt - hrp.Position).Magnitude < 1 then
         S.leftPhase = 2
         -- >>> PATHFINDING <<< cambio di meta': il percorso vecchio non
         -- serve piu', si butta cosi' il prossimo parte pulito.
-        if _G.MetroPathfind then _G.MetroPathfind.reset("L1") end
+        if _G.YaisPathfind then _G.YaisPathfind.reset("L1") end
         local d = P.L2 - hrp.Position
         local mv = Vector3.new(d.X, 0, d.Z).Unit
         hum:Move(mv, false)
@@ -10714,8 +10714,8 @@ function _G.MetroDuelstartAutoLeft()
       -- >>> PATHFINDING <<< se un percorso c'e' si segue il waypoint, se
       -- no (calcolo non ancora pronto, o punto irraggiungibile) si va
       -- diretti come si e' sempre fatto.
-      if _G.MetroPathfind then
-        local pd = _G.MetroPathfind.dirTo("L1", hrp.Position, P.L1)
+      if _G.YaisPathfind then
+        local pd = _G.YaisPathfind.dirTo("L1", hrp.Position, P.L1)
         if pd then mv = pd end
       end
       hum:Move(mv, false)
@@ -10728,18 +10728,18 @@ function _G.MetroDuelstartAutoLeft()
         autoLeftEnabled = false
         if S.leftConn then S.leftConn:Disconnect(); S.leftConn = nil end
         S.leftPhase = 1
-        if _G.MetroDuelsetAutoLeftVisual then _G.MetroDuelsetAutoLeftVisual(false) end
-        if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+        if _G.YaisDuelsetAutoLeftVisual then _G.YaisDuelsetAutoLeftVisual(false) end
+        if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
         if P.LFace and (P.LFace - hrp.Position).Magnitude > 0.01 then
           hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(P.LFace.X, hrp.Position.Y, P.LFace.Z))
         end
-        saveMetroConfig()
+        saveYaisConfig()
         return
       end
       local d = P.L2 - hrp.Position
       local mv = Vector3.new(d.X, 0, d.Z).Unit
-      if _G.MetroPathfind then
-        local pd = _G.MetroPathfind.dirTo("L2", hrp.Position, P.L2)
+      if _G.YaisPathfind then
+        local pd = _G.YaisPathfind.dirTo("L2", hrp.Position, P.L2)
         if pd then mv = pd end
       end
       hum:Move(mv, false)
@@ -10748,8 +10748,8 @@ function _G.MetroDuelstartAutoLeft()
   end)
 end
 
-function _G.MetroDuelstartAutoRight()
-  local S = _G.MetroAutoPathState
+function _G.YaisDuelstartAutoRight()
+  local S = _G.YaisAutoPathState
   if S.rightConn then S.rightConn:Disconnect() end
   S.rightPhase = 1
   S.rightConn = RunService.Heartbeat:Connect(function()
@@ -10761,17 +10761,17 @@ function _G.MetroDuelstartAutoRight()
     local st = hum:GetState()
     if hum.PlatformStand or st == Enum.HumanoidStateType.Physics or st == Enum.HumanoidStateType.Ragdoll then
       hum:Move(Vector3.zero, false)
-      if _G.MetroDuelsetAutoRight then _G.MetroDuelsetAutoRight(false) end
+      if _G.YaisDuelsetAutoRight then _G.YaisDuelsetAutoRight(false) end
       return
     end
-    local P = _G.MetroAutoPathPoints
-    local spd = _G.MetroAutoPathSpeed()
+    local P = _G.YaisAutoPathPoints
+    local spd = _G.YaisAutoPathSpeed()
     if S.rightPhase == 1 then
       local tgt = Vector3.new(P.R1.X, hrp.Position.Y, P.R1.Z)
       if (tgt - hrp.Position).Magnitude < 1 then
         S.rightPhase = 2
         -- >>> PATHFINDING <<< cambio di meta': via il percorso vecchio.
-        if _G.MetroPathfind then _G.MetroPathfind.reset("R1") end
+        if _G.YaisPathfind then _G.YaisPathfind.reset("R1") end
         local d = P.R2 - hrp.Position
         local mv = Vector3.new(d.X, 0, d.Z).Unit
         hum:Move(mv, false)
@@ -10781,8 +10781,8 @@ function _G.MetroDuelstartAutoRight()
       local d = P.R1 - hrp.Position
       local mv = Vector3.new(d.X, 0, d.Z).Unit
       -- >>> PATHFINDING <<< waypoint se disponibile, altrimenti diretto.
-      if _G.MetroPathfind then
-        local pd = _G.MetroPathfind.dirTo("R1", hrp.Position, P.R1)
+      if _G.YaisPathfind then
+        local pd = _G.YaisPathfind.dirTo("R1", hrp.Position, P.R1)
         if pd then mv = pd end
       end
       hum:Move(mv, false)
@@ -10795,18 +10795,18 @@ function _G.MetroDuelstartAutoRight()
         autoRightEnabled = false
         if S.rightConn then S.rightConn:Disconnect(); S.rightConn = nil end
         S.rightPhase = 1
-        if _G.MetroDuelsetAutoRightVisual then _G.MetroDuelsetAutoRightVisual(false) end
-        if _G.MetroRefreshMobileButtonStates then _G.MetroRefreshMobileButtonStates() end
+        if _G.YaisDuelsetAutoRightVisual then _G.YaisDuelsetAutoRightVisual(false) end
+        if _G.YaisRefreshMobileButtonStates then _G.YaisRefreshMobileButtonStates() end
         if P.RFace and (P.RFace - hrp.Position).Magnitude > 0.01 then
           hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(P.RFace.X, hrp.Position.Y, P.RFace.Z))
         end
-        saveMetroConfig()
+        saveYaisConfig()
         return
       end
       local d = P.R2 - hrp.Position
       local mv = Vector3.new(d.X, 0, d.Z).Unit
-      if _G.MetroPathfind then
-        local pd = _G.MetroPathfind.dirTo("R2", hrp.Position, P.R2)
+      if _G.YaisPathfind then
+        local pd = _G.YaisPathfind.dirTo("R2", hrp.Position, P.R2)
         if pd then mv = pd end
       end
       hum:Move(mv, false)
@@ -10859,9 +10859,9 @@ end
 --
 -- Tutto su _G: zero local aggiunti al chunk principale.
 -- ============================================================
-_G.MetroAutoPlay = _G.MetroAutoPlay or {}
+_G.YaisAutoPlay = _G.YaisAutoPlay or {}
 
-_G.MetroAutoPlay.cfg = {
+_G.YaisAutoPlay.cfg = {
   RADIUS = 10,
   -- Da quale numero del conto alla rovescia in giu' si comincia a
   -- guardare dove sei. Prima si e' ancora per strada, e una posizione
@@ -10877,20 +10877,20 @@ _G.MetroAutoPlay.cfg = {
 -- stessa sessione: _G sopravvive, e un watcher vecchio resterebbe appeso
 -- qui dentro. Il lato non va perso pero': lo rimette restore() leggendo
 -- il salvataggio, che e' la stessa strada del rientro dopo un kick.
-if _G.MetroAutoPlay.conn then
-  pcall(function() _G.MetroAutoPlay.conn:Disconnect() end)
-  _G.MetroAutoPlay.conn = nil
+if _G.YaisAutoPlay.conn then
+  pcall(function() _G.YaisAutoPlay.conn:Disconnect() end)
+  _G.YaisAutoPlay.conn = nil
 end
-_G.MetroAutoPlay.side = nil
+_G.YaisAutoPlay.side = nil
 
-function _G.MetroAutoPlay.placeOk()
+function _G.YaisAutoPlay.placeOk()
   local ok, id = pcall(function() return game.PlaceId end)
-  return ok and id == _G.MetroAutoPlay.cfg.PLACE
+  return ok and id == _G.YaisAutoPlay.cfg.PLACE
 end
 
 -- "L", "R" oppure nil se non sei vicino a nessuna delle due basi.
-function _G.MetroAutoPlay.zoneDir()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.zoneDir()
+  local A = _G.YaisAutoPlay
   local char = LP.Character
   local hrp = char and char:FindFirstChild("HumanoidRootPart")
   if not hrp then return nil end
@@ -10905,15 +10905,15 @@ function _G.MetroAutoPlay.zoneDir()
 end
 
 -- Il lato rilevato sta girando?
-function _G.MetroAutoPlay.running()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.running()
+  local A = _G.YaisAutoPlay
   if A.side == "L" then return autoLeftEnabled == true end
   if A.side == "R" then return autoRightEnabled == true end
   return false
 end
 
-function _G.MetroAutoPlay.save()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.save()
+  local A = _G.YaisAutoPlay
   if not A.placeOk() then return end
   local ok, job = pcall(function() return tostring(game.JobId or "") end)
   if not ok or job == "" then return end
@@ -10922,36 +10922,36 @@ function _G.MetroAutoPlay.save()
   -- Si ricorda il LATO, non se era acceso: rientrando decidi tu quando
   -- farlo partire. Ripristinare anche l'acceso vorrebbe dire ritrovarsi a
   -- correre da soli appena finito di caricare.
-  if saveMetroConfig then pcall(saveMetroConfig) end
+  if saveYaisConfig then pcall(saveYaisConfig) end
 end
 
 -- Accende o spegne il lato rilevato. Da qui in poi Auto Play non e' altro
 -- che il pulsante di quella direzione.
-function _G.MetroAutoPlay.setSideOn(on)
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.setSideOn(on)
+  local A = _G.YaisAutoPlay
   if A.side == "L" then
-    if _G.MetroDuelsetAutoLeft then _G.MetroDuelsetAutoLeft(on and true or false) end
+    if _G.YaisDuelsetAutoLeft then _G.YaisDuelsetAutoLeft(on and true or false) end
   elseif A.side == "R" then
-    if _G.MetroDuelsetAutoRight then _G.MetroDuelsetAutoRight(on and true or false) end
+    if _G.YaisDuelsetAutoRight then _G.YaisDuelsetAutoRight(on and true or false) end
   else
     return
   end
   A.save()
-  if _G.MetroRefreshMobileButtonStates then
-    pcall(_G.MetroRefreshMobileButtonStates)
+  if _G.YaisRefreshMobileButtonStates then
+    pcall(_G.YaisRefreshMobileButtonStates)
   end
 end
 
 -- Stato per il bottone: e' semplicemente il lato acceso o spento. La
 -- rilevazione non e' uno stato da mostrare — gira per conto suo e non
 -- comanda niente.
-function _G.MetroAutoPlay.active()
-  return _G.MetroAutoPlay.running()
+function _G.YaisAutoPlay.active()
+  return _G.YaisAutoPlay.running()
 end
 
 -- Smette di ascoltare. Non tocca la direzione.
-function _G.MetroAutoPlay.stop()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.stop()
+  local A = _G.YaisAutoPlay
   if A.conn then pcall(function() A.conn:Disconnect() end); A.conn = nil end
 end
 
@@ -10960,15 +10960,15 @@ end
 -- serve solo a sapere da che parte sei. Chiedere una pressione per
 -- accendere un ascoltatore che non agisce sarebbe un passaggio in piu'
 -- senza motivo, e per giunta facile da dimenticare prima del duello.
-function _G.MetroAutoPlay.watch()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.watch()
+  local A = _G.YaisAutoPlay
   if A.side then return end     -- lato gia' noto: non c'e' piu' niente da rilevare
   if A.conn then pcall(function() A.conn:Disconnect() end) end
 
   A.conn = RunService.Heartbeat:Connect(function()
     if A.side then return end
 
-    -- SI LEGGE IL NUMERO, non un cronometro. Il cartello mostra 5, 4, 3 e
+    -- SI LEGGE IL NUMERO, non un cronoyais. Il cartello mostra 5, 4, 3 e
     -- via cosi', quindi l'informazione "a che punto siamo" e' gia' li' —
     -- contare i secondi per conto proprio voleva dire ricostruire a mano
     -- una cosa gia' scritta, e infatti sbagliava: tra un numero e l'altro
@@ -10976,7 +10976,7 @@ function _G.MetroAutoPlay.watch()
     -- Dal numero AT in giu' si comincia a guardare: prima si e' ancora per
     -- strada. Fuori dal countdown non si guarda niente, perche' passare
     -- vicino a una base in un momento qualsiasi non vuol dire nulla.
-    local ok, n = pcall(_G.MetroDuelsafeModeCountdownValue)
+    local ok, n = pcall(_G.YaisDuelsafeModeCountdownValue)
     if not ok or n == nil or n > A.cfg.AT then return end
 
     local dir = A.zoneDir()
@@ -10993,8 +10993,8 @@ function _G.MetroAutoPlay.watch()
     A.side = dir
     A.stop()
     A.save()
-    if _G.MetroRefreshMobileButtonStates then
-      pcall(_G.MetroRefreshMobileButtonStates)
+    if _G.YaisRefreshMobileButtonStates then
+      pcall(_G.YaisRefreshMobileButtonStates)
     end
   end)
 end
@@ -11003,8 +11003,8 @@ end
 -- tenerlo non farebbe danni (il confronto sul JobId lo scarterebbe
 -- comunque) ma resterebbe li' a sporcare, e soprattutto il ricordo giusto
 -- di questa partita deve poterlo sostituire senza ambiguita'.
-function _G.MetroAutoPlay.forget()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.forget()
+  local A = _G.YaisAutoPlay
   A.saveJob, A.saveSide = nil, nil
   _G._AmbAutoPlaySavedJob  = nil
   _G._AmbAutoPlaySavedSide = nil
@@ -11017,8 +11017,8 @@ function _G.MetroAutoPlay.forget()
 end
 
 -- Rientro nello stesso server dopo un kick: si salta la rilevazione.
-function _G.MetroAutoPlay.restore()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlay.restore()
+  local A = _G.YaisAutoPlay
   if A.side then return end
   -- Fuori dal posto di gioco previsto non si tocca niente: la config e'
   -- una sola per tutti i giochi, e cancellare da qui vorrebbe dire
@@ -11048,20 +11048,20 @@ function _G.MetroAutoPlay.restore()
   -- un'altra opzione) cancellerebbe il ricordo appena ripreso, e un
   -- secondo kick ti troverebbe senza niente.
   A.saveJob, A.saveSide = job, side
-  if _G.MetroRefreshMobileButtonStates then
-    pcall(_G.MetroRefreshMobileButtonStates)
+  if _G.YaisRefreshMobileButtonStates then
+    pcall(_G.YaisRefreshMobileButtonStates)
   end
 end
 
 -- Per controllare a occhio cosa sta facendo, senza riempire lo schermo di
 -- avvisi: nella console dell'executor basta
---   print(_G.MetroAutoPlayStatus())
+--   print(_G.YaisAutoPlayStatus())
 -- Dice il lato (o che sta ancora ascoltando), il server di adesso e
 -- quello a cui appartiene il ricordo: se i due JobId sono diversi e il
 -- lato risulta ancora quello vecchio, allora il ricordo non e' stato
 -- scartato — ed e' quello il sintomo da riportare.
-function _G.MetroAutoPlayStatus()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlayStatus()
+  local A = _G.YaisAutoPlay
   local ok, job = pcall(function() return tostring(game.JobId or "") end)
   return table.concat({
     "lato=" .. tostring(A.side or "nessuno"),
@@ -11072,8 +11072,8 @@ function _G.MetroAutoPlayStatus()
   }, " | ")
 end
 
-function _G.MetroAutoPlayToggle()
-  local A = _G.MetroAutoPlay
+function _G.YaisAutoPlayToggle()
+  local A = _G.YaisAutoPlay
   -- Nessun lato ancora rilevato: non c'e' niente da accendere, e accendere
   -- "a caso" una delle due direzioni sarebbe peggio che non fare nulla.
   if not A.side then return end
@@ -11082,16 +11082,16 @@ end
 
 -- La config puo' essere gia' stata letta prima che questo blocco
 -- esistesse: si prova subito, e ci riprova anche chi la legge.
-pcall(_G.MetroAutoPlay.restore)
+pcall(_G.YaisAutoPlay.restore)
 -- E si mette in ascolto da subito: se il lato e' gia' noto watch() esce
 -- da sola, se no aspetta il primo countdown senza che nessuno debba
 -- ricordarsi di accendere niente.
-pcall(_G.MetroAutoPlay.watch)
+pcall(_G.YaisAutoPlay.watch)
 
 LP.CharacterAdded:Connect(function(char)
-  _G._MetroWaitCharReady(char, 10)
-  if autoLeftEnabled and _G.MetroDuelstartAutoLeft then _G.MetroDuelstartAutoLeft() end
-  if autoRightEnabled and _G.MetroDuelstartAutoRight then _G.MetroDuelstartAutoRight() end
+  _G._YaisWaitCharReady(char, 10)
+  if autoLeftEnabled and _G.YaisDuelstartAutoLeft then _G.YaisDuelstartAutoLeft() end
+  if autoRightEnabled and _G.YaisDuelstartAutoRight then _G.YaisDuelstartAutoRight() end
 end)
 
 local overheadGui = nil
@@ -11110,7 +11110,7 @@ local function setupOverheadInfo(char)
     if not head then return end
 
     overheadGui = Instance.new("BillboardGui")
-    overheadGui.Name = "MetroHubOverheadInfo"
+    overheadGui.Name = "YaisHubOverheadInfo"
     overheadGui.Size = UDim2.new(0, 250, 0, 88)
     overheadGui.StudsOffset = Vector3.new(0, 1.75, 0)
     overheadGui.AlwaysOnTop = true
@@ -11140,7 +11140,7 @@ local function setupOverheadInfo(char)
     discordLbl.Size = UDim2.new(1, 0, 0, 30)
     discordLbl.Position = UDim2.new(0, 0, 0, 26)
     discordLbl.BackgroundTransparency = 1
-    discordLbl.Text = "discord.gg/MetroDuels"
+    discordLbl.Text = "discord.gg/YaisDuels"
     discordLbl.TextColor3 = Color3.fromRGB(255, 140, 0)
     discordLbl.TextStrokeColor3 = Color3.fromRGB(10, 5, 30)
     discordLbl.TextStrokeTransparency = 0
@@ -11205,15 +11205,15 @@ local function setupOverheadInfo(char)
     })
 end
 
-_G._MetroRCD = _G._MetroRCD or {conn=nil, charConn=nil, endTime=0, seconds=2.6}
+_G._YaisRCD = _G._YaisRCD or {conn=nil, charConn=nil, endTime=0, seconds=2.6}
 -- Flag alzato quando il ragdoll corrente è causato da medusa (rilevato via Anchored+Transparency==1)
 -- Usa 'or 0' invece di reset incondizionato: preserva un hit recente in caso di re-inject.
-_G._MetroMedusaHitTime = _G._MetroMedusaHitTime or 0
+_G._YaisMedusaHitTime = _G._YaisMedusaHitTime or 0
 -- _isMedusaHit è definita prima di _doSyncAfterHit (sezione SYNC AFTER HIT) per essere una upvalue valida.
 
 function stopRagdollCountdown()
-  if _G._MetroRCD.conn then _G._MetroRCD.conn:Disconnect(); _G._MetroRCD.conn = nil end
-  if _G._MetroRCD.charConn then _G._MetroRCD.charConn:Disconnect(); _G._MetroRCD.charConn = nil end
+  if _G._YaisRCD.conn then _G._YaisRCD.conn:Disconnect(); _G._YaisRCD.conn = nil end
+  if _G._YaisRCD.charConn then _G._YaisRCD.charConn:Disconnect(); _G._YaisRCD.charConn = nil end
   if ragdollCountdownLabel then
     ragdollCountdownLabel.Visible = false
     ragdollCountdownLabel.Text = ""
@@ -11226,12 +11226,12 @@ end
 -- ============================================================
 local enemyRagdollData = {}
 -- Esposto per il Bat Counter V2 (deve restare la STESSA tabella: mai riassegnarla)
-_G.MetroEnemyRagdollData = enemyRagdollData
+_G.YaisEnemyRagdollData = enemyRagdollData
 local enemyCountdownConns = {}
 local enemyCountdownUpdateLoop = nil
 local ENEMY_RAGDOLL_SECONDS = 2.6
 
-function _G.MetroDuelstartEnemyRagdollCountdown()
+function _G.YaisDuelstartEnemyRagdollCountdown()
     if enemyRagdollConn then return end  -- usiamo enemyRagdollConn come flag
 
     -- Loop di aggiornamento countdown (ogni 0.05 sec, non ogni frame)
@@ -11279,7 +11279,7 @@ function _G.MetroDuelstartEnemyRagdollCountdown()
                     local head = enemyChar:FindFirstChild("Head")
                     if head then
                         local bb = Instance.new("BillboardGui")
-                        bb.Name = "MetroEnemyRagdollCountdown"
+                        bb.Name = "YaisEnemyRagdollCountdown"
                         bb.Adornee = head
                         bb.Size = UDim2.new(0, 120, 0, 30)
                         bb.StudsOffset = Vector3.new(0, 3.2, 0)
@@ -11384,10 +11384,10 @@ function _G.MetroDuelstartEnemyRagdollCountdown()
     -- Pulisci alla rimozione del giocatore. La connessione sta in una
     -- variabile sua: messa dentro enemyCountdownConns (indicizzata per
     -- giocatore) la pulizia non la trovava e restava appesa per sempre.
-    if _G._MetroEnemyCountdownRemovingConn then
-        pcall(function() _G._MetroEnemyCountdownRemovingConn:Disconnect() end)
+    if _G._YaisEnemyCountdownRemovingConn then
+        pcall(function() _G._YaisEnemyCountdownRemovingConn:Disconnect() end)
     end
-    _G._MetroEnemyCountdownRemovingConn = Players.PlayerRemoving:Connect(function(plr)
+    _G._YaisEnemyCountdownRemovingConn = Players.PlayerRemoving:Connect(function(plr)
         local data = enemyRagdollData[plr]
         if data and data.gui then
             pcall(function() data.gui:Destroy() end)
@@ -11404,7 +11404,7 @@ function _G.MetroDuelstartEnemyRagdollCountdown()
     end)
 end
 
-function _G.MetroDuelstopEnemyRagdollCountdown()
+function _G.YaisDuelstopEnemyRagdollCountdown()
     if enemyRagdollConn then
         enemyRagdollConn:Disconnect()
         enemyRagdollConn = nil
@@ -11413,9 +11413,9 @@ function _G.MetroDuelstopEnemyRagdollCountdown()
         enemyCountdownUpdateLoop:Disconnect()
         enemyCountdownUpdateLoop = nil
     end
-    if _G._MetroEnemyCountdownRemovingConn then
-        pcall(function() _G._MetroEnemyCountdownRemovingConn:Disconnect() end)
-        _G._MetroEnemyCountdownRemovingConn = nil
+    if _G._YaisEnemyCountdownRemovingConn then
+        pcall(function() _G._YaisEnemyCountdownRemovingConn:Disconnect() end)
+        _G._YaisEnemyCountdownRemovingConn = nil
     end
     for _, conns in pairs(enemyCountdownConns) do
         pcall(function()
@@ -11432,7 +11432,7 @@ function _G.MetroDuelstopEnemyRagdollCountdown()
             pcall(function() data.gui:Destroy() end)
         end
     end
-    -- Pulizia IN-PLACE: se riassegnassimo la tabella, _G.MetroEnemyRagdollData
+    -- Pulizia IN-PLACE: se riassegnassimo la tabella, _G.YaisEnemyRagdollData
     -- resterebbe agganciato a quella vecchia e il Bat Counter V2 leggerebbe dati morti.
     for plr in pairs(enemyRagdollData) do enemyRagdollData[plr] = nil end
 end
@@ -11440,22 +11440,22 @@ end
 local _originalStopRagdoll = stopRagdollCountdown
 function stopRagdollCountdown()
   _originalStopRagdoll()
-  _G.MetroDuelstopEnemyRagdollCountdown()
+  _G.YaisDuelstopEnemyRagdollCountdown()
 end
 
 function hookRagdollCountdown(char)
   stopRagdollCountdown()
   if not ragdollCountdownEnabled then return end
   -- Avvia il rilevamento ragdoll nemici
-  _G.MetroDuelstartEnemyRagdollCountdown()
+  _G.YaisDuelstartEnemyRagdollCountdown()
   char = char or LP.Character
   if not char then return end
   local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 4)
   if not hum then return end
 
   local function beginCountdown()
-    local duration = _isMedusaHit() and 3.6 or _G._MetroRCD.seconds
-    _G._MetroRCD.endTime = tick() + duration
+    local duration = _isMedusaHit() and 3.6 or _G._YaisRCD.seconds
+    _G._YaisRCD.endTime = tick() + duration
     if ragdollCountdownLabel then
       ragdollCountdownLabel.Visible = true
     end
@@ -11468,20 +11468,20 @@ function hookRagdollCountdown(char)
       or st == Enum.HumanoidStateType.Ragdoll
   end
 
-  _G._MetroRCD.charConn = hum.StateChanged:Connect(function(_, newState)
+  _G._YaisRCD.charConn = hum.StateChanged:Connect(function(_, newState)
     if newState == Enum.HumanoidStateType.Physics
       or newState == Enum.HumanoidStateType.Ragdoll then
       beginCountdown()
     end
   end)
 
-  _G._MetroRCD.conn = RunService.RenderStepped:Connect(function()
+  _G._YaisRCD.conn = RunService.RenderStepped:Connect(function()
     if not ragdollCountdownEnabled then stopRagdollCountdown(); return end
     if not ragdollCountdownLabel or not ragdollCountdownLabel.Parent then return end
-    if isRagdollStateForCountdown() and _G._MetroRCD.endTime < tick() then
+    if isRagdollStateForCountdown() and _G._YaisRCD.endTime < tick() then
       beginCountdown()
     end
-    local left = math.max(0, _G._MetroRCD.endTime - tick())
+    local left = math.max(0, _G._YaisRCD.endTime - tick())
     if left > 0 then
       ragdollCountdownLabel.Visible = true
       ragdollCountdownLabel.Text = string.format("RAGDOLL %.1f", left)
@@ -11505,7 +11505,7 @@ if LP.Character then
 end
 
 LP.CharacterAdded:Connect(function(char)
-  _G._MetroWaitCharReady(char, 10)
+  _G._YaisWaitCharReady(char, 10)
   setupOverheadInfo(char)
   if ragdollCountdownEnabled then hookRagdollCountdown(char) end
 end)
@@ -11553,35 +11553,35 @@ do
         -- Durante lo ZigZag non si pubblica nemmeno la X/Z desiderata:
         -- l'Anti Bat la riapplicherebbe dopo ogni spike, rimettendo la
         -- direzione dei tasti al posto della deriva laterale.
-        if _G._MetroZigZagFalling then
-          _G._MetroAntiBatDesiredXZ = nil
+        if _G._YaisZigZagFalling then
+          _G._YaisAntiBatDesiredXZ = nil
         else
-          _G._MetroAntiBatDesiredXZ = Vector3.new(md.X * spd, 0, md.Z * spd)
+          _G._YaisAntiBatDesiredXZ = Vector3.new(md.X * spd, 0, md.Z * spd)
         end
         -- Mentre lo spike dell'Anti Bat e' attivo NON si scrive: altrimenti
         -- la velocita' caotica verrebbe cancellata nello stesso frame e
         -- l'Anti Bat non avrebbe effetto mentre ci si muove.
-        if not _G._MetroAntiBatSpiking and not _G._MetroZigZagFalling then
+        if not _G._YaisAntiBatSpiking and not _G._YaisZigZagFalling then
           local curVel = hrp.Velocity
           hrp.Velocity = Vector3.new(md.X * spd, curVel.Y, md.Z * spd)
         end
       end
       -- >>> ANTI BAT BEGIN
       if md.Magnitude <= 0 or autoLeftEnabled or autoRightEnabled then
-        _G._MetroAntiBatDesiredXZ = nil
+        _G._YaisAntiBatDesiredXZ = nil
       end
       -- <<< ANTI BAT END
       -- Aggiorna overhead speed label
       if overheadSpeedLabel then
         local displaySpeed
-        if _G.MetroNormalAimbotOn then
-          displaySpeed = _G.MetroGetNormalAimbotSpeed and _G.MetroGetNormalAimbotSpeed() or spd
-        elseif _G.MetroBatAimbotV2On then
-          displaySpeed = _G.MetroGetBatAimbotV2Speed and _G.MetroGetBatAimbotV2Speed() or spd
+        if _G.YaisNormalAimbotOn then
+          displaySpeed = _G.YaisGetNormalAimbotSpeed and _G.YaisGetNormalAimbotSpeed() or spd
+        elseif _G.YaisBatAimbotV2On then
+          displaySpeed = _G.YaisGetBatAimbotV2Speed and _G.YaisGetBatAimbotV2Speed() or spd
         elseif autoLeftEnabled or autoRightEnabled then
-          displaySpeed = _G.MetroAutoPathSpeed()
+          displaySpeed = _G.YaisAutoPathSpeed()
         -- >>> ANTI BAT BEGIN
-        elseif _G.MetroAntiBatEnabled then
+        elseif _G.YaisAntiBatEnabled then
           -- Con Anti Bat la velocita' misurata schizza a migliaia per un frame:
           -- si mostra la speed impostata invece di leggere l'HRP.
           displaySpeed = (md.Magnitude > 0) and spd or 0
@@ -11611,7 +11611,7 @@ do
         hrp.Velocity = Vector3.new(0, v.Y, 0)
       end)
     end
-    _G._MetroAntiBatDesiredXZ = nil
+    _G._YaisAntiBatDesiredXZ = nil
   end
 
 
@@ -11676,7 +11676,7 @@ end
 -- Due glifi sovrapposti (su / giu) che si scambiano in dissolvenza.
 -- Ruotare un singolo glifo lo spostava fuori asse, perche' la punta
 -- non e' centrata dentro la riga di testo del font.
-_G._MetroArrowGlyph = function(arrow)
+_G._YaisArrowGlyph = function(arrow)
   if not arrow then return nil, nil end
   local up = arrow:FindFirstChild("GlyphUp")
   local down = arrow:FindFirstChild("GlyphDown")
@@ -11709,16 +11709,16 @@ _G._MetroArrowGlyph = function(arrow)
 end
 
 -- ===== TEMA ACCENTO (viola sui background 1-2, grigio su 3-4 e custom) =====
-_G._MetroAccentList = _G._MetroAccentList or {}
+_G._YaisAccentList = _G._YaisAccentList or {}
 
-_G._MetroAccentIsGrey = function()
-  if _G._MetroBgCustom == true then return true end
-  local i = tonumber(_G._MetroBgIndex) or 1
+_G._YaisAccentIsGrey = function()
+  if _G._YaisBgCustom == true then return true end
+  local i = tonumber(_G._YaisBgIndex) or 1
   return not (i == 1 or i == 2)
 end
 
-_G._MetroApplyAccent = function()
-  local grey = _G._MetroAccentIsGrey()
+_G._YaisApplyAccent = function()
+  local grey = _G._YaisAccentIsGrey()
 
   local c0, c1, c2, edge, soft, base
   if grey then
@@ -11753,7 +11753,7 @@ _G._MetroApplyAccent = function()
     NumberSequenceKeypoint.new(1, 0.12),
   })
 
-  local list = _G._MetroAccentList
+  local list = _G._YaisAccentList
   for i = #list, 1, -1 do
     local e = list[i]
     if not (e and e.obj and e.obj.Parent) then
@@ -11803,16 +11803,16 @@ _G._MetroApplyAccent = function()
   end
 end
 
-_G._MetroRegAccent = function(obj, grad, kind, track, knob, row)
+_G._YaisRegAccent = function(obj, grad, kind, track, knob, row)
   if not obj then return end
-  table.insert(_G._MetroAccentList,
+  table.insert(_G._YaisAccentList,
     {obj = obj, grad = grad, kind = kind or "pick", track = track, knob = knob, row = row})
-  pcall(_G._MetroApplyAccent)
+  pcall(_G._YaisApplyAccent)
 end
 
 -- Colore acceso/spento del toggle, richiesto da setVisual
-_G._MetroToggleOnColor = function()
-  if _G._MetroAccentIsGrey() then
+_G._YaisToggleOnColor = function()
+  if _G._YaisAccentIsGrey() then
     return Color3.fromRGB(62, 62, 70), Color3.fromRGB(178, 178, 192)
   end
   return Color3.fromRGB(147, 51, 234), Color3.fromRGB(216, 180, 254)
@@ -11820,7 +11820,7 @@ end
 
 -- Dopo che una tendina si chiude il canvas si accorcia, ma Roblox lascia
 -- la CanvasPosition dov'era: si continua a scrollare nel vuoto. Qui la riallineiamo.
-_G._MetroClampCanvas = function(page)
+_G._YaisClampCanvas = function(page)
   if not page or not page.Parent then return end
   if not page:IsA("ScrollingFrame") then return end
   task.defer(function()
@@ -11834,7 +11834,7 @@ _G._MetroClampCanvas = function(page)
 end
 
 -- Apertura/chiusura a tendina, altezza fissa nota
-_G._MetroExpand = function(holder, open, fullHeight, arrow)
+_G._YaisExpand = function(holder, open, fullHeight, arrow)
   if not holder or not holder.Parent then return end
   holder.ClipsDescendants = true
   local info = TweenInfo.new(0.22, Enum.EasingStyle.Quart,
@@ -11842,7 +11842,7 @@ _G._MetroExpand = function(holder, open, fullHeight, arrow)
   holder:SetAttribute("_expandToken", (holder:GetAttribute("_expandToken") or 0) + 1)
   local myToken = holder:GetAttribute("_expandToken")
 
-  local gUp, gDown = _G._MetroArrowGlyph(arrow)
+  local gUp, gDown = _G._YaisArrowGlyph(arrow)
   if gUp and gDown then
     local st = arrow.TextStrokeTransparency
     TweenService:Create(gUp, info, {TextTransparency = open and 1 or 0, TextStrokeTransparency = open and 1 or st}):Play()
@@ -11863,14 +11863,14 @@ _G._MetroExpand = function(holder, open, fullHeight, arrow)
       if holder and holder.Parent and holder:GetAttribute("_expandToken") == myToken then
         holder.Visible = false
       end
-      _G._MetroClampCanvas(page)
+      _G._YaisClampCanvas(page)
     end)
     closeTween:Play()
   end
 end
 
 -- Variante per contenitori ad altezza automatica (Avatar Changer)
-_G._MetroExpandAuto = function(holder, open, layout, arrow)
+_G._YaisExpandAuto = function(holder, open, layout, arrow)
   if not holder or not holder.Parent then return end
   holder.ClipsDescendants = true
   local info = TweenInfo.new(0.26, Enum.EasingStyle.Quart,
@@ -11878,7 +11878,7 @@ _G._MetroExpandAuto = function(holder, open, layout, arrow)
   holder:SetAttribute("_expandToken", (holder:GetAttribute("_expandToken") or 0) + 1)
   local myToken = holder:GetAttribute("_expandToken")
 
-  local gUp, gDown = _G._MetroArrowGlyph(arrow)
+  local gUp, gDown = _G._YaisArrowGlyph(arrow)
   if gUp and gDown then
     local st = arrow.TextStrokeTransparency
     TweenService:Create(gUp, info, {TextTransparency = open and 1 or 0, TextStrokeTransparency = open and 1 or st}):Play()
@@ -11923,7 +11923,7 @@ _G._MetroExpandAuto = function(holder, open, layout, arrow)
         holder.Size = UDim2.new(sx, ox, 0, 0)
         holder.AutomaticSize = Enum.AutomaticSize.Y
         holder.ClipsDescendants = false
-        _G._MetroClampCanvas(holder.Parent)
+        _G._YaisClampCanvas(holder.Parent)
       end
     end)
     openTweenAuto:Play()
@@ -11936,7 +11936,7 @@ _G._MetroExpandAuto = function(holder, open, layout, arrow)
       if holder and holder.Parent and holder:GetAttribute("_expandToken") == myToken then
         holder.Visible = false
       end
-      _G._MetroClampCanvas(page)
+      _G._YaisClampCanvas(page)
     end)
     closeTweenAuto:Play()
   end
@@ -11948,7 +11948,7 @@ function makeDraggable(frame)
   local startPos
   local dragInput
   frame.InputBegan:Connect(function(input)
-    if _G.MetroGuiLocked == true then return end
+    if _G.YaisGuiLocked == true then return end
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
       dragging = true
       dragStart = input.Position
@@ -11966,7 +11966,7 @@ function makeDraggable(frame)
     end
   end)
   UserInputService.InputChanged:Connect(function(input)
-    if _G.MetroGuiLocked == true then return end
+    if _G.YaisGuiLocked == true then return end
     if input == dragInput and dragging then
       local delta = input.Position - dragStart
       frame.Position = UDim2.new(
@@ -12004,14 +12004,14 @@ makeDraggable(Main)
 -- Posizione di riposo della hub: e' QUESTA l'unica verita'. L'animazione di
 -- apertura/chiusura sposta Main, ma e' un fatto puramente visivo e non deve
 -- mai poter cambiare questo valore.
-_G._MetroHubRestPos = Main.Position
+_G._YaisHubRestPos = Main.Position
 
 Main:GetPropertyChangedSignal("Position"):Connect(function()
   -- Durante l'animazione di apertura/chiusura la Position passa per punti
   -- fuori schermo: non vanno salvati, altrimenti alla riapertura la hub
   -- si ritroverebbe parcheggiata fuori dal monitor.
-  if _G._MetroHubAnimating then return end
-  _G._MetroHubRestPos = Main.Position
+  if _G._YaisHubAnimating then return end
+  _G._YaisHubRestPos = Main.Position
   savedMainPositionTable = udim2ToTable(Main.Position)
 end)
 
@@ -12023,35 +12023,35 @@ end)
 -- e' mai visto. Rimosso, erano due immagini caricate per mostrarne una.
 
 -- Title image (logo in alto centrato)
-local MetroTitleImage = Instance.new("ImageLabel")
-MetroTitleImage.Name = "MetroTitleImage"
-MetroTitleImage.AnchorPoint = Vector2.new(0.5, 0)
-MetroTitleImage.Position = UDim2.new(0.5, 0, 0, -106)
-MetroTitleImage.Size = UDim2.new(0, 1000, 0, 300)
-MetroTitleImage.BackgroundTransparency = 1
-MetroTitleImage.Image = "rbxassetid://"
-MetroTitleImage.ScaleType = Enum.ScaleType.Fit
-MetroTitleImage.ZIndex = 5
-MetroTitleImage.Parent = Main
+local YaisTitleImage = Instance.new("ImageLabel")
+YaisTitleImage.Name = "YaisTitleImage"
+YaisTitleImage.AnchorPoint = Vector2.new(0.5, 0)
+YaisTitleImage.Position = UDim2.new(0.5, 0, 0, -106)
+YaisTitleImage.Size = UDim2.new(0, 1000, 0, 300)
+YaisTitleImage.BackgroundTransparency = 1
+YaisTitleImage.Image = "rbxassetid://"
+YaisTitleImage.ScaleType = Enum.ScaleType.Fit
+YaisTitleImage.ZIndex = 5
+YaisTitleImage.Parent = Main
 
--- Zamjena starog logo image-a: tekst METRO
-local MetroTitleText = Instance.new("TextLabel")
-MetroTitleText.Name = "MetroTitleText"
-MetroTitleText.AnchorPoint = Vector2.new(0.5, 0)
-MetroTitleText.Position = UDim2.new(0.5, 0, 0, -25)
-MetroTitleText.Size = UDim2.new(0, 1000, 0, 120)
-MetroTitleText.BackgroundTransparency = 1
-MetroTitleText.Text = "Yais Duels"
-MetroTitleText.TextColor3 = Color3.fromRGB(245, 245, 245)
-MetroTitleText.Font = Enum.Font.GothamBlack
-MetroTitleText.TextSize = 45
-MetroTitleText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-MetroTitleText.TextStrokeTransparency = 0.15
-MetroTitleText.TextXAlignment = Enum.TextXAlignment.Center
-MetroTitleText.TextYAlignment = Enum.TextYAlignment.Center
-MetroTitleText.ZIndex = 6
-MetroTitleText.Parent = Main
-MetroTitleImage.Visible = false
+-- Zamjena starog logo image-a: tekst YAIS
+local YaisTitleText = Instance.new("TextLabel")
+YaisTitleText.Name = "YaisTitleText"
+YaisTitleText.AnchorPoint = Vector2.new(0.5, 0)
+YaisTitleText.Position = UDim2.new(0.5, 0, 0, -25)
+YaisTitleText.Size = UDim2.new(0, 1000, 0, 120)
+YaisTitleText.BackgroundTransparency = 1
+YaisTitleText.Text = "Yais Duels"
+YaisTitleText.TextColor3 = Color3.fromRGB(245, 245, 245)
+YaisTitleText.Font = Enum.Font.GothamBlack
+YaisTitleText.TextSize = 45
+YaisTitleText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+YaisTitleText.TextStrokeTransparency = 0.15
+YaisTitleText.TextXAlignment = Enum.TextXAlignment.Center
+YaisTitleText.TextYAlignment = Enum.TextYAlignment.Center
+YaisTitleText.ZIndex = 6
+YaisTitleText.Parent = Main
+YaisTitleImage.Visible = false
 
 -- >>> TITLE STYLE BEGIN
 -- Due varianti del logo in alto. Lo stile 1 e' quello storico, il 2 e' la
@@ -12063,28 +12063,28 @@ MetroTitleImage.Visible = false
 -- la frazione di quella misura: 1 = come il primo, 0.64 = 64%.
 -- La posizione viene ricavata dalla scala, cosi' cambiando scala il logo
 -- rimpicciolisce sul posto invece di spostarsi su o giu'.
-_G.MetroTitleStyles = {
+_G.YaisTitleStyles = {
   { name = "Arcade",  font = Enum.Font.Arcade,    size = 41, color = Color3.fromRGB(255,140,0), stroke = Color3.fromRGB(255,140,0), strokeTransparency = 0.05, rotation = 0 },
   { name = "Bangers", font = Enum.Font.Bangers,   size = 44, color = Color3.fromRGB(255,140,0), stroke = Color3.fromRGB(255,140,0), strokeTransparency = 0.00, rotation = -2 },
   { name = "SciFi",   font = Enum.Font.SciFi,     size = 44, color = Color3.fromRGB(255,140,0), stroke = Color3.fromRGB(255,140,0), strokeTransparency = 0.04, rotation = 0 },
-}_G.MetroTitleStyle = math.clamp(math.floor(tonumber(_G.MetroTitleStyle or (savedConfig and savedConfig.titleStyle)) or 1), 1, #_G.MetroTitleStyles)
+}_G.YaisTitleStyle = math.clamp(math.floor(tonumber(_G.YaisTitleStyle or (savedConfig and savedConfig.titleStyle)) or 1), 1, #_G.YaisTitleStyles)
 
-_G.MetroApplyTitleStyle = function(idx)
-  idx = math.clamp(math.floor(tonumber(idx) or 1), 1, #_G.MetroTitleStyles)
-  _G.MetroTitleStyle = idx
-  local st = _G.MetroTitleStyles[idx]
+_G.YaisApplyTitleStyle = function(idx)
+  idx = math.clamp(math.floor(tonumber(idx) or 1), 1, #_G.YaisTitleStyles)
+  _G.YaisTitleStyle = idx
+  local st = _G.YaisTitleStyles[idx]
   if not st then return end
-  MetroTitleImage.Visible = false
-  MetroTitleText.Visible = true
-  MetroTitleText.Text = "Yais Duels"
-  MetroTitleText.Font = st.font
-  MetroTitleText.TextSize = st.size
-  MetroTitleText.TextColor3 = st.color
-  MetroTitleText.TextStrokeColor3 = st.stroke
-  MetroTitleText.TextStrokeTransparency = st.strokeTransparency
-  MetroTitleText.Rotation = st.rotation or 0
+  YaisTitleImage.Visible = false
+  YaisTitleText.Visible = true
+  YaisTitleText.Text = "Yais Duels"
+  YaisTitleText.Font = st.font
+  YaisTitleText.TextSize = st.size
+  YaisTitleText.TextColor3 = st.color
+  YaisTitleText.TextStrokeColor3 = st.stroke
+  YaisTitleText.TextStrokeTransparency = st.strokeTransparency
+  YaisTitleText.Rotation = st.rotation or 0
 end
-_G.MetroApplyTitleStyle(_G.MetroTitleStyle)
+_G.YaisApplyTitleStyle(_G.YaisTitleStyle)
 -- <<< TITLE STYLE END
 
 local MiniFrame = Instance.new("Frame")
@@ -12171,14 +12171,14 @@ do
     if wasDrag then
       return
     end
-    if _G.MetroHubOpen then
-      -- NIENTE salvataggio della posizione qui: MetroHubOpen sposta
+    if _G.YaisHubOpen then
+      -- NIENTE salvataggio della posizione qui: YaisHubOpen sposta
       -- subito Main FUORI schermo per farla rientrare animata. Leggere
       -- Main.Position in questo istante significa salvare la posizione
       -- fuori schermo, e alla sessione dopo la hub si riapriva fuori dal
       -- monitor: era quello il bug della "GUI sparita". La posizione di
       -- riposo resta gia' in savedMainPositionTable, non va toccata.
-      _G.MetroHubOpen()
+      _G.YaisHubOpen()
     else
       Main.Visible = true
       MiniFrame.Visible = false
@@ -12197,13 +12197,13 @@ end
 -- NOTA LOCAL: nessun local a livello di chunk, il main e' a ridosso del
 -- limite di 200. Tutto su _G, e Main/MiniFrame/FULL_MAIN_SIZE arrivano
 -- come upvalue.
-_G._MetroHubAnimating = false
-_G._MetroHubAnimToken = 0
+_G._YaisHubAnimating = false
+_G._YaisHubAnimToken = 0
 
 -- Centro della finestra ricavato dalla Position (AnchorPoint e' 0.5, 0.5),
 -- non da AbsolutePosition: cosi' e' esatto anche nel frame in cui la
 -- finestra viene resa visibile.
-_G._MetroHubEdgeFor = function(pos)
+_G._YaisHubEdgeFor = function(pos)
   local cam = workspace.CurrentCamera
   local vp  = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
   if vp.X < 1 or vp.Y < 1 then vp = Vector2.new(1920, 1080) end
@@ -12221,7 +12221,7 @@ _G._MetroHubEdgeFor = function(pos)
 end
 
 -- Posizione fuori schermo sul bordo scelto, partendo da una Position data.
-_G._MetroHubOffscreen = function(pos, dir)
+_G._YaisHubOffscreen = function(pos, dir)
   local cam = workspace.CurrentCamera
   local vp  = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
   if vp.X < 1 or vp.Y < 1 then vp = Vector2.new(1920, 1080) end
@@ -12244,7 +12244,7 @@ _G._MetroHubOffscreen = function(pos, dir)
 end
 
 -- Inclinazione in uscita: segue il verso della fuga, da' peso al movimento
-_G._MetroHubTilt = function(dir)
+_G._YaisHubTilt = function(dir)
   if dir == "Left"  then return -7 end
   if dir == "Right" then return  7 end
   if dir == "Top"   then return -4 end
@@ -12252,7 +12252,7 @@ _G._MetroHubTilt = function(dir)
 end
 
 -- Pop del mini popup (comparsa/sparizione)
-_G._MetroMiniPop = function(show)
+_G._YaisMiniPop = function(show)
   if not MiniFrame then return end
   local full = UDim2.new(0, 130, 0, 35)
   if show then
@@ -12286,8 +12286,8 @@ end
 -- puo' piu' inquinarla, per quanto la si spammi.
 -- In piu' la posizione viene riportata dentro lo schermo: se per qualunque
 -- motivo fosse gia' finita fuori, al primo uso torna raggiungibile.
-_G._MetroHubRest = function()
-  local p = _G._MetroHubRestPos or Main.Position
+_G._YaisHubRest = function()
+  local p = _G._YaisHubRestPos or Main.Position
   local cam = workspace.CurrentCamera
   local vp  = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
   if vp.X < 1 or vp.Y < 1 then vp = Vector2.new(1920, 1080) end
@@ -12301,31 +12301,31 @@ _G._MetroHubRest = function()
   local ncy = math.clamp(cy, sh * 0.15, math.max(vp.Y - sh * 0.15, sh * 0.15))
   if math.abs(ncx - cx) > 0.5 or math.abs(ncy - cy) > 0.5 then
     p = UDim2.new(p.X.Scale, p.X.Offset + (ncx - cx), p.Y.Scale, p.Y.Offset + (ncy - cy))
-    _G._MetroHubRestPos = p
+    _G._YaisHubRestPos = p
     savedMainPositionTable = udim2ToTable(p)
   end
   return p
 end
 
 -- CHIUSURA: scivola fuori dal bordo piu' vicino
-_G.MetroHubClose = function(showMini)
+_G.YaisHubClose = function(showMini)
   -- Lo stato lo decidono queste due funzioni, non chi le chiama: prima il
   -- bottone "-" si fidava del proprio flag, che restava disallineato se la
   -- hub era stata riaperta dal mini popup o dal keybind. Risultato: il
   -- primo click non faceva niente e serviva cliccare due volte.
-  _G.__MetroDuelsMinimized = true
+  _G.__YaisDuelsMinimized = true
   if not Main.Visible then
-    if showMini then _G._MetroMiniPop(true) end
+    if showMini then _G._YaisMiniPop(true) end
     return
   end
-  _G._MetroHubAnimToken = _G._MetroHubAnimToken + 1
-  local token = _G._MetroHubAnimToken
-  _G._MetroHubAnimating = true
+  _G._YaisHubAnimToken = _G._YaisHubAnimToken + 1
+  local token = _G._YaisHubAnimToken
+  _G._YaisHubAnimating = true
 
-  local restPos = _G._MetroHubRest()
+  local restPos = _G._YaisHubRest()
   local restSize = FULL_MAIN_SIZE or Main.Size
-  local dir = _G._MetroHubEdgeFor(restPos)
-  local offPos = _G._MetroHubOffscreen(restPos, dir)
+  local dir = _G._YaisHubEdgeFor(restPos)
+  local offPos = _G._YaisHubOffscreen(restPos, dir)
 
   -- SOLO Position. Ne' Size ne' Rotation:
   --  * la Size rifa' il layout interno e le righe finiscono mozzate
@@ -12338,37 +12338,37 @@ _G.MetroHubClose = function(showMini)
 
   if showMini then
     task.delay(0.2, function()
-      if token ~= _G._MetroHubAnimToken then return end
-      _G._MetroMiniPop(true)
+      if token ~= _G._YaisHubAnimToken then return end
+      _G._YaisMiniPop(true)
     end)
   end
 
   task.delay(0.4, function()
-    if token ~= _G._MetroHubAnimToken then return end
+    if token ~= _G._YaisHubAnimToken then return end
     Main.Visible  = false
     Main.Rotation = 0
     Main.Size     = restSize
     Main.Position = restPos
-    _G._MetroHubAnimating = false
+    _G._YaisHubAnimating = false
   end)
 end
 
 -- APERTURA: rientra dallo stesso bordo con frenata elastica
-_G.MetroHubOpen = function()
-  _G.__MetroDuelsMinimized = false
-  if _G.MetroIdleWake then _G.MetroIdleWake() end
-  _G._MetroHubAnimToken = _G._MetroHubAnimToken + 1
-  local token = _G._MetroHubAnimToken
-  _G._MetroMiniPop(false)
+_G.YaisHubOpen = function()
+  _G.__YaisDuelsMinimized = false
+  if _G.YaisIdleWake then _G.YaisIdleWake() end
+  _G._YaisHubAnimToken = _G._YaisHubAnimToken + 1
+  local token = _G._YaisHubAnimToken
+  _G._YaisMiniPop(false)
 
-  local restPos  = _G._MetroHubRest()
+  local restPos  = _G._YaisHubRest()
   local restSize = FULL_MAIN_SIZE or Main.Size
-  local dir = _G._MetroHubEdgeFor(restPos)
+  local dir = _G._YaisHubEdgeFor(restPos)
 
-  _G._MetroHubAnimating = true
+  _G._YaisHubAnimating = true
   Main.Size     = restSize   -- misura sempre piena: niente re-layout, niente tagli
   Main.Rotation = 0          -- mai ruotata: altrimenti smette di clippare i figli
-  Main.Position = _G._MetroHubOffscreen(restPos, dir)
+  Main.Position = _G._YaisHubOffscreen(restPos, dir)
   Main.Visible  = true
 
   -- Tutto il carattere sta nell'easing della Position: Back Out supera di
@@ -12378,11 +12378,11 @@ _G.MetroHubOpen = function()
     { Position = restPos }):Play()
 
   task.delay(0.6, function()
-    if token ~= _G._MetroHubAnimToken then return end
+    if token ~= _G._YaisHubAnimToken then return end
     Main.Rotation = 0
     Main.Size     = restSize
     Main.Position = restPos
-    _G._MetroHubAnimating = false
+    _G._YaisHubAnimating = false
   end)
 end
 -- <<< HUB OPEN/CLOSE ANIMATION END
@@ -12401,7 +12401,7 @@ end
 -- ripristino e' esatto per definizione.
 --
 -- NOTA LOCAL: niente local a livello di chunk, il main e' al limite.
-_G._MetroIdle = {
+_G._YaisIdle = {
   delay    = 5,      -- secondi di inattivita'
   value    = 0.7,    -- trasparenza da raggiungere
   fadeOut  = 0.3,    -- durata dello sbiadire
@@ -12414,7 +12414,7 @@ _G._MetroIdle = {
 
 -- Cosa NON va spostato dentro il gruppo: lo sfondo e i modificatori di
 -- layout, che devono restare figli diretti di Main.
-_G._MetroIdleStays = function(ch)
+_G._YaisIdleStays = function(ch)
   if ch.Name == "CustomBackground" then return true end
   if ch:IsA("UICorner") or ch:IsA("UIStroke") or ch:IsA("UIScale")
      or ch:IsA("UIPadding") or ch:IsA("UIListLayout") or ch:IsA("UIGradient")
@@ -12424,14 +12424,14 @@ _G._MetroIdleStays = function(ch)
   return false
 end
 
-_G._MetroIdleEnsureGroup = function()
-  local S = _G._MetroIdle
+_G._YaisIdleEnsureGroup = function()
+  local S = _G._YaisIdle
   if S.group and S.group.Parent then return S.group end
 
   local ok, g = pcall(function() return Instance.new("CanvasGroup") end)
   if not ok or not g then return nil end   -- client vecchio: si rinuncia, meglio che rompere
 
-  g.Name = "MetroFadeGroup"
+  g.Name = "YaisFadeGroup"
   g.BackgroundTransparency = 1
   g.BorderSizePixel = 0
   g.Size = UDim2.new(1, 0, 1, 0)
@@ -12442,14 +12442,14 @@ _G._MetroIdleEnsureGroup = function()
   g.Parent = Main
 
   for _, ch in ipairs(Main:GetChildren()) do
-    if ch ~= g and not _G._MetroIdleStays(ch) then
+    if ch ~= g and not _G._YaisIdleStays(ch) then
       ch.Parent = g
     end
   end
 
   -- Se qualcosa viene creato dopo e appeso a Main, entra anche lui.
   Main.ChildAdded:Connect(function(ch)
-    if ch == g or _G._MetroIdleStays(ch) then return end
+    if ch == g or _G._YaisIdleStays(ch) then return end
     task.defer(function()
       if ch.Parent == Main then ch.Parent = g end
     end)
@@ -12459,9 +12459,9 @@ _G._MetroIdleEnsureGroup = function()
   return g
 end
 
-_G._MetroIdleSet = function(fade)
-  local S = _G._MetroIdle
-  local g = _G._MetroIdleEnsureGroup()
+_G._YaisIdleSet = function(fade)
+  local S = _G._YaisIdle
+  local g = _G._YaisIdleEnsureGroup()
   if not g then return end
   S.faded = fade and true or false
   TweenService:Create(g,
@@ -12471,40 +12471,40 @@ _G._MetroIdleSet = function(fade)
     { GroupTransparency = fade and S.value or 0 }):Play()
 end
 
-_G.MetroIdleWake = function()
-  local S = _G._MetroIdle
+_G.YaisIdleWake = function()
+  local S = _G._YaisIdle
   S.last = os.clock()
-  if S.faded then _G._MetroIdleSet(false) end
+  if S.faded then _G._YaisIdleSet(false) end
 end
 
-_G.MetroIdleStart = function()
-  local S = _G._MetroIdle
+_G.YaisIdleStart = function()
+  local S = _G._YaisIdle
   if S.started then return end
   S.started = true
 
   -- mouse e touch sulla finestra
-  Main.InputBegan:Connect(_G.MetroIdleWake)
-  Main.InputChanged:Connect(_G.MetroIdleWake)
-  Main.MouseEnter:Connect(_G.MetroIdleWake)
+  Main.InputBegan:Connect(_G.YaisIdleWake)
+  Main.InputChanged:Connect(_G.YaisIdleWake)
+  Main.MouseEnter:Connect(_G.YaisIdleWake)
 
   -- controller: non ha puntatore, si sveglia su qualsiasi input gamepad
   UserInputService.InputBegan:Connect(function(input)
     local t = input.UserInputType
     if t == Enum.UserInputType.Gamepad1 or t == Enum.UserInputType.Gamepad2
        or t == Enum.UserInputType.Gamepad3 or t == Enum.UserInputType.Gamepad4 then
-      _G.MetroIdleWake()
+      _G.YaisIdleWake()
     end
   end)
 
   task.spawn(function()
     while true do
       task.wait(0.25)
-      if Main.Visible and not _G._MetroHubAnimating then
+      if Main.Visible and not _G._YaisHubAnimating then
         if not S.faded and (os.clock() - S.last) >= S.delay then
-          _G._MetroIdleSet(true)
+          _G._YaisIdleSet(true)
         end
       elseif S.faded then
-        _G._MetroIdleSet(false)
+        _G._YaisIdleSet(false)
         S.last = os.clock()
       end
     end
@@ -12512,7 +12512,7 @@ _G.MetroIdleStart = function()
 end
 
 task.defer(function()
-  pcall(_G.MetroIdleStart)
+  pcall(_G.YaisIdleStart)
 end)
 -- <<< IDLE FADE END
 
@@ -12541,10 +12541,10 @@ do
   -- Qui si legge soltanto: la barra delle tab non esiste ancora a questo
   -- punto del file, l'applicazione avviene dopo che e' stata costruita.
   if type(savedConfig.customFont) == "string" then
-    _G.MetroFontChoice = savedConfig.customFont
+    _G.YaisFontChoice = savedConfig.customFont
   end
   if type(savedConfig.tabPosition) == "string" then
-    _G._MetroTabPosition = _G.MetroValidTabPosition(savedConfig.tabPosition)
+    _G._YaisTabPosition = _G.YaisValidTabPosition(savedConfig.tabPosition)
   end
   -- <<< TAB POSITION END
 end
@@ -12581,12 +12581,12 @@ function applyBackground(index)
     BgImage.Image = "rbxassetid://" .. id
     BgImage.Visible = true
     MiniBg.Image = "rbxassetid://" .. id
-    saveMetroConfig()
+    saveYaisConfig()
     -- Aggiorna preview custom bg row se esiste
-    if _G.MetroCustomBgPreviewUpdate then pcall(_G.MetroCustomBgPreviewUpdate) end
-    _G._MetroBgIndex = currentBackground
-    _G._MetroBgCustom = false
-    if _G._MetroApplyAccent then pcall(_G._MetroApplyAccent) end
+    if _G.YaisCustomBgPreviewUpdate then pcall(_G.YaisCustomBgPreviewUpdate) end
+    _G._YaisBgIndex = currentBackground
+    _G._YaisBgCustom = false
+    if _G._YaisApplyAccent then pcall(_G._YaisApplyAccent) end
     return "Image " .. tostring(currentBackground)
   end
   currentBackground = 1
@@ -12596,11 +12596,11 @@ function applyBackground(index)
     BgImage.Visible = true
     MiniBg.Image = "rbxassetid://" .. fallback
   end
-  saveMetroConfig()
-  if _G.MetroCustomBgPreviewUpdate then pcall(_G.MetroCustomBgPreviewUpdate) end
-  _G._MetroBgIndex = currentBackground
-  _G._MetroBgCustom = false
-  if _G._MetroApplyAccent then pcall(_G._MetroApplyAccent) end
+  saveYaisConfig()
+  if _G.YaisCustomBgPreviewUpdate then pcall(_G.YaisCustomBgPreviewUpdate) end
+  _G._YaisBgIndex = currentBackground
+  _G._YaisBgCustom = false
+  if _G._YaisApplyAccent then pcall(_G._YaisApplyAccent) end
   return "Image 1"
 end
 
@@ -12610,11 +12610,11 @@ function applyCustomBackground(assetId)
   BgImage.Image = "rbxassetid://" .. assetId
   BgImage.Visible = true
   MiniBg.Image = "rbxassetid://" .. assetId
-  saveMetroConfig()
-  if _G.MetroCustomBgPreviewUpdate then pcall(_G.MetroCustomBgPreviewUpdate) end
-  _G._MetroBgIndex = 0
-  _G._MetroBgCustom = true
-  if _G._MetroApplyAccent then pcall(_G._MetroApplyAccent) end
+  saveYaisConfig()
+  if _G.YaisCustomBgPreviewUpdate then pcall(_G.YaisCustomBgPreviewUpdate) end
+  _G._YaisBgIndex = 0
+  _G._YaisBgCustom = true
+  if _G._YaisApplyAccent then pcall(_G._YaisApplyAccent) end
   -- Deseleziona i 4 built-in buttons
   if updateBackgroundButtons then pcall(updateBackgroundButtons) end
 end
@@ -12624,9 +12624,9 @@ if customBgSelected and customBgSelected ~= "" then
 else
   applyBackground(currentBackground)
 end
-_G._MetroBgIndex = currentBackground
-_G._MetroBgCustom = (customBgSelected ~= nil and customBgSelected ~= "")
-if _G._MetroApplyAccent then pcall(_G._MetroApplyAccent) end
+_G._YaisBgIndex = currentBackground
+_G._YaisBgCustom = (customBgSelected ~= nil and customBgSelected ~= "")
+if _G._YaisApplyAccent then pcall(_G._YaisApplyAccent) end
 
 -- Header: discord tag compatto (il titolo è gestito dall'ImageLabel in alto)
 -- RIMOSSO IL LINK DISCORD
@@ -12656,40 +12656,40 @@ Close.Parent = Main
 corner(Close, 8)
 stroke(Close, COLORS.stroke, 1, 0.35)
 
-MetroLockTopButton = Instance.new("TextButton")
-MetroLockTopButton.Name = "LockGUI"
-MetroLockTopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MetroLockTopButton.BackgroundTransparency = 0.28
-MetroLockTopButton.TextColor3 = COLORS.white
-MetroLockTopButton.TextSize = 8
-MetroLockTopButton.Font = Enum.Font.GothamBlack
-MetroLockTopButton.Size = UDim2.new(0, 32, 0, 28)
-MetroLockTopButton.Position = UDim2.new(0, 12, 0, 10)   -- spostato a sinistra
-MetroLockTopButton.AutoButtonColor = false
-MetroLockTopButton.ZIndex = 5
-MetroLockTopButton.Parent = Main
-corner(MetroLockTopButton, 8)
-stroke(MetroLockTopButton, COLORS.stroke, 1, 0.35)
+YaisLockTopButton = Instance.new("TextButton")
+YaisLockTopButton.Name = "LockGUI"
+YaisLockTopButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+YaisLockTopButton.BackgroundTransparency = 0.28
+YaisLockTopButton.TextColor3 = COLORS.white
+YaisLockTopButton.TextSize = 8
+YaisLockTopButton.Font = Enum.Font.GothamBlack
+YaisLockTopButton.Size = UDim2.new(0, 32, 0, 28)
+YaisLockTopButton.Position = UDim2.new(0, 12, 0, 10)   -- spostato a sinistra
+YaisLockTopButton.AutoButtonColor = false
+YaisLockTopButton.ZIndex = 5
+YaisLockTopButton.Parent = Main
+corner(YaisLockTopButton, 8)
+stroke(YaisLockTopButton, COLORS.stroke, 1, 0.35)
 
-function MetroUpdateGuiLockVisual()
-  if MetroLockTopButton then
-    MetroLockTopButton.Text = (_G.MetroGuiLocked == true) and "UNLOCK" or "LOCK"
-    MetroLockTopButton.BackgroundTransparency = (_G.MetroGuiLocked == true) and 0.08 or 0.28
-    local st = MetroLockTopButton:FindFirstChildOfClass("UIStroke")
+function YaisUpdateGuiLockVisual()
+  if YaisLockTopButton then
+    YaisLockTopButton.Text = (_G.YaisGuiLocked == true) and "UNLOCK" or "LOCK"
+    YaisLockTopButton.BackgroundTransparency = (_G.YaisGuiLocked == true) and 0.08 or 0.28
+    local st = YaisLockTopButton:FindFirstChildOfClass("UIStroke")
     if st then
-      st.Transparency = (_G.MetroGuiLocked == true) and 0.08 or 0.35
-      st.Color = (_G.MetroGuiLocked == true) and Color3.fromRGB(255,255,255) or COLORS.stroke
+      st.Transparency = (_G.YaisGuiLocked == true) and 0.08 or 0.35
+      st.Color = (_G.YaisGuiLocked == true) and Color3.fromRGB(255,255,255) or COLORS.stroke
     end
   end
-  if setLockGuiVisual then pcall(setLockGuiVisual, _G.MetroGuiLocked == true) end
+  if setLockGuiVisual then pcall(setLockGuiVisual, _G.YaisGuiLocked == true) end
 end
 
-MetroLockTopButton.Activated:Connect(function()
-  _G.MetroGuiLocked = not (_G.MetroGuiLocked == true)
-  MetroUpdateGuiLockVisual()
-  saveMetroConfig()
+YaisLockTopButton.Activated:Connect(function()
+  _G.YaisGuiLocked = not (_G.YaisGuiLocked == true)
+  YaisUpdateGuiLockVisual()
+  saveYaisConfig()
 end)
-MetroUpdateGuiLockVisual()
+YaisUpdateGuiLockVisual()
 
 local Content = Instance.new("Frame")
 Content.Name = "Content"
@@ -12742,7 +12742,7 @@ function addPage(name)
   pagePadding.PaddingBottom = UDim.new(0, 12)
   pagePadding.Parent = page
   pages[name] = page
-  if _G._MetroApplyPagePadding then _G._MetroApplyPagePadding() end
+  if _G._YaisApplyPagePadding then _G._YaisApplyPagePadding() end
   return page
 end
 
@@ -12753,8 +12753,8 @@ end
 --   Left/Right -> le tab sono di lato, quindi serve sia sopra che sotto
 -- Prima era fisso (solo 12 sotto per tutti) e su Left/Right l'ultima riga
 -- finiva incollata al bordo inferiore.
-_G._MetroApplyPagePadding = function()
-  local mode = _G._MetroTabPosition or "Up"
+_G._YaisApplyPagePadding = function()
+  local mode = _G._YaisTabPosition or "Up"
   local top, bottom
   if mode == "Up" then
     top, bottom = 0, 12
@@ -12968,13 +12968,13 @@ end
       if lbl and lbl.Visible then lbl.TextColor3 = btn.TextColor3 end
     end
   end
-  _G._MetroDuelsyncTabLetters = syncLetters
+  _G._YaisDuelsyncTabLetters = syncLetters
 
-  function _G.MetroApplyTabPosition(pos)
-    pos = _G.MetroValidTabPosition(pos)
+  function _G.YaisApplyTabPosition(pos)
+    pos = _G.YaisValidTabPosition(pos)
     local L = LAYOUTS[pos]
     if not L then return end
-    _G._MetroTabPosition = pos
+    _G._YaisTabPosition = pos
 
     -- La finestra si allarga/restringe. FULL_MAIN_SIZE e' la misura che tutti
     -- i ripristini della hub usano (minimize, intro, duels), quindi va
@@ -13029,7 +13029,7 @@ end
     Content.Size     = L.contentSize
 
     -- >>> PAGE PADDING <<< il respiro sopra/sotto cambia col lato delle tab
-    if _G._MetroApplyPagePadding then _G._MetroApplyPagePadding() end
+    if _G._YaisApplyPagePadding then _G._YaisApplyPagePadding() end
 
     syncLetters()
   end
@@ -13040,12 +13040,12 @@ do
   local _oldSetTab = setTab
   function setTab(name)
     _oldSetTab(name)
-    if _G._MetroDuelsyncTabLetters then _G._MetroDuelsyncTabLetters() end
+    if _G._YaisDuelsyncTabLetters then _G._YaisDuelsyncTabLetters() end
   end
 end
 
 -- Applica quello caricato dal config (o il default "Up").
-_G.MetroApplyTabPosition(_G._MetroTabPosition)
+_G.YaisApplyTabPosition(_G._YaisTabPosition)
 -- <<< TAB POSITION END
 
 function section(parent, text, order)
@@ -13195,14 +13195,14 @@ function toggleRow(parent, labelText, default, order)
   shine.ZIndex = 8
   shine.Parent = knob
   corner(shine, 5)
-  _G._MetroRegAccent(fill, fillGrad, "toggle", track, knob, row)
+  _G._YaisRegAccent(fill, fillGrad, "toggle", track, knob, row)
   local state = default and true or false
   local trackStroke = track:FindFirstChildOfClass("UIStroke")
   local rowStroke = row:FindFirstChildOfClass("UIStroke")
   local function setVisual(on)
     state = on and true or false
     tween(knob, {Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)})
-    local _onBg, _onEdge = _G._MetroToggleOnColor()
+    local _onBg, _onEdge = _G._YaisToggleOnColor()
     tween(track, {
       BackgroundTransparency = state and 0 or 0.12,
       BackgroundColor3 = state and _onBg or COLORS.toggleBg
@@ -13231,18 +13231,18 @@ function toggleRow(parent, labelText, default, order)
   return row, setVisual
 end
 
-_G.MetroDuelsyncToggleVisuals = function()
+_G.YaisDuelsyncToggleVisuals = function()
   pcall(function() if setAutoStealVisual then setAutoStealVisual(autoStealEnabled == true) end end)
-  pcall(function() if _G._MetroDuelsyncAfterHit.setVisual then _G._MetroDuelsyncAfterHit.setVisual(_G._MetroDuelsyncAfterHit.enabled == true) end end)
+  pcall(function() if _G._YaisDuelsyncAfterHit.setVisual then _G._YaisDuelsyncAfterHit.setVisual(_G._YaisDuelsyncAfterHit.enabled == true) end end)
   pcall(function() if setInfJumpVisual then setInfJumpVisual(infJumpEnabled == true) end end)
-  pcall(function() if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.MetroLookAtEnabled == true) end end)
+  pcall(function() if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.YaisLookAtEnabled == true) end end)
   pcall(function() if setAntiRagdollVisual then setAntiRagdollVisual(antiRagdollEnabled == true) end end)
   pcall(function() if setAutoCarrySpeedVisual then setAutoCarrySpeedVisual(autoCarrySpeedEnabled == true) end end)
-  pcall(function() if _G.MetroRefreshAutoCarryModeSelector then _G.MetroRefreshAutoCarryModeSelector() end end)
+  pcall(function() if _G.YaisRefreshAutoCarryModeSelector then _G.YaisRefreshAutoCarryModeSelector() end end)
   pcall(function() if _SV.setAutoTPVisual then _SV.setAutoTPVisual(autoTPEnabled == true) end end)
 end
 
-_G.MetroActionToggleRow = function(parent, labelText, default, order)
+_G.YaisActionToggleRow = function(parent, labelText, default, order)
   local row = baseRow(parent, labelText, order)
   local button = Instance.new("TextButton")
   button.Name = "ToggleButton"
@@ -13310,13 +13310,13 @@ _G.MetroActionToggleRow = function(parent, labelText, default, order)
   shine.ZIndex = 8
   shine.Parent = knob
   corner(shine, 5)
-  _G._MetroRegAccent(fill, fillGrad, "toggle", track, knob, row)
+  _G._YaisRegAccent(fill, fillGrad, "toggle", track, knob, row)
   local trackStroke = track:FindFirstChildOfClass("UIStroke")
   local rowStroke = row:FindFirstChildOfClass("UIStroke")
   local function setVisual(on)
     local state = on and true or false
     tween(knob, {Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)})
-    local _onBg, _onEdge = _G._MetroToggleOnColor()
+    local _onBg, _onEdge = _G._YaisToggleOnColor()
     tween(track, {
       BackgroundTransparency = state and 0 or 0.12,
       BackgroundColor3 = state and _onBg or COLORS.toggleBg
@@ -13447,7 +13447,7 @@ function tpDownKeybindRow(parent, order)
     if tpDownKeybindButton then tpDownKeybindButton.Text = "None" end
     refreshAllSpeedKeybinds()
     refreshTPDownKeybind()
-    saveMetroConfig()
+    saveYaisConfig()
   end)
   return row, btn
 end
@@ -13501,7 +13501,7 @@ function speedKeybindRow(parent, labelText, keyId, order)
     if speedKeybindButtons[keyId] then speedKeybindButtons[keyId].Text = "None" end
     refreshAllSpeedKeybinds()
     refreshTPDownKeybind()
-    saveMetroConfig()
+    saveYaisConfig()
   end)
   return row, btn
 end
@@ -13540,7 +13540,7 @@ function refreshAimbotModeLabels()
   refreshAimbotButtonLabel()
   -- Aggiorna il testo del bottone mobile aimbot
   pcall(function()
-    local mobileButtons = _G.MetroMobileButtonRefs
+    local mobileButtons = _G.YaisMobileButtonRefs
     local aimbotEntry = mobileButtons and mobileButtons.aimbot
     local aimbotMobileBtn = aimbotEntry and aimbotEntry.btn
     if aimbotMobileBtn then
@@ -13550,7 +13550,7 @@ function refreshAimbotModeLabels()
   -- Stessa versione anche nella lista Hide Mobile Buttons
   if _G._AmbHideOptLabel_aimbot then pcall(_G._AmbHideOptLabel_aimbot) end
   -- ...e nel segmento di sinistra dell'Auto After Drop
-  if _G.MetroRefreshAfterDropSelector then pcall(_G.MetroRefreshAfterDropSelector) end
+  if _G.YaisRefreshAfterDropSelector then pcall(_G.YaisRefreshAfterDropSelector) end
 end
 
 refreshSpeedModeRows = function()
@@ -13621,19 +13621,19 @@ end
 function aimbotModeButtonRow(parent, order)
   local row, setVisual = toggleRow(parent, getAimbotModeDisplay(), false, order)
   aimbotButtonLabel = row and row:FindFirstChild("Label")
-  _G.MetroAimbotSetVisual = setVisual
+  _G.YaisAimbotSetVisual = setVisual
   refreshAimbotButtonLabel()
-  if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
-      if _G.MetroToggleSelectedAimbot then _G.MetroToggleSelectedAimbot() end
+  if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
+      if _G.YaisToggleSelectedAimbot then _G.YaisToggleSelectedAimbot() end
     end)
   end
   return row, setVisual
 end
 
-_G.MetroAimbotSelectorRow = function(parent, order)
+_G.YaisAimbotSelectorRow = function(parent, order)
   local holder = Instance.new("Frame")
   holder.Name = "Aimbot Mode"
   holder.BackgroundColor3 = COLORS.row
@@ -13646,7 +13646,7 @@ _G.MetroAimbotSelectorRow = function(parent, order)
   holder.Parent = parent
   corner(holder, 14)
   stroke(holder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(holder, nil, "soft")
+  _G._YaisRegAccent(holder, nil, "soft")
 
   local slide = Instance.new("Frame")
   slide.Name = "SelectedSlide"
@@ -13676,7 +13676,7 @@ _G.MetroAimbotSelectorRow = function(parent, order)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   slideGradient.Parent = slide
-  _G._MetroRegAccent(slide, slideGradient, "slide")
+  _G._YaisRegAccent(slide, slideGradient, "slide")
   slideGradient.Rotation = 22
 
   local v1Text = Instance.new("TextLabel")
@@ -13737,11 +13737,11 @@ _G.MetroAimbotSelectorRow = function(parent, order)
       mode = "V1"
     end
     selectedAimbotMode = mode
-    if _G.MetroRefreshAimbotChaseRows then _G.MetroRefreshAimbotChaseRows() end   -- >>> AIMBOT CHASE MODE <<<
+    if _G.YaisRefreshAimbotChaseRows then _G.YaisRefreshAimbotChaseRows() end   -- >>> AIMBOT CHASE MODE <<<
     refreshAimbotModeLabels()
-    if _G.MetroRefreshAimbotSpeedBoxes then _G.MetroRefreshAimbotSpeedBoxes() end
-    if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
-    saveMetroConfig()
+    if _G.YaisRefreshAimbotSpeedBoxes then _G.YaisRefreshAimbotSpeedBoxes() end
+    if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
+    saveYaisConfig()
     local onV2 = selectedAimbotMode == "V2"
     tween(slide, {
       Position = onV2 and UDim2.new(0.5, -1, 0, 4) or UDim2.new(0, 4, 0, 4)
@@ -13779,7 +13779,7 @@ function autoStealSelectorRow(parent, order)
   holder.Parent = parent
   corner(holder, 14)
   stroke(holder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(holder, nil, "soft")
+  _G._YaisRegAccent(holder, nil, "soft")
 
   local slide = Instance.new("Frame")
   slide.Name = "SelectedSlide"
@@ -13809,7 +13809,7 @@ function autoStealSelectorRow(parent, order)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   slideGradient.Parent = slide
-  _G._MetroRegAccent(slide, slideGradient, "slide")
+  _G._YaisRegAccent(slide, slideGradient, "slide")
   slideGradient.Rotation = 22
 
   local normalText = Instance.new("TextLabel")
@@ -13866,21 +13866,21 @@ function autoStealSelectorRow(parent, order)
     if mode ~= "Semi" then
       mode = "Normal"
     end
-    _G.MetroDuelstealRadii = _G.MetroDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
+    _G.YaisDuelstealRadii = _G.YaisDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
     -- Salva il radius corrente nel slot giusto prima di cambiare modo
     if selectedStealMode == "Semi" and selectedSemiMode == "V2" then
       -- non sovrascriviamo autoStealRadius per V2 (usa SemiV2Radius separato)
     else
-      _G.MetroDuelstealRadii[selectedStealMode] = tonumber(autoStealRadius) or _G.MetroDuelstealRadii[selectedStealMode]
+      _G.YaisDuelstealRadii[selectedStealMode] = tonumber(autoStealRadius) or _G.YaisDuelstealRadii[selectedStealMode]
     end
     selectedStealMode = mode
     -- Aggiorna il radiusBox con il valore corretto per il nuovo modo
     if selectedStealMode == "Semi" and selectedSemiMode == "V2" then
       if autoStealRadiusBox then
-        autoStealRadiusBox.Text = tostring(_G.MetroDuelstealRadii.SemiV2Radius or 60)
+        autoStealRadiusBox.Text = tostring(_G.YaisDuelstealRadii.SemiV2Radius or 60)
       end
     else
-      autoStealRadius = _G.MetroDuelstealRadii[selectedStealMode] or ((selectedStealMode == "Semi") and 60 or 62)
+      autoStealRadius = _G.YaisDuelstealRadii[selectedStealMode] or ((selectedStealMode == "Semi") and 60 or 62)
       if autoStealRadiusBox then
         autoStealRadiusBox.Text = tostring(autoStealRadius)
       end
@@ -13899,15 +13899,15 @@ function autoStealSelectorRow(parent, order)
       TextStrokeTransparency = onSemi and 0.2 or 0.38
     }, 0.14)
     -- Mostra/nasconde subito i row Semi (sincrono, prima dello spawn)
-    if _G.MetroRefreshSemiStealRows then _G.MetroRefreshSemiStealRows() end
+    if _G.YaisRefreshSemiStealRows then _G.YaisRefreshSemiStealRows() end
     -- Operazioni pesanti in background (saveConfig + sync con possibili WaitForChild/InvokeServer)
     -- cosi non bloccano il thread e non ritardano il tween
     task.spawn(function()
-      saveMetroConfig()
-      if _G.MetroNormalAutoStealSetRadius then _G.MetroNormalAutoStealSetRadius(_G.MetroDuelstealRadii.Normal or 62) end
-      if _G.MetroDuelsemiAutoStealSetRadius then _G.MetroDuelsemiAutoStealSetRadius(_G.MetroDuelstealRadii.Semi or 60) end
-      if _G.MetroDuelsemiV2SetRadius then _G.MetroDuelsemiV2SetRadius(_G.MetroDuelstealRadii.SemiV2Radius or 60) end
-      if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
+      saveYaisConfig()
+      if _G.YaisNormalAutoStealSetRadius then _G.YaisNormalAutoStealSetRadius(_G.YaisDuelstealRadii.Normal or 62) end
+      if _G.YaisDuelsemiAutoStealSetRadius then _G.YaisDuelsemiAutoStealSetRadius(_G.YaisDuelstealRadii.Semi or 60) end
+      if _G.YaisDuelsemiV2SetRadius then _G.YaisDuelsemiV2SetRadius(_G.YaisDuelstealRadii.SemiV2Radius or 60) end
+      if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
     end)
   end
 
@@ -13918,7 +13918,7 @@ function autoStealSelectorRow(parent, order)
     setMode("Semi")
   end)
   setMode(selectedStealMode)
-  _G.MetroDuelsetStealMode = setMode
+  _G.YaisDuelsetStealMode = setMode
   return holder, setMode
 end
 
@@ -13938,7 +13938,7 @@ normalSpeedBox.FocusLost:Connect(function()
     NS = v
   end
   normalSpeedBox.Text = tostring(NS)
-  saveMetroConfig()
+  saveYaisConfig()
 end)
 
 _, carrySpeedBox = textboxRow(Movement, "Carry Speed", tostring(CS), 3)
@@ -13948,7 +13948,7 @@ carrySpeedBox.FocusLost:Connect(function()
     CS = v
   end
   carrySpeedBox.Text = tostring(CS)
-  saveMetroConfig()
+  saveYaisConfig()
 end)
 
 -- LAGGER NORMAL e LAGGER CARRY (rinominati)
@@ -13959,7 +13959,7 @@ laggerSpeedBox.FocusLost:Connect(function()
     LAGGER_SPEED = v
   end
   laggerSpeedBox.Text = tostring(LAGGER_SPEED)
-  saveMetroConfig()
+  saveYaisConfig()
 end)
 
 _, laggerCarrySpeedBox = textboxRow(Movement, "Lagger Carry", tostring(LAGGER_CARRY_SPEED), 5)
@@ -13969,11 +13969,11 @@ laggerCarrySpeedBox.FocusLost:Connect(function()
     LAGGER_CARRY_SPEED = v
   end
   laggerCarrySpeedBox.Text = tostring(LAGGER_CARRY_SPEED)
-  saveMetroConfig()
+  saveYaisConfig()
 end)
 
 -- ===== AUTO CARRY SPEED MODE SELECTOR BUILDER (stile Infinite Jump) =====
-_G._MetroBuildAutoCarryModeSelector = function(row, parentFrame)
+_G._YaisBuildAutoCarryModeSelector = function(row, parentFrame)
   local acModeExpanded = false
 
   local acArrow = Instance.new("TextButton")
@@ -14008,7 +14008,7 @@ _G._MetroBuildAutoCarryModeSelector = function(row, parentFrame)
   acHolder.Parent = parentFrame
   corner(acHolder, 14)
   stroke(acHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(acHolder, nil, "soft")
+  _G._YaisRegAccent(acHolder, nil, "soft")
 
   local acSlide = Instance.new("Frame")
   acSlide.Name = "SelectedSlide"
@@ -14038,7 +14038,7 @@ _G._MetroBuildAutoCarryModeSelector = function(row, parentFrame)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   acSlideGrad.Parent = acSlide
-  _G._MetroRegAccent(acSlide, acSlideGrad, "slide")
+  _G._YaisRegAccent(acSlide, acSlideGrad, "slide")
   acSlideGrad.Rotation = 22
 
   local acNormalText = Instance.new("TextLabel")
@@ -14108,30 +14108,30 @@ _G._MetroBuildAutoCarryModeSelector = function(row, parentFrame)
 
   local function setACMode(mode)
     if mode ~= "SOFT" then mode = "NORMAL" end
-    if _G._MetroAutoCarryMode ~= mode then
+    if _G._YaisAutoCarryMode ~= mode then
       -- Cambio mode: sblocca e ripristina la mode salvata, cosi' non resta stato sporco
-      _G._MetroAS.locked = false
-      _G._MetroAS.wasLow = false
-      if _G._MetroAS.savedMode then
-        _G._MetroAS.restoring = true
-        pcall(function() setSpeedMode(_G._MetroAS.savedMode) end)
-        _G._MetroAS.restoring = false
-        _G._MetroAS.savedMode = nil
+      _G._YaisAS.locked = false
+      _G._YaisAS.wasLow = false
+      if _G._YaisAS.savedMode then
+        _G._YaisAS.restoring = true
+        pcall(function() setSpeedMode(_G._YaisAS.savedMode) end)
+        _G._YaisAS.restoring = false
+        _G._YaisAS.savedMode = nil
       end
-      _G._MetroAutoCarrySoft.lastScan = 0
+      _G._YaisAutoCarrySoft.lastScan = 0
     end
-    _G._MetroAutoCarryMode = mode
+    _G._YaisAutoCarryMode = mode
     applyACModeVisual(mode)
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
-  _G.MetroRefreshAutoCarryModeSelector = function()
-    applyACModeVisual(_G._MetroAutoCarryMode or "NORMAL")
+  _G.YaisRefreshAutoCarryModeSelector = function()
+    applyACModeVisual(_G._YaisAutoCarryMode or "NORMAL")
   end
 
   local function setExpandedAC(expanded)
     acModeExpanded = expanded
-    _G._MetroExpand(acHolder, expanded, 42, acArrow)
+    _G._YaisExpand(acHolder, expanded, 42, acArrow)
   end
 
   acArrow.Activated:Connect(function()
@@ -14144,7 +14144,7 @@ _G._MetroBuildAutoCarryModeSelector = function(row, parentFrame)
     setACMode("SOFT")
   end)
 
-  applyACModeVisual(_G._MetroAutoCarryMode or "NORMAL")
+  applyACModeVisual(_G._YaisAutoCarryMode or "NORMAL")
 end
 -- ===== FINE AUTO CARRY SPEED MODE SELECTOR BUILDER =====
 
@@ -14152,30 +14152,30 @@ end
 _, setAutoCarrySpeedVisual = toggleRow(Movement, "Auto Carry Speed", autoCarrySpeedEnabled, 6)
 do
   local row = Movement:FindFirstChild("Auto Carry Speed")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       autoCarrySpeedEnabled = not autoCarrySpeedEnabled
       if autoCarrySpeedEnabled ~= true then
         if _G.AutoCarrySpeed and _G.AutoCarrySpeed.Disable then
           _G.AutoCarrySpeed.Disable()
         end
         -- Reset stato auto switch to carry
-        _G._MetroAS.locked = false
-        _G._MetroAS.wasLow = false
-        if _G._MetroAS.savedMode then
-          _G._MetroAS.restoring = true
-          setSpeedMode(_G._MetroAS.savedMode)
-          _G._MetroAS.restoring = false
-          _G._MetroAS.savedMode = nil
+        _G._YaisAS.locked = false
+        _G._YaisAS.wasLow = false
+        if _G._YaisAS.savedMode then
+          _G._YaisAS.restoring = true
+          setSpeedMode(_G._YaisAS.savedMode)
+          _G._YaisAS.restoring = false
+          _G._YaisAS.savedMode = nil
         end
       end
       if setAutoCarrySpeedVisual then setAutoCarrySpeedVisual(autoCarrySpeedEnabled == true) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
   if row then
-    _G._MetroBuildAutoCarryModeSelector(row, Movement)
+    _G._YaisBuildAutoCarryModeSelector(row, Movement)
   end
 end
 
@@ -14244,7 +14244,7 @@ do
   atpdHolder.Parent = Movement
   corner(atpdHolder, 14)
   stroke(atpdHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(atpdHolder, nil, "soft")
+  _G._YaisRegAccent(atpdHolder, nil, "soft")
 
   local atpdLabel = Instance.new("TextLabel")
   atpdLabel.Name = "Label"
@@ -14279,7 +14279,7 @@ do
   corner(autoTPHeightBox, 7)
   stroke(autoTPHeightBox, COLORS.strokeSoft, 1, 0.45)
 
-  _G.MetroRefreshAutoTPHeightBox = function()
+  _G.YaisRefreshAutoTPHeightBox = function()
     pcall(function() autoTPHeightBox.Text = tostring(autoTPHeight) end)
   end
 
@@ -14289,12 +14289,12 @@ do
       autoTPHeight = v
     end
     autoTPHeightBox.Text = tostring(autoTPHeight)
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 
   atpdArrow.Activated:Connect(function()
     atpdExpanded = not atpdExpanded
-    _G._MetroExpand(atpdHolder, atpdExpanded, 42, atpdArrow)
+    _G._YaisExpand(atpdHolder, atpdExpanded, 42, atpdArrow)
   end)
 end
 -- <<< AUTO TP HEIGHT ARROW END
@@ -14304,7 +14304,7 @@ end
 -- La sezione "DROP METHOD" e' stata rimossa: ora e' una riga singola
 -- "Drop Method" (solo etichetta + freccetta, nessun toggle) piazzata
 -- sopra Infinite Jump. La freccetta apre lo slider TP UP / STAND STILL.
-_G._MetroBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
+_G._YaisBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
   local dropExpanded = false
 
   local dropRow = baseRow(parentFrame, "Drop Method", rowOrder)
@@ -14342,7 +14342,7 @@ _G._MetroBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
   dropMethodHolder.Parent = parentFrame
   corner(dropMethodHolder, 14)
   stroke(dropMethodHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(dropMethodHolder, nil, "soft")
+  _G._YaisRegAccent(dropMethodHolder, nil, "soft")
 
   local dropSlide = Instance.new("Frame")
   dropSlide.Name = "SelectedSlide"
@@ -14372,7 +14372,7 @@ _G._MetroBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   dropSlideGradient.Parent = dropSlide
-  _G._MetroRegAccent(dropSlide, dropSlideGradient, "slide")
+  _G._YaisRegAccent(dropSlide, dropSlideGradient, "slide")
   dropSlideGradient.Rotation = 22
 
   local dropTpUpText = Instance.new("TextLabel")
@@ -14446,11 +14446,11 @@ _G._MetroBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
     end
     selectedDropMode = mode
     applyDropVisual()
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
   -- Usato da Reset All Settings / load config
-  _G.MetroRefreshDropMethodSelector = function()
+  _G.YaisRefreshDropMethodSelector = function()
     applyDropVisual()
   end
 
@@ -14463,7 +14463,7 @@ _G._MetroBuildDropMethodSelector = function(parentFrame, rowOrder, holderOrder)
 
   dropArrow.Activated:Connect(function()
     dropExpanded = not dropExpanded
-    _G._MetroExpand(dropMethodHolder, dropExpanded, 42, dropArrow)
+    _G._YaisExpand(dropMethodHolder, dropExpanded, 42, dropArrow)
   end)
 
   applyDropVisual()
@@ -14471,7 +14471,7 @@ end
 -- <<< DROP METHOD END
 
 -- ===== BUILDER LOOK AT ENEMY RADIUS SELECTOR =====
-_G._MetroBuildLookAtRadiusSelector = function(row, parentFrame)
+_G._YaisBuildLookAtRadiusSelector = function(row, parentFrame)
   local laeExpanded = false
 
   local arrowLAE = Instance.new("TextButton")
@@ -14506,7 +14506,7 @@ _G._MetroBuildLookAtRadiusSelector = function(row, parentFrame)
   laeHolder.Parent = parentFrame
   corner(laeHolder, 14)
   stroke(laeHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(laeHolder, nil, "soft")
+  _G._YaisRegAccent(laeHolder, nil, "soft")
 
   local laeLabel = Instance.new("TextLabel")
   laeLabel.BackgroundTransparency = 1
@@ -14526,7 +14526,7 @@ _G._MetroBuildLookAtRadiusSelector = function(row, parentFrame)
   laeBox.Name = "LookAtRadiusBox"
   laeBox.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
   laeBox.BackgroundTransparency = 0.18
-  laeBox.Text = tostring(tonumber(_G.MetroLookAtRadius) or 20)
+  laeBox.Text = tostring(tonumber(_G.YaisLookAtRadius) or 20)
   laeBox.TextColor3 = COLORS.white
   laeBox.TextSize = 12
   -- >>> TAB POSITION BEGIN
@@ -14543,18 +14543,18 @@ _G._MetroBuildLookAtRadiusSelector = function(row, parentFrame)
   corner(laeBox, 7)
   stroke(laeBox, COLORS.strokeSoft, 1, 0.45)
 
-  _G.MetroLookAtRadiusBox = laeBox
+  _G.YaisLookAtRadiusBox = laeBox
 
   laeBox.FocusLost:Connect(function()
     local v = math.clamp(tonumber(laeBox.Text) or 20, 1, 200)
-    _G.MetroLookAtRadius = v
+    _G.YaisLookAtRadius = v
     laeBox.Text = tostring(v)
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 
   local function setLAEExpanded(expanded)
     laeExpanded = expanded
-    _G._MetroExpand(laeHolder, expanded, 42, arrowLAE)
+    _G._YaisExpand(laeHolder, expanded, 42, arrowLAE)
   end
 
   arrowLAE.Activated:Connect(function()
@@ -14565,7 +14565,7 @@ end
 -- >>> TP DOWN METHOD BEGIN
 -- Riga "TP Down Method": solo etichetta + freccetta, nessun toggle.
 -- Aprendola compare lo slider NORMAL / SLOW FALL / ZIGZAG.
-_G._MetroBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder)
+_G._YaisBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder)
   local row = baseRow(parentFrame, "TP Down Method", rowOrder)
 
   local arrow = Instance.new("TextButton")
@@ -14600,7 +14600,7 @@ _G._MetroBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder
   holder.Parent = parentFrame
   corner(holder, 14)
   stroke(holder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(holder, nil, "soft")
+  _G._YaisRegAccent(holder, nil, "soft")
 
   -- Tre segmenti: NORMAL, SLOW FALL, ZIGZAG.
   local TPM_MODES = {"NORMAL", "SLOW", "ZIGZAG"}
@@ -14637,7 +14637,7 @@ _G._MetroBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder
   })
   slideGrad.Rotation = 22
   slideGrad.Parent = slide
-  _G._MetroRegAccent(slide, slideGrad, "slide")
+  _G._YaisRegAccent(slide, slideGrad, "slide")
 
   local tpmTexts = {}
 
@@ -14660,9 +14660,9 @@ _G._MetroBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder
     local ok = false
     for _, m in ipairs(TPM_MODES) do if m == mode then ok = true break end end
     if not ok then mode = "NORMAL" end
-    _G._MetroTPDownMethod = mode
+    _G._YaisTPDownMethod = mode
     applyVisual(mode)
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
   for i, mode in ipairs(TPM_MODES) do
@@ -14695,23 +14695,23 @@ _G._MetroBuildTPDownMethodSelector = function(parentFrame, rowOrder, holderOrder
   local expanded = false
   arrow.Activated:Connect(function()
     expanded = not expanded
-    _G._MetroExpand(holder, expanded, 42, arrow)
+    _G._YaisExpand(holder, expanded, 42, arrow)
   end)
 
-  _G.MetroRefreshTPDownMethodSelector = function()
-    applyVisual(_G._MetroTPDownMethod or "NORMAL")
+  _G.YaisRefreshTPDownMethodSelector = function()
+    applyVisual(_G._YaisTPDownMethod or "NORMAL")
   end
-  applyVisual(_G._MetroTPDownMethod or "NORMAL")
+  applyVisual(_G._YaisTPDownMethod or "NORMAL")
 end
 
 -- La riga vive nella sezione TELEPORT (LayoutOrder 10.5/10.6), ma la
 -- chiamata deve stare DOPO la definizione del builder, non prima.
 -- Sopra Auto TP Down (9): riga 8 + holder 8, subito dopo la sezione TELEPORT (8).
-_G._MetroBuildTPDownMethodSelector(Movement, 8, 8)
+_G._YaisBuildTPDownMethodSelector(Movement, 8, 8)
 -- <<< TP DOWN METHOD END
 
 -- ===== BUILDER JUMP MODE SELECTOR (funzione separata per non saturare i local del chunk) =====
-_G._MetroBuildJumpModeSelector = function(row, parentFrame)
+_G._YaisBuildJumpModeSelector = function(row, parentFrame)
   local jumpModeExpanded = false
 
   local arrowBtn = Instance.new("TextButton")
@@ -14746,7 +14746,7 @@ _G._MetroBuildJumpModeSelector = function(row, parentFrame)
   jumpModeHolder.Parent = parentFrame
   corner(jumpModeHolder, 14)
   stroke(jumpModeHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(jumpModeHolder, nil, "soft")
+  _G._YaisRegAccent(jumpModeHolder, nil, "soft")
 
   local jumpModeSlide = Instance.new("Frame")
   jumpModeSlide.Name = "SelectedSlide"
@@ -14776,7 +14776,7 @@ _G._MetroBuildJumpModeSelector = function(row, parentFrame)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   jmsGrad.Parent = jumpModeSlide
-  _G._MetroRegAccent(jumpModeSlide, jmsGrad, "slide")
+  _G._YaisRegAccent(jumpModeSlide, jmsGrad, "slide")
 
   local holdText = Instance.new("TextLabel")
   holdText.Name = "HoldText"
@@ -14847,19 +14847,19 @@ _G._MetroBuildJumpModeSelector = function(row, parentFrame)
     if mode ~= "MANUAL" then mode = "HOLD" end
     infJumpMode = mode
     if infJumpMode == "MANUAL" then
-      _G.MetroDuelstopNormalInfJumpHoldState()
+      _G.YaisDuelstopNormalInfJumpHoldState()
     end
     applyJumpModeVisual(infJumpMode)
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
-  _G.MetroRefreshInfJumpModeSelector = function()
+  _G.YaisRefreshInfJumpModeSelector = function()
     applyJumpModeVisual(infJumpMode)
   end
 
   local function setExpanded(expanded)
     jumpModeExpanded = expanded
-    _G._MetroExpand(jumpModeHolder, expanded, 42, arrowBtn)
+    _G._YaisExpand(jumpModeHolder, expanded, 42, arrowBtn)
   end
 
   arrowBtn.Activated:Connect(function()
@@ -14897,7 +14897,7 @@ do
   irHolder.Parent = Movement
   corner(irHolder, 14)
   stroke(irHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(irHolder, nil, "soft")
+  _G._YaisRegAccent(irHolder, nil, "soft")
 
   local irSlide = Instance.new("Frame")
   irSlide.Name = "SelectedSlide"
@@ -14923,7 +14923,7 @@ do
   })
   irSlideGrad.Rotation = 22
   irSlideGrad.Parent = irSlide
-  _G._MetroRegAccent(irSlide, irSlideGrad, "slide")
+  _G._YaisRegAccent(irSlide, irSlideGrad, "slide")
 
   local irTexts = {}
   for i = 1, 2 do
@@ -14944,7 +14944,7 @@ do
   end
 
   local function irApplyVisual()
-    local idx = (tonumber(_G.MetroInstantResetVersion) or 1) == 2 and 2 or 1
+    local idx = (tonumber(_G.YaisInstantResetVersion) or 1) == 2 and 2 or 1
     tween(irSlide, {Position = UDim2.new(0.5 * (idx - 1), 4, 0, 4)}, 0.18)
     for i, t in ipairs(irTexts) do
       local sel = (i == idx)
@@ -14954,7 +14954,7 @@ do
       }, 0.14)
     end
   end
-  _G.MetroRefreshInstantResetSelector = irApplyVisual
+  _G.YaisRefreshInstantResetSelector = irApplyVisual
 
   for i = 1, 2 do
     local b = Instance.new("TextButton")
@@ -14967,9 +14967,9 @@ do
     b.Parent = irHolder
     local picked = i
     b.MouseButton1Click:Connect(function()
-      _G.MetroInstantResetVersion = picked
+      _G.YaisInstantResetVersion = picked
       irApplyVisual()
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 
@@ -14995,14 +14995,14 @@ do
   local irExpanded = false
   irArrow.Activated:Connect(function()
     irExpanded = not irExpanded
-    _G._MetroExpand(irHolder, irExpanded, 42, irArrow)
+    _G._YaisExpand(irHolder, irExpanded, 42, irArrow)
   end)
 
   irApplyVisual()
 end
 
 -- >>> DROP METHOD: riga singola sopra Infinite Jump (14) <<<
-_G._MetroBuildDropMethodSelector(Movement, 13, 13)
+_G._YaisBuildDropMethodSelector(Movement, 13, 13)
 -- >>> AUTO AFTER DROP: riga sopra Infinite Jump <<<
 -- Toggle + freccetta (stile Drop Method). LayoutOrder 13 come la riga
 -- Drop Method ma creata dopo: a parita' di ordine il UIListLayout segue
@@ -15010,7 +15010,7 @@ _G._MetroBuildDropMethodSelector(Movement, 13, 13)
 do
   local AD_MODES = {"AIMBOT", "TPBAT"}
   local adRow, setADVisual = toggleRow(Movement, "Auto After Drop",
-    _G.MetroAfterDrop.enabled == true, 13)
+    _G.YaisAfterDrop.enabled == true, 13)
 
   local adHolder = Instance.new("Frame")
   adHolder.Name = "Auto After Drop Mode"
@@ -15025,7 +15025,7 @@ do
   adHolder.Parent = Movement
   corner(adHolder, 14)
   stroke(adHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(adHolder, nil, "soft")
+  _G._YaisRegAccent(adHolder, nil, "soft")
 
   local adSlide = Instance.new("Frame")
   adSlide.Name = "SelectedSlide"
@@ -15051,7 +15051,7 @@ do
   })
   adSlideGrad.Rotation = 22
   adSlideGrad.Parent = adSlide
-  _G._MetroRegAccent(adSlide, adSlideGrad, "slide")
+  _G._YaisRegAccent(adSlide, adSlideGrad, "slide")
 
   local adTexts = {}
   for i = 1, 2 do
@@ -15075,7 +15075,7 @@ do
   -- come fa il bottone mobile: la fonte e' la stessa variabile, quindi
   -- non possono divergere.
   local function adApplyVisual()
-    local idx = (_G.MetroAfterDrop.action == "TPBAT") and 2 or 1
+    local idx = (_G.YaisAfterDrop.action == "TPBAT") and 2 or 1
     adTexts[1].Text = "BAT AIMBOT " .. ((selectedAimbotMode == "V2") and "V2" or "V1")
     adTexts[2].Text = "TP BAT"
     tween(adSlide, {Position = UDim2.new(0.5 * (idx - 1), 4, 0, 4)}, 0.18)
@@ -15086,9 +15086,9 @@ do
         TextStrokeTransparency = sel and 0.2 or 0.38,
       }, 0.14)
     end
-    if setADVisual then pcall(setADVisual, _G.MetroAfterDrop.enabled == true) end
+    if setADVisual then pcall(setADVisual, _G.YaisAfterDrop.enabled == true) end
   end
-  _G.MetroRefreshAfterDropSelector = adApplyVisual
+  _G.YaisRefreshAfterDropSelector = adApplyVisual
 
   for i, mode in ipairs(AD_MODES) do
     local b = Instance.new("TextButton")
@@ -15100,9 +15100,9 @@ do
     b.ZIndex = 10
     b.Parent = adHolder
     b.MouseButton1Click:Connect(function()
-      _G.MetroAfterDrop.action = mode
+      _G.YaisAfterDrop.action = mode
       adApplyVisual()
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 
@@ -15128,15 +15128,15 @@ do
   local adExpanded = false
   adArrow.Activated:Connect(function()
     adExpanded = not adExpanded
-    _G._MetroExpand(adHolder, adExpanded, 42, adArrow)
+    _G._YaisExpand(adHolder, adExpanded, 42, adArrow)
   end)
 
   local adBtn = adRow and adRow:FindFirstChild("ToggleButton")
   if adBtn then
     adBtn.Activated:Connect(function()
-      _G.MetroAfterDrop.enabled = not (_G.MetroAfterDrop.enabled == true)
-      if setADVisual then setADVisual(_G.MetroAfterDrop.enabled) end
-      saveMetroConfig()
+      _G.YaisAfterDrop.enabled = not (_G.YaisAfterDrop.enabled == true)
+      if setADVisual then setADVisual(_G.YaisAfterDrop.enabled) end
+      saveYaisConfig()
     end)
   end
 
@@ -15146,37 +15146,37 @@ end
 _, setInfJumpVisual = toggleRow(Movement, "Infinite Jump", infJumpEnabled, 14)
 do
   local row = Movement:FindFirstChild("Infinite Jump")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       setInfJumpInternal(not infJumpEnabled)
       if setInfJumpVisual then setInfJumpVisual(infJumpEnabled == true) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
   if row then
-    _G._MetroBuildJumpModeSelector(row, Movement)
+    _G._YaisBuildJumpModeSelector(row, Movement)
   end
 end
 
-_, _SV.setLookAtVisual = toggleRow(Movement, "Look At Enemy", _G.MetroLookAtEnabled, 15)
+_, _SV.setLookAtVisual = toggleRow(Movement, "Look At Enemy", _G.YaisLookAtEnabled, 15)
 do
   local row = Movement:FindFirstChild("Look At Enemy")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
-      _G.MetroToggleLookAt(not _G.MetroLookAtEnabled)
-      if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.MetroLookAtEnabled == true) end
-      saveMetroConfig()
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
+      _G.YaisToggleLookAt(not _G.YaisLookAtEnabled)
+      if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.YaisLookAtEnabled == true) end
+      saveYaisConfig()
     end)
   end
   if row then
-    _G._MetroBuildLookAtRadiusSelector(row, Movement)
+    _G._YaisBuildLookAtRadiusSelector(row, Movement)
   end
 end
 
 -- ===== ANTI RAGDOLL MODE SELECTOR BUILDER (stile Infinite Jump) =====
-_G._MetroBuildAntiRagdollModeSelector = function(row, parentFrame)
+_G._YaisBuildAntiRagdollModeSelector = function(row, parentFrame)
   local arModeExpanded = false
 
   local arArrow = Instance.new("TextButton")
@@ -15211,7 +15211,7 @@ _G._MetroBuildAntiRagdollModeSelector = function(row, parentFrame)
   arHolder.Parent = parentFrame
   corner(arHolder, 14)
   stroke(arHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(arHolder, nil, "soft")
+  _G._YaisRegAccent(arHolder, nil, "soft")
 
   local arSlide = Instance.new("Frame")
   arSlide.Name = "SelectedSlide"
@@ -15241,7 +15241,7 @@ _G._MetroBuildAntiRagdollModeSelector = function(row, parentFrame)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   arSlideGrad.Parent = arSlide
-  _G._MetroRegAccent(arSlide, arSlideGrad, "slide")
+  _G._YaisRegAccent(arSlide, arSlideGrad, "slide")
   arSlideGrad.Rotation = 22
 
   local arV1Text = Instance.new("TextLabel")
@@ -15313,19 +15313,19 @@ _G._MetroBuildAntiRagdollModeSelector = function(row, parentFrame)
     if mode ~= "V2" then mode = "V1" end
     local wasEnabled = antiRagdollEnabled
     if wasEnabled then stopAntiRagdoll() end
-    _G._MetroAntiRagdollMode = mode
+    _G._YaisAntiRagdollMode = mode
     applyARModeVisual(mode)
     if wasEnabled then startAntiRagdoll() end
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
-  _G.MetroRefreshAntiRagdollModeSelector = function()
-    applyARModeVisual(_G._MetroAntiRagdollMode or "V1")
+  _G.YaisRefreshAntiRagdollModeSelector = function()
+    applyARModeVisual(_G._YaisAntiRagdollMode or "V1")
   end
 
   local function setExpandedAR(expanded)
     arModeExpanded = expanded
-    _G._MetroExpand(arHolder, expanded, 42, arArrow)
+    _G._YaisExpand(arHolder, expanded, 42, arArrow)
   end
 
   arArrow.Activated:Connect(function()
@@ -15338,42 +15338,42 @@ _G._MetroBuildAntiRagdollModeSelector = function(row, parentFrame)
     setARMode("V2")
   end)
 
-  applyARModeVisual(_G._MetroAntiRagdollMode or "V1")
+  applyARModeVisual(_G._YaisAntiRagdollMode or "V1")
 end
 -- ===== FINE ANTI RAGDOLL MODE SELECTOR BUILDER =====
 
 _, setAntiRagdollVisual = toggleRow(Movement, "Anti Ragdoll", antiRagdollEnabled, 16)
 do
   local row = Movement:FindFirstChild("Anti Ragdoll")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       setAntiRagdoll(not antiRagdollEnabled)
       if setAntiRagdollVisual then setAntiRagdollVisual(antiRagdollEnabled == true) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
   if row then
-    _G._MetroBuildAntiRagdollModeSelector(row, Movement)
+    _G._YaisBuildAntiRagdollModeSelector(row, Movement)
   end
 end
 
 -- >>> TP RAGDOLL <<<
 -- Stesso ordine dell'Anti Ragdoll: a parita' di LayoutOrder conta l'ordine
 -- di creazione, e questa nasce dopo, quindi finisce subito sotto.
-_, _SV.setTPRagdollVisual = toggleRow(Movement, "TP Ragdoll", _G.MetroTPRagdollEnabled == true, 16)
+_, _SV.setTPRagdollVisual = toggleRow(Movement, "TP Ragdoll", _G.YaisTPRagdollEnabled == true, 16)
 do
   local row = Movement:FindFirstChild("TP Ragdoll")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
-      if _G.MetroTPRagdoll then
-        _G.MetroTPRagdoll.set(not _G.MetroTPRagdollEnabled)
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
+      if _G.YaisTPRagdoll then
+        _G.YaisTPRagdoll.set(not _G.YaisTPRagdollEnabled)
       end
       if _SV.setTPRagdollVisual then
-        _SV.setTPRagdollVisual(_G.MetroTPRagdollEnabled == true)
+        _SV.setTPRagdollVisual(_G.YaisTPRagdollEnabled == true)
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
@@ -15381,77 +15381,77 @@ end
 _, _SV.setAntiDieVisual = toggleRow(Movement, "Anti Die", antiDieEnabled, 17)
 do
   local row = Movement:FindFirstChild("Anti Die")
-  _MetroBtn = row and row:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
-      local wanted = _G._MetroAntiDieUserWanted == true
+  _YaisBtn = row and row:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
+      local wanted = _G._YaisAntiDieUserWanted == true
 
       -- Riga spenta ma Anti Die gia' acceso in background da un modulo: il
       -- click non spegne, te lo fa ADOTTARE. Da qui in poi e' roba tua e
       -- resta acceso anche quando il modulo finisce.
-      if not wanted and _G._MetroAntiDieAutoOn then
-        _G._MetroAntiDieAutoOn = false
-        _G._MetroAntiDieUserWanted = true
+      if not wanted and _G._YaisAntiDieAutoOn then
+        _G._YaisAntiDieAutoOn = false
+        _G._YaisAntiDieUserWanted = true
         antiDieEnabled = true
         if _SV.setAntiDieVisual then _SV.setAntiDieVisual(true) end
-        saveMetroConfig()
+        saveYaisConfig()
         return
       end
 
       -- Tentativo di spegnere il TUO Anti Die mentre un modulo ci conta
       -- sopra: si ignora e si rimette il visivo su ON, cosi' il bottone
       -- sembra bloccato invece di lampeggiare e tornare indietro.
-      if wanted and _G.MetroAntiDieLocked and _G.MetroAntiDieLocked() then
+      if wanted and _G.YaisAntiDieLocked and _G.YaisAntiDieLocked() then
         if _SV.setAntiDieVisual then _SV.setAntiDieVisual(true) end
         return
       end
 
       setAntiDie(not wanted)
-      if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._MetroAntiDieUserWanted == true) end
-      saveMetroConfig()
+      if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._YaisAntiDieUserWanted == true) end
+      saveYaisConfig()
     end)
   end
 end
 
 -- Spostati da Combat: No Player Collision,Safe Mode
-_, _G.MetroDuelsetNoPlayerCollisionVisual = toggleRow(Movement, "No Player Collision", _G.MetroNoPlayerCollisionEnabled, 18)
+_, _G.YaisDuelsetNoPlayerCollisionVisual = toggleRow(Movement, "No Player Collision", _G.YaisNoPlayerCollisionEnabled, 18)
 do
-  _MetroBtn = Movement:FindFirstChild("No Player Collision") and Movement:FindFirstChild("No Player Collision"):FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
-      _G.MetroNoPlayerCollisionEnabled = not _G.MetroNoPlayerCollisionEnabled
-      if _G.MetroDuelsetNoPlayerCollisionVisual then _G.MetroDuelsetNoPlayerCollisionVisual(_G.MetroNoPlayerCollisionEnabled) end
-      if _G.MetroNoPlayerCollisionEnabled then
+  _YaisBtn = Movement:FindFirstChild("No Player Collision") and Movement:FindFirstChild("No Player Collision"):FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
+      _G.YaisNoPlayerCollisionEnabled = not _G.YaisNoPlayerCollisionEnabled
+      if _G.YaisDuelsetNoPlayerCollisionVisual then _G.YaisDuelsetNoPlayerCollisionVisual(_G.YaisNoPlayerCollisionEnabled) end
+      if _G.YaisNoPlayerCollisionEnabled then
         if enableNoPlayerCollision then enableNoPlayerCollision() end
       else
         if disableNoPlayerCollision then disableNoPlayerCollision() end
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
 
 _, _SV.setUnwalkVisual = toggleRow(Movement, "Unwalk", unwalkEnabled, 19)
 do
-  _MetroBtn = Movement:FindFirstChild("Unwalk") and Movement:FindFirstChild("Unwalk"):FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = Movement:FindFirstChild("Unwalk") and Movement:FindFirstChild("Unwalk"):FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       if unwalkEnabled then stopUnwalk() else startUnwalk() end
       if _SV.setUnwalkVisual then _SV.setUnwalkVisual(unwalkEnabled) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
 
 _, _SV.setSafeModeVisual = toggleRow(Movement, "Safe Mode", antiKickEnabled, 20)
 do
-  _MetroBtn = Movement:FindFirstChild("Safe Mode") and Movement:FindFirstChild("Safe Mode"):FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = Movement:FindFirstChild("Safe Mode") and Movement:FindFirstChild("Safe Mode"):FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       antiKickEnabled = not antiKickEnabled
       if _SV.setSafeModeVisual then _SV.setSafeModeVisual(antiKickEnabled) end
-      if antiKickEnabled and _G.MetroDuelsafeModeForceStop then _G.MetroDuelsafeModeForceStop("SAFE MODE") end
-      saveMetroConfig()
+      if antiKickEnabled and _G.YaisDuelsafeModeForceStop then _G.YaisDuelsafeModeForceStop("SAFE MODE") end
+      saveYaisConfig()
     end)
   end
 end
@@ -15469,7 +15469,7 @@ Combat = pages.COMBAT
 -- Palette unica e ORDINATA, usata da tutti i color picker dell'hub.
 -- Ordine: neutri (marrone compreso, cosi' non finisce vicino al rosso),
 -- poi rossi/arancioni/gialli, verdi, ciano/blu, viola/rosa.
-_G.MetroColorPresets = {
+_G.YaisColorPresets = {
   -- neutri
   Color3.fromRGB(255, 140, 0),
   Color3.fromRGB(230, 230, 230),
@@ -15515,7 +15515,7 @@ _G.MetroColorPresets = {
 --   onColor   = function(Color3)          (applica il nuovo colore)
 -- }
 -- Ritorna: row, setPreview(Color3)
-_G._MetroBuildColorPickerRow = function(cfg)
+_G._YaisBuildColorPickerRow = function(cfg)
   local row = baseRow(cfg.parent, cfg.rowName, cfg.rowOrder)
   row.Size = UDim2.new(1, -4, 0, 42)
   row.ClipsDescendants = true
@@ -15544,7 +15544,7 @@ _G._MetroBuildColorPickerRow = function(cfg)
     stroke(arrow, COLORS.strokeSoft, 1, 0.45)
     arrow.Activated:Connect(function()
       expanded = not expanded
-      _G._MetroExpand(row, expanded, 42, arrow)
+      _G._YaisExpand(row, expanded, 42, arrow)
     end)
   end
 
@@ -15586,7 +15586,7 @@ _G._MetroBuildColorPickerRow = function(cfg)
   })
   pickGrad.Rotation = 18
   pickGrad.Parent = btnHolder
-  _G._MetroRegAccent(btnHolder, pickGrad, "pick")
+  _G._YaisRegAccent(btnHolder, pickGrad, "pick")
 
   local pickBtn = Instance.new("TextButton")
   pickBtn.Name = "ColorButton"
@@ -15641,7 +15641,7 @@ _G._MetroBuildColorPickerRow = function(cfg)
     end
 
     pickerGui = Instance.new("ScreenGui")
-    pickerGui.Name = "MetroHubColorPicker"
+    pickerGui.Name = "YaisHubColorPicker"
     pickerGui.ResetOnSpawn = false
     pickerGui.IgnoreGuiInset = true
     pickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -15746,7 +15746,7 @@ _G._MetroBuildColorPickerRow = function(cfg)
     gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
     gridLayout.Parent = colorGrid
 
-    for i, color in ipairs(_G.MetroColorPresets) do
+    for i, color in ipairs(_G.YaisColorPresets) do
       local cBtn = Instance.new("TextButton")
       cBtn.Name = "Color_" .. i
       cBtn.Size = UDim2.new(1, 0, 1, 0)
@@ -15885,15 +15885,15 @@ end
 
 section(Combat, "AUTO STEAL", 1)
 autoStealSelectorRow(Combat, 2)
-_MetroRow, setAutoStealVisual = toggleRow(Combat, "Auto Steal", autoStealEnabled, 3)
+_YaisRow, setAutoStealVisual = toggleRow(Combat, "Auto Steal", autoStealEnabled, 3)
 do
-  _MetroBtn = _MetroRow and _MetroRow:FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = _YaisRow and _YaisRow:FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       autoStealEnabled = not autoStealEnabled
       if setAutoStealVisual then setAutoStealVisual(autoStealEnabled) end
-      if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
-      saveMetroConfig()
+      if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
+      saveYaisConfig()
     end)
   end
 end
@@ -15902,33 +15902,33 @@ _, radiusBox = textboxRow(Combat, "Radius", tostring(autoStealRadius), 4)
 autoStealRadiusBox = radiusBox
 -- Corregge il valore iniziale del box in base al modo caricato dal config
 if selectedStealMode == "Semi" and selectedSemiMode == "V2" then
-  radiusBox.Text = tostring(_G.MetroDuelstealRadii.SemiV2Radius or 60)
+  radiusBox.Text = tostring(_G.YaisDuelstealRadii.SemiV2Radius or 60)
 elseif selectedStealMode == "Semi" then
-  radiusBox.Text = tostring(_G.MetroDuelstealRadii.Semi or 60)
+  radiusBox.Text = tostring(_G.YaisDuelstealRadii.Semi or 60)
 else
-  radiusBox.Text = tostring(_G.MetroDuelstealRadii.Normal or 62)
+  radiusBox.Text = tostring(_G.YaisDuelstealRadii.Normal or 62)
 end
 radiusBox.FocusLost:Connect(function()
   local v = tonumber(radiusBox.Text)
-  _G.MetroDuelstealRadii = _G.MetroDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
+  _G.YaisDuelstealRadii = _G.YaisDuelstealRadii or {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
   if selectedStealMode == "Semi" and selectedSemiMode == "V2" then
     -- In V2: Radius = prime range (PRIME_RANGE)
     if v and v > 0 and v <= 500 then
-      _G.MetroDuelstealRadii.SemiV2Radius = v
-      if _G.MetroDuelsemiV2SetRadius then _G.MetroDuelsemiV2SetRadius(v) end
+      _G.YaisDuelstealRadii.SemiV2Radius = v
+      if _G.YaisDuelsemiV2SetRadius then _G.YaisDuelsemiV2SetRadius(v) end
     end
-    radiusBox.Text = tostring(_G.MetroDuelstealRadii.SemiV2Radius or 60)
+    radiusBox.Text = tostring(_G.YaisDuelstealRadii.SemiV2Radius or 60)
   else
     if v and v > 0 and v <= 500 then
       autoStealRadius = v
     end
-    _G.MetroDuelstealRadii[selectedStealMode] = autoStealRadius
+    _G.YaisDuelstealRadii[selectedStealMode] = autoStealRadius
     radiusBox.Text = tostring(autoStealRadius)
-    if _G.MetroNormalAutoStealSetRadius then _G.MetroNormalAutoStealSetRadius(_G.MetroDuelstealRadii.Normal or 62) end
-    if _G.MetroDuelsemiAutoStealSetRadius then _G.MetroDuelsemiAutoStealSetRadius(_G.MetroDuelstealRadii.Semi or 60) end
+    if _G.YaisNormalAutoStealSetRadius then _G.YaisNormalAutoStealSetRadius(_G.YaisDuelstealRadii.Normal or 62) end
+    if _G.YaisDuelsemiAutoStealSetRadius then _G.YaisDuelsemiAutoStealSetRadius(_G.YaisDuelstealRadii.Semi or 60) end
   end
-  if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
-  saveMetroConfig()
+  if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
+  saveYaisConfig()
 end)
 
 -- ===== SEMI SUB-MODE SELECTOR (V1 / V2 / V3) — visibile solo in modalità Semi =====
@@ -15947,7 +15947,7 @@ end)
   semiSubHolder.Parent = Combat
   corner(semiSubHolder, 14)
   stroke(semiSubHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(semiSubHolder, nil, "soft")
+  _G._YaisRegAccent(semiSubHolder, nil, "soft")
 
   local subSlide = Instance.new("Frame")
   subSlide.Name = "SelectedSlide"
@@ -15977,7 +15977,7 @@ end)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   subSlideGradient.Parent = subSlide
-  _G._MetroRegAccent(subSlide, subSlideGradient, "slide")
+  _G._YaisRegAccent(subSlide, subSlideGradient, "slide")
   subSlideGradient.Rotation = 22
 
   local SEMI_MODES = {"V1", "V2", "V3"}
@@ -16012,7 +16012,7 @@ end)
     click.Parent = semiSubHolder
     local _m = m
     click.MouseButton1Click:Connect(function()
-      if _G.MetroDuelsetSemiSubMode then _G.MetroDuelsetSemiSubMode(_m) end
+      if _G.YaisDuelsetSemiSubMode then _G.YaisDuelsetSemiSubMode(_m) end
     end)
   end
 
@@ -16045,10 +16045,10 @@ end)
   local function applySemiRadiusBox()
     if selectedSemiMode == "V2" then
       if autoStealRadiusBox then
-        autoStealRadiusBox.Text = tostring((_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2Radius) or 60)
+        autoStealRadiusBox.Text = tostring((_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2Radius) or 60)
       end
     else
-      autoStealRadius = (_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.Semi) or 60
+      autoStealRadius = (_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.Semi) or 60
       if autoStealRadiusBox then
         autoStealRadiusBox.Text = tostring(autoStealRadius)
       end
@@ -16060,27 +16060,27 @@ end)
     selectedSemiMode = mode
     applySemiSubVisual(selectedSemiMode)
     applySemiRadiusBox()
-    if _G.MetroRefreshSemiStealRows then _G.MetroRefreshSemiStealRows() end
+    if _G.YaisRefreshSemiStealRows then _G.YaisRefreshSemiStealRows() end
   end
 
   local function setSemiSubMode(mode)
     setSemiSubModeVisualOnly(mode)
     task.spawn(function()
-      saveMetroConfig()
-      if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
+      saveYaisConfig()
+      if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
     end)
   end
 
   setSemiSubModeVisualOnly(selectedSemiMode)
 
-  _G.MetroDuelsemiSubHolder = semiSubHolder
-  _G.MetroDuelsetSemiSubMode = setSemiSubMode
-  _G.MetroDuelsetSemiSubModeVisual = setSemiSubModeVisualOnly
+  _G.YaisDuelsemiSubHolder = semiSubHolder
+  _G.YaisDuelsetSemiSubMode = setSemiSubMode
+  _G.YaisDuelsetSemiSubModeVisual = setSemiSubModeVisualOnly
 end)()
 
 -- ===== SEMI STEAL SETTINGS (visibili solo in modalità Semi) =====
 ;(function()
-  local A = _G.MetroDuelsemiSteal
+  local A = _G.YaisDuelsemiSteal
 
   local function getSemi(key, def)
     return A and A[key] or def
@@ -16091,19 +16091,19 @@ end)()
 
   -- Delay Radius (4.1) — raggio entro cui scatta il trigger nella fase 2 (Semi V1)
   local _, delayRadBox = textboxRow(Combat, "Delay Radius", tostring(getSemi("autoGrabSetDelayRadius", 8)), 4.1)
-  _G.MetroDelayRadBox = delayRadBox
+  _G.YaisDelayRadBox = delayRadBox
   delayRadBox.FocusLost:Connect(function()
     local v = tonumber(delayRadBox.Text)
     if v and v > 0 and v <= 500 then
       setSemi("autoGrabSetDelayRadius", v)
     end
     delayRadBox.Text = tostring(getSemi("autoGrabSetDelayRadius", 8))
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 
   -- Stop Time (4.2) — barra si ferma qui prima di aspettare il raggio (Semi V1)
   local _, stopTimeBox = textboxRow(Combat, "Stop Time (s)", tostring(getSemi("autoGrabStopTime", 1.29)), 4.2)
-  _G.MetroDuelstopTimeBox = stopTimeBox
+  _G.YaisDuelstopTimeBox = stopTimeBox
   stopTimeBox.FocusLost:Connect(function()
     local v = tonumber(stopTimeBox.Text)
     -- Tetto a 1.29s: oltre, la barra resterebbe ferma a 100% e il trigger
@@ -16112,36 +16112,36 @@ end)()
       setSemi("autoGrabStopTime", v)
     end
     stopTimeBox.Text = tostring(getSemi("autoGrabStopTime", 1.29))
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 
   -- Stop Time % (4.25) — come sopra ma espresso in percentuale di riempimento
   -- della barra (Semi V3). Il motore e' lo stesso della V1: la percentuale
   -- viene convertita in secondi dentro executeSemi.
   local _, stopPctBox = textboxRow(Combat, "Stop Time (%)", tostring(getSemi("autoGrabStopPercent", 75)), 4.25)
-  _G.MetroDuelstopPctBox = stopPctBox
+  _G.YaisDuelstopPctBox = stopPctBox
   stopPctBox.FocusLost:Connect(function()
     local v = tonumber(stopPctBox.Text)
     if v and v > 0 and v <= 100 then
       setSemi("autoGrabStopPercent", v)
     end
     stopPctBox.Text = tostring(getSemi("autoGrabStopPercent", 75))
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 
   -- Semi Radius (4.15) — steal range per Semi V2 (= STEAL_RANGE nel vecchio CONFIG)
-  local semiV2RadDefault = tostring(tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or 8)
+  local semiV2RadDefault = tostring(tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or 8)
   local _, semiV2RadBox = textboxRow(Combat, "Semi Radius", semiV2RadDefault, 4.15)
-  _G.MetroDuelsemiV2RadBox = semiV2RadBox
+  _G.YaisDuelsemiV2RadBox = semiV2RadBox
   semiV2RadBox.FocusLost:Connect(function()
     local v = tonumber(semiV2RadBox.Text)
     if v and v > 0 and v <= 500 then
-      _G.MetroDuelstealRadii = _G.MetroDuelstealRadii or {}
-      _G.MetroDuelstealRadii.SemiV2SemiRadius = v
-      if _G.MetroDuelsemiV2SetSemiRadius then _G.MetroDuelsemiV2SetSemiRadius(v) end
+      _G.YaisDuelstealRadii = _G.YaisDuelstealRadii or {}
+      _G.YaisDuelstealRadii.SemiV2SemiRadius = v
+      if _G.YaisDuelsemiV2SetSemiRadius then _G.YaisDuelsemiV2SetSemiRadius(v) end
     end
-    semiV2RadBox.Text = tostring((_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or 8)
-    saveMetroConfig()
+    semiV2RadBox.Text = tostring((_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or 8)
+    saveYaisConfig()
   end)
 
   -- >>> RADIUS CIRCLE BEGIN
@@ -16155,7 +16155,7 @@ end)()
 
   local function rcRadius()
     if selectedSemiMode == "V2" then
-      return tonumber(_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or 8
+      return tonumber(_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or 8
     end
     return tonumber(getSemi("autoGrabSetDelayRadius", 8)) or 8
   end
@@ -16173,7 +16173,7 @@ end)()
     if not cam then return end
     for _, o in ipairs(cam:GetChildren()) do
       if o ~= rcPart and typeof(o) == "Instance"
-         and string.sub(o.Name, 1, 20) == "MetroRadiusCircl" then
+         and string.sub(o.Name, 1, 20) == "YaisRadiusCircl" then
         pcall(function() o:Destroy() end)
       end
     end
@@ -16183,7 +16183,7 @@ end)()
     if rcPart and rcPart.Parent then return rcPart end
     rcClearStray()
     local p = Instance.new("Part")
-    p.Name = "MetroRadiusCircle"
+    p.Name = "YaisRadiusCircle"
     p.Shape = Enum.PartType.Cylinder
     p.Anchored = true
     p.CanCollide = false
@@ -16192,7 +16192,7 @@ end)()
     p.CastShadow = false
     p.Massless = true
     p.Material = Enum.Material.Neon
-    p.Color = _G.MetroRadiusCircleColor or Color3.fromRGB(230, 230, 230)
+    p.Color = _G.YaisRadiusCircleColor or Color3.fromRGB(230, 230, 230)
     p.Transparency = 0.72
     p.Size = Vector3.new(0.12, 2, 2)
     -- Parent alla camera: resta puramente locale e fuori dai query di workspace.
@@ -16202,7 +16202,7 @@ end)()
   end
 
   local function rcStep()
-    if not (_G.MetroRadiusCircleEnabled == true) then rcDestroy() return end
+    if not (_G.YaisRadiusCircleEnabled == true) then rcDestroy() return end
     -- Solo in modalita' Semi: fuori di li' il raggio non vuol dire niente.
     if selectedStealMode ~= "Semi" then
       if rcPart then rcPart.Transparency = 1 end
@@ -16239,8 +16239,8 @@ end)()
   end
 
   local function rcSetEnabled(on)
-    _G.MetroRadiusCircleEnabled = on and true or false
-    if _G.MetroRadiusCircleEnabled then
+    _G.YaisRadiusCircleEnabled = on and true or false
+    if _G.YaisRadiusCircleEnabled then
       if not rcConn then
         rcConn = RunService.RenderStepped:Connect(function()
           local ok = pcall(rcStep)
@@ -16251,12 +16251,12 @@ end)()
       rcDestroy()
     end
   end
-  _G.MetroDuelsetRadiusCircle = rcSetEnabled
+  _G.YaisDuelsetRadiusCircle = rcSetEnabled
 
   -- Colore del cerchio: applicato subito anche se e' gia' a schermo.
-  _G.MetroDuelsetRadiusCircleColor = function(c)
+  _G.YaisDuelsetRadiusCircleColor = function(c)
     if typeof(c) ~= "Color3" then return end
-    _G.MetroRadiusCircleColor = c
+    _G.YaisRadiusCircleColor = c
     if rcPart and rcPart.Parent then
       pcall(function() rcPart.Color = c end)
     end
@@ -16266,45 +16266,45 @@ end)()
   -- in basso nel file): a parita' di LayoutOrder vince l'ordine di
   -- creazione, quindi cosi' finisce esattamente sotto di esso.
   local rcRow, rcColorRow = nil, nil
-  _G._MetroBuildRadiusCircleRow = function(order)
+  _G._YaisBuildRadiusCircleRow = function(order)
     if rcRow then return rcRow end
-    local row, rcSetVisual = toggleRow(Combat, "Radius Circle", _G.MetroRadiusCircleEnabled == true, order or 3)
+    local row, rcSetVisual = toggleRow(Combat, "Radius Circle", _G.YaisRadiusCircleEnabled == true, order or 3)
     rcRow = row
-    _G.MetroRadiusCircleSetVisual = rcSetVisual
+    _G.YaisRadiusCircleSetVisual = rcSetVisual
     local rcBtn = row and row:FindFirstChild("ToggleButton")
     if rcBtn then
       rcBtn.Activated:Connect(function()
-        local on = not (_G.MetroRadiusCircleEnabled == true)
+        local on = not (_G.YaisRadiusCircleEnabled == true)
         rcSetEnabled(on)
         if rcSetVisual then rcSetVisual(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
     -- Tendina del colore, identica a quella del Tracker Color
-    local colorRow, setRcPreview = _G._MetroBuildColorPickerRow({
+    local colorRow, setRcPreview = _G._YaisBuildColorPickerRow({
       parent    = Combat,
       anchorRow = row,
       rowName   = "Radius Circle Color",
       rowOrder  = order or 3,
       title     = "RADIUS CIRCLE COLOR",
       getColor  = function()
-        return _G.MetroRadiusCircleColor or Color3.fromRGB(230, 230, 230)
+        return _G.YaisRadiusCircleColor or Color3.fromRGB(230, 230, 230)
       end,
       onColor   = function(c)
-        if _G.MetroDuelsetRadiusCircleColor then _G.MetroDuelsetRadiusCircleColor(c) end
-        saveMetroConfig()
+        if _G.YaisDuelsetRadiusCircleColor then _G.YaisDuelsetRadiusCircleColor(c) end
+        saveYaisConfig()
       end,
     })
     rcColorRow = colorRow
-    _G.MetroRadiusCircleSetColorPreview = setRcPreview
+    _G.YaisRadiusCircleSetColorPreview = setRcPreview
 
     -- Allinea subito la visibilita' delle righe alla modalita' corrente
-    if _G.MetroRefreshSemiStealRows then _G.MetroRefreshSemiStealRows() end
+    if _G.YaisRefreshSemiStealRows then _G.YaisRefreshSemiStealRows() end
     return row
   end
 
   -- Stato iniziale dal config
-  rcSetEnabled(_G.MetroRadiusCircleEnabled == true)
+  rcSetEnabled(_G.YaisRadiusCircleEnabled == true)
   -- <<< RADIUS CIRCLE END
 
   -- Funzione per mostrare/nascondere le righe in base alla modalità
@@ -16315,8 +16315,8 @@ end)()
     local onV1   = onSemi and not onV2 and not onV3
 
     -- slider V1/V2/V3
-    if _G.MetroDuelsemiSubHolder then
-      _G.MetroDuelsemiSubHolder.Visible = onSemi
+    if _G.YaisDuelsemiSubHolder then
+      _G.YaisDuelsemiSubHolder.Visible = onSemi
     end
 
     -- Delay Radius: usato sia dalla V1 che dalla V3 (stesso motore)
@@ -16348,7 +16348,7 @@ end)()
       end
     end
     if onV2 then
-      semiV2RadBox.Text = tostring((_G.MetroDuelstealRadii and _G.MetroDuelstealRadii.SemiV2SemiRadius) or 8)
+      semiV2RadBox.Text = tostring((_G.YaisDuelstealRadii and _G.YaisDuelstealRadii.SemiV2SemiRadius) or 8)
     end
   end
 
@@ -16356,39 +16356,39 @@ end)()
   refreshSemiRowsVisibility()
 
   -- Espone la funzione per essere chiamata dal mode switcher (Normal/Semi slider e V1/V2/V3 slider)
-  _G.MetroRefreshSemiStealRows = refreshSemiRowsVisibility
+  _G.YaisRefreshSemiStealRows = refreshSemiRowsVisibility
 end)()
 
 -- ===== SYNCHRONIZE AFTER HIT (condiviso Normal + Semi) =====
 -- Ordine 3 come il toggle Auto Steal: essendo creata dopo, finisce
 -- subito sotto di esso e sopra il Radius (4).
 do
-  local syncRow, _setSyncVisual = toggleRow(Combat, "Synchronize After Hit", _G._MetroDuelsyncAfterHit.enabled, 3)
-  _G._MetroDuelsyncAfterHit.setVisual = _setSyncVisual
+  local syncRow, _setSyncVisual = toggleRow(Combat, "Synchronize After Hit", _G._YaisDuelsyncAfterHit.enabled, 3)
+  _G._YaisDuelsyncAfterHit.setVisual = _setSyncVisual
   local syncBtn = syncRow and syncRow:FindFirstChild("ToggleButton")
   if syncBtn then
     syncBtn.Activated:Connect(function()
-      _G._MetroDuelsyncAfterHit.enabled = not _G._MetroDuelsyncAfterHit.enabled
-      if _G._MetroDuelsyncAfterHit.setVisual then _G._MetroDuelsyncAfterHit.setVisual(_G._MetroDuelsyncAfterHit.enabled) end
-      if _G._MetroDuelsyncAfterHit.enabled then
+      _G._YaisDuelsyncAfterHit.enabled = not _G._YaisDuelsyncAfterHit.enabled
+      if _G._YaisDuelsyncAfterHit.setVisual then _G._YaisDuelsyncAfterHit.setVisual(_G._YaisDuelsyncAfterHit.enabled) end
+      if _G._YaisDuelsyncAfterHit.enabled then
         _startSyncAfterHitWatcher()
       else
         _stopSyncAfterHitWatcher()
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
   -- applica stato iniziale al watcher (già avviato sopra, ma rifà il visual)
-  if _G._MetroDuelsyncAfterHit.setVisual then _G._MetroDuelsyncAfterHit.setVisual(_G._MetroDuelsyncAfterHit.enabled) end
+  if _G._YaisDuelsyncAfterHit.setVisual then _G._YaisDuelsyncAfterHit.setVisual(_G._YaisDuelsyncAfterHit.enabled) end
 end
 
 -- >>> RADIUS CIRCLE: riga subito sotto il Synchronize After Hit <<<
-if _G._MetroBuildRadiusCircleRow then _G._MetroBuildRadiusCircleRow(3) end
+if _G._YaisBuildRadiusCircleRow then _G._YaisBuildRadiusCircleRow(3) end
 
 -- >>> AIMBOT CHASE MODE BEGIN
 -- Selettore NORMAL / BYPASS per l'inseguimento di un aimbot.
 -- key = "V1" oppure "V2". Cambia solo la logica di chase.
-_G._MetroBuildAimbotChaseSelector = function(parent, key, titleText, order)
+_G._YaisBuildAimbotChaseSelector = function(parent, key, titleText, order)
   local holder = Instance.new("Frame")
   holder.Name = "Aimbot Chase " .. key
   holder.BackgroundColor3 = COLORS.row
@@ -16402,7 +16402,7 @@ _G._MetroBuildAimbotChaseSelector = function(parent, key, titleText, order)
   holder.Parent = parent
   corner(holder, 14)
   stroke(holder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(holder, nil, "soft")
+  _G._YaisRegAccent(holder, nil, "soft")
 
   local slide = Instance.new("Frame")
   slide.Name = "SelectedSlide"
@@ -16433,7 +16433,7 @@ _G._MetroBuildAimbotChaseSelector = function(parent, key, titleText, order)
   })
   slideGrad.Rotation = 22
   slideGrad.Parent = slide
-  _G._MetroRegAccent(slide, slideGrad, "slide")
+  _G._YaisRegAccent(slide, slideGrad, "slide")
 
   local function mkText(txt, xScale)
     local t = Instance.new("TextLabel")
@@ -16486,95 +16486,95 @@ _G._MetroBuildAimbotChaseSelector = function(parent, key, titleText, order)
 
   local function setMode(mode)
     if mode ~= "BYPASS" then mode = "NORMAL" end
-    _G._MetroAimbotChase = _G._MetroAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
-    _G._MetroAimbotChase[key] = mode
+    _G._YaisAimbotChase = _G._YaisAimbotChase or { V1 = "NORMAL", V2 = "NORMAL" }
+    _G._YaisAimbotChase[key] = mode
     applyVisual(mode)
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
   normalClick.MouseButton1Click:Connect(function() setMode("NORMAL") end)
   bypassClick.MouseButton1Click:Connect(function() setMode("BYPASS") end)
 
-  _G["_MetroAimbotChaseHolder" .. key] = holder
-  _G["_MetroRefreshAimbotChase" .. key] = function()
-    applyVisual((_G._MetroAimbotChase and _G._MetroAimbotChase[key]) or "NORMAL")
+  _G["_YaisAimbotChaseHolder" .. key] = holder
+  _G["_YaisRefreshAimbotChase" .. key] = function()
+    applyVisual((_G._YaisAimbotChase and _G._YaisAimbotChase[key]) or "NORMAL")
   end
-  applyVisual((_G._MetroAimbotChase and _G._MetroAimbotChase[key]) or "NORMAL")
+  applyVisual((_G._YaisAimbotChase and _G._YaisAimbotChase[key]) or "NORMAL")
   return holder
 end
 -- <<< AIMBOT CHASE MODE END
 
 section(Combat, "BAT AIMBOT", 5)
-_G.MetroAimbotSelectorRow(Combat, 6)
+_G.YaisAimbotSelectorRow(Combat, 6)
 -- >>> AIMBOT CHASE MODE BEGIN
-_G._MetroBuildAimbotChaseSelector(Combat, "V1", nil, 6.1)
-_G._MetroBuildAimbotChaseSelector(Combat, "V2", nil, 6.1)
+_G._YaisBuildAimbotChaseSelector(Combat, "V1", nil, 6.1)
+_G._YaisBuildAimbotChaseSelector(Combat, "V2", nil, 6.1)
 -- Come il Semi Sub Mode: si vede solo lo slider dell'aimbot selezionato
-_G.MetroRefreshAimbotChaseRows = function()
-  if _G._MetroAimbotChaseHolderV1 then
-    _G._MetroAimbotChaseHolderV1.Visible = (selectedAimbotMode ~= "V2")
+_G.YaisRefreshAimbotChaseRows = function()
+  if _G._YaisAimbotChaseHolderV1 then
+    _G._YaisAimbotChaseHolderV1.Visible = (selectedAimbotMode ~= "V2")
   end
-  if _G._MetroAimbotChaseHolderV2 then
-    _G._MetroAimbotChaseHolderV2.Visible = (selectedAimbotMode == "V2")
+  if _G._YaisAimbotChaseHolderV2 then
+    _G._YaisAimbotChaseHolderV2.Visible = (selectedAimbotMode == "V2")
   end
 end
-_G.MetroRefreshAimbotChaseRows()
+_G.YaisRefreshAimbotChaseRows()
 -- <<< AIMBOT CHASE MODE END
-_G.MetroAimbotSetVisual = nil
-if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
+_G.YaisAimbotSetVisual = nil
+if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
 
-_G.MetroNormalAutoSwingRow, _G.MetroNormalAutoSwingSetVisual, _G.MetroNormalAutoSwingBtn = _G.MetroActionToggleRow(Combat, "Auto Swing", autoSwingEnabled, 7)
+_G.YaisNormalAutoSwingRow, _G.YaisNormalAutoSwingSetVisual, _G.YaisNormalAutoSwingBtn = _G.YaisActionToggleRow(Combat, "Auto Swing", autoSwingEnabled, 7)
 do
-  if _G.MetroNormalAutoSwingBtn then
-    _G.MetroNormalAutoSwingBtn.MouseButton1Click:Connect(function()
-      if _G.MetroAutoSwingClickBusy then return end
-      _G.MetroAutoSwingClickBusy = true
+  if _G.YaisNormalAutoSwingBtn then
+    _G.YaisNormalAutoSwingBtn.MouseButton1Click:Connect(function()
+      if _G.YaisAutoSwingClickBusy then return end
+      _G.YaisAutoSwingClickBusy = true
       autoSwingEnabled = not autoSwingEnabled
-      if _G.MetroNormalAutoSwingSetVisual then _G.MetroNormalAutoSwingSetVisual(autoSwingEnabled) end
-      saveMetroConfig()
-      task.delay(0.12, function() _G.MetroAutoSwingClickBusy = false end)
+      if _G.YaisNormalAutoSwingSetVisual then _G.YaisNormalAutoSwingSetVisual(autoSwingEnabled) end
+      saveYaisConfig()
+      task.delay(0.12, function() _G.YaisAutoSwingClickBusy = false end)
     end)
   end
 end
 
-_G.MetroMirrorTPDownRow, _G.MetroMirrorTPDownSetVisual, _G.MetroMirrorTPDownBtn = _G.MetroActionToggleRow(Combat, "Mirror TP Down (Recommended)", mirrorTPDownEnabled, 7.1)
-local mirrorTPDownLabel = _G.MetroMirrorTPDownRow and _G.MetroMirrorTPDownRow:FindFirstChild("Label")
+_G.YaisMirrorTPDownRow, _G.YaisMirrorTPDownSetVisual, _G.YaisMirrorTPDownBtn = _G.YaisActionToggleRow(Combat, "Mirror TP Down (Recommended)", mirrorTPDownEnabled, 7.1)
+local mirrorTPDownLabel = _G.YaisMirrorTPDownRow and _G.YaisMirrorTPDownRow:FindFirstChild("Label")
 if mirrorTPDownLabel then mirrorTPDownLabel.TextSize = 10 end
-if _G.MetroMirrorTPDownBtn then
-  _G.MetroMirrorTPDownBtn.MouseButton1Click:Connect(function()
-    if _G.MetroMirrorTPDownClickBusy then return end
-    _G.MetroMirrorTPDownClickBusy = true
-    _G.MetroDuelsetMirrorTPDown(not mirrorTPDownEnabled)
-    saveMetroConfig()
-    task.delay(0.12, function() _G.MetroMirrorTPDownClickBusy = false end)
+if _G.YaisMirrorTPDownBtn then
+  _G.YaisMirrorTPDownBtn.MouseButton1Click:Connect(function()
+    if _G.YaisMirrorTPDownClickBusy then return end
+    _G.YaisMirrorTPDownClickBusy = true
+    _G.YaisDuelsetMirrorTPDown(not mirrorTPDownEnabled)
+    saveYaisConfig()
+    task.delay(0.12, function() _G.YaisMirrorTPDownClickBusy = false end)
   end)
 end
 
 aimbotSpeedRow, aimbotSpeedBox = textboxRow(Combat, "Bat Aimbot V1 Speed", tostring(AIMBOT_SPEED), 8)
-_G.MetroAimbotSpeedBox = aimbotSpeedBox
+_G.YaisAimbotSpeedBox = aimbotSpeedBox
 aimbotSpeedLabel = aimbotSpeedRow and aimbotSpeedRow:FindFirstChild("Label")
 refreshAimbotModeLabels()
 aimbotSpeedBox.FocusLost:Connect(function()
   local v = tonumber(aimbotSpeedBox.Text)
   if v and v > 0 and v <= 250 then
-    _G.MetroDuelsetSelectedAimbotSpeedValues(v, nil)
+    _G.YaisDuelsetSelectedAimbotSpeedValues(v, nil)
   end
-  if _G.MetroRefreshAimbotSpeedBoxes then _G.MetroRefreshAimbotSpeedBoxes() else aimbotSpeedBox.Text = tostring(AIMBOT_SPEED) end
-  saveMetroConfig()
+  if _G.YaisRefreshAimbotSpeedBoxes then _G.YaisRefreshAimbotSpeedBoxes() else aimbotSpeedBox.Text = tostring(AIMBOT_SPEED) end
+  saveYaisConfig()
 end)
 
 laggerAimbotSpeedRow, laggerAimbotSpeedBox = textboxRow(Combat, "Bat Aimbot V1 Lagger Speed", tostring(LAGGER_AIMBOT_SPEED), 9)
-_G.MetroLaggerAimbotSpeedBox = laggerAimbotSpeedBox
+_G.YaisLaggerAimbotSpeedBox = laggerAimbotSpeedBox
 laggerAimbotSpeedLabel = laggerAimbotSpeedRow and laggerAimbotSpeedRow:FindFirstChild("Label")
 refreshAimbotModeLabels()
-if _G.MetroRefreshAimbotSpeedBoxes then _G.MetroRefreshAimbotSpeedBoxes() end
+if _G.YaisRefreshAimbotSpeedBoxes then _G.YaisRefreshAimbotSpeedBoxes() end
 laggerAimbotSpeedBox.FocusLost:Connect(function()
   local v = tonumber(laggerAimbotSpeedBox.Text)
   if v and v > 0 and v <= 250 then
-    _G.MetroDuelsetSelectedAimbotSpeedValues(nil, v)
+    _G.YaisDuelsetSelectedAimbotSpeedValues(nil, v)
   end
-  if _G.MetroRefreshAimbotSpeedBoxes then _G.MetroRefreshAimbotSpeedBoxes() else laggerAimbotSpeedBox.Text = tostring(LAGGER_AIMBOT_SPEED) end
-  saveMetroConfig()
+  if _G.YaisRefreshAimbotSpeedBoxes then _G.YaisRefreshAimbotSpeedBoxes() else laggerAimbotSpeedBox.Text = tostring(LAGGER_AIMBOT_SPEED) end
+  saveYaisConfig()
 end)
 
 section(Combat, "TP BAT", 10)
@@ -16585,7 +16585,7 @@ section(Combat, "TP BAT", 10)
 -- V1 = logica storica. Bat Aimbot V2 e Bat Counter V2 usano SEMPRE la V1,
 -- qualunque sia la versione selezionata qui.
 ;(function()
-  _G.MetroTPBatVersion = math.clamp(tonumber(_G.MetroTPBatVersion) or 1, 1, 5)
+  _G.YaisTPBatVersion = math.clamp(tonumber(_G.YaisTPBatVersion) or 1, 1, 5)
 
   local tpvExpanded = false
 
@@ -16642,7 +16642,7 @@ section(Combat, "TP BAT", 10)
   tpvVerHolder.Parent = tpvHolder
   corner(tpvVerHolder, 14)
   stroke(tpvVerHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(tpvVerHolder, nil, "soft")
+  _G._YaisRegAccent(tpvVerHolder, nil, "soft")
 
   local tpvSlide = Instance.new("Frame")
   tpvSlide.Name = "TPBatVersionSlide"
@@ -16674,7 +16674,7 @@ section(Combat, "TP BAT", 10)
   })
   tpvSlideGrad.Rotation = 22
   tpvSlideGrad.Parent = tpvSlide
-  _G._MetroRegAccent(tpvSlide, tpvSlideGrad, "slide")
+  _G._YaisRegAccent(tpvSlide, tpvSlideGrad, "slide")
 
   local tpvLabels = {}
   for i, lblText in ipairs(TPV_LABELS) do
@@ -16707,18 +16707,18 @@ section(Combat, "TP BAT", 10)
     click.Parent = tpvVerHolder
     local idx = i
     click.MouseButton1Click:Connect(function()
-      if _G.MetroDuelsetTPBatVersion then
-        _G.MetroDuelsetTPBatVersion(idx)
+      if _G.YaisDuelsetTPBatVersion then
+        _G.YaisDuelsetTPBatVersion(idx)
       else
-        _G.MetroTPBatVersion = idx
-        if _G._MetroTPBatSetVersionVisual then _G._MetroTPBatSetVersionVisual(idx) end
+        _G.YaisTPBatVersion = idx
+        if _G._YaisTPBatSetVersionVisual then _G._YaisTPBatSetVersionVisual(idx) end
       end
     end)
   end
 
   local function setTPVersionVisual(index)
     index = math.clamp(tonumber(index) or 1, 1, TPV_N)
-    _G._MetroTPBatVisIndex = index
+    _G._YaisTPBatVisIndex = index
     tween(tpvSlide, {
       Position = UDim2.new(tpvSegW * (index - 0.5), 0, 0.5, 0),
       Size = UDim2.new(tpvSegW, -4, 1, -8),
@@ -16731,50 +16731,50 @@ section(Combat, "TP BAT", 10)
       }, 0.14)
     end
   end
-  _G._MetroTPBatSetVersionVisual = setTPVersionVisual
+  _G._YaisTPBatSetVersionVisual = setTPVersionVisual
 
   -- ---- APERTURA / CHIUSURA ----
   tpvArrow.Activated:Connect(function()
     tpvExpanded = not tpvExpanded
-    _G._MetroExpand(tpvHolder, tpvExpanded, TPV_HOLDER_H, tpvArrow)
+    _G._YaisExpand(tpvHolder, tpvExpanded, TPV_HOLDER_H, tpvArrow)
   end)
 
   -- Init visuale
-  setTPVersionVisual(_G.MetroTPBatVersion or 1)
+  setTPVersionVisual(_G.YaisTPBatVersion or 1)
 end)()
 -- <<< TP BAT VERSIONS UI END
 
-_G.MetroTPBatAutoSwingRow, _G.MetroTPBatAutoSwingSetVisual, _G.MetroTPBatAutoSwingBtn = _G.MetroActionToggleRow(Combat, "Auto Swing", tpBatAutoSwingEnabled, 11)
+_G.YaisTPBatAutoSwingRow, _G.YaisTPBatAutoSwingSetVisual, _G.YaisTPBatAutoSwingBtn = _G.YaisActionToggleRow(Combat, "Auto Swing", tpBatAutoSwingEnabled, 11)
 do
-  if _G.MetroTPBatAutoSwingBtn then
-    _G.MetroTPBatAutoSwingBtn.MouseButton1Click:Connect(function()
-      if _G.MetroTPBatAutoSwingClickBusy then return end
-      _G.MetroTPBatAutoSwingClickBusy = true
+  if _G.YaisTPBatAutoSwingBtn then
+    _G.YaisTPBatAutoSwingBtn.MouseButton1Click:Connect(function()
+      if _G.YaisTPBatAutoSwingClickBusy then return end
+      _G.YaisTPBatAutoSwingClickBusy = true
       tpBatAutoSwingEnabled = not tpBatAutoSwingEnabled
-      if _G.MetroTPBatAutoSwingSetVisual then _G.MetroTPBatAutoSwingSetVisual(tpBatAutoSwingEnabled) end
-      saveMetroConfig()
-      task.delay(0.12, function() _G.MetroTPBatAutoSwingClickBusy = false end)
+      if _G.YaisTPBatAutoSwingSetVisual then _G.YaisTPBatAutoSwingSetVisual(tpBatAutoSwingEnabled) end
+      saveYaisConfig()
+      task.delay(0.12, function() _G.YaisTPBatAutoSwingClickBusy = false end)
     end)
   end
 end
-_G.MetroTPBatCameraLockRow, _G.MetroTPBatCameraLockSetVisual, _G.MetroTPBatCameraLockBtn = _G.MetroActionToggleRow(Combat, "Camera Lock", _G._MetroGetTPBatCameraLock and _G._MetroGetTPBatCameraLock() or false, 12)
+_G.YaisTPBatCameraLockRow, _G.YaisTPBatCameraLockSetVisual, _G.YaisTPBatCameraLockBtn = _G.YaisActionToggleRow(Combat, "Camera Lock", _G._YaisGetTPBatCameraLock and _G._YaisGetTPBatCameraLock() or false, 12)
 do
-  if _G.MetroTPBatCameraLockBtn then
-    _G.MetroTPBatCameraLockBtn.MouseButton1Click:Connect(function()
-      if _G.MetroTPBatCameraLockClickBusy then return end
-      _G.MetroTPBatCameraLockClickBusy = true
-      local _clv = not (_G._MetroGetTPBatCameraLock and _G._MetroGetTPBatCameraLock() or false)
-      if _G._MetroDuelsetTPBatCameraLock then _G._MetroDuelsetTPBatCameraLock(_clv) end
-      if _G.MetroTPBatCameraLockSetVisual then _G.MetroTPBatCameraLockSetVisual(_clv) end
-      saveMetroConfig()
-      task.delay(0.12, function() _G.MetroTPBatCameraLockClickBusy = false end)
+  if _G.YaisTPBatCameraLockBtn then
+    _G.YaisTPBatCameraLockBtn.MouseButton1Click:Connect(function()
+      if _G.YaisTPBatCameraLockClickBusy then return end
+      _G.YaisTPBatCameraLockClickBusy = true
+      local _clv = not (_G._YaisGetTPBatCameraLock and _G._YaisGetTPBatCameraLock() or false)
+      if _G._YaisDuelsetTPBatCameraLock then _G._YaisDuelsetTPBatCameraLock(_clv) end
+      if _G.YaisTPBatCameraLockSetVisual then _G.YaisTPBatCameraLockSetVisual(_clv) end
+      saveYaisConfig()
+      task.delay(0.12, function() _G.YaisTPBatCameraLockClickBusy = false end)
     end)
   end
 end
-_G.MetroTPBatSetVisual = function(_) end
+_G.YaisTPBatSetVisual = function(_) end
 
 -- ===== BUILDER BAT COUNTER MODE SELECTOR (V1 / V2) =====
-_G._MetroBuildBatCounterModeSelector = function(row, parentFrame)
+_G._YaisBuildBatCounterModeSelector = function(row, parentFrame)
   local batModeExpanded = false
 
   local arrowBtn = Instance.new("TextButton")
@@ -16809,7 +16809,7 @@ _G._MetroBuildBatCounterModeSelector = function(row, parentFrame)
   batModeHolder.Parent = parentFrame
   corner(batModeHolder, 14)
   stroke(batModeHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(batModeHolder, nil, "soft")
+  _G._YaisRegAccent(batModeHolder, nil, "soft")
 
   local batModeSlide = Instance.new("Frame")
   batModeSlide.Name = "SelectedSlide"
@@ -16839,7 +16839,7 @@ _G._MetroBuildBatCounterModeSelector = function(row, parentFrame)
     NumberSequenceKeypoint.new(1, 0.08),
   })
   bmsGrad.Parent = batModeSlide
-  _G._MetroRegAccent(batModeSlide, bmsGrad, "slide")
+  _G._YaisRegAccent(batModeSlide, bmsGrad, "slide")
 
   local v1Text = Instance.new("TextLabel")
   v1Text.Name = "V1Text"
@@ -16910,16 +16910,16 @@ _G._MetroBuildBatCounterModeSelector = function(row, parentFrame)
     if mode ~= "V2" then mode = "V1" end
     batCounterMode = mode
     applyBatModeVisual(batCounterMode)
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
-  _G.MetroRefreshBatCounterModeSelector = function()
+  _G.YaisRefreshBatCounterModeSelector = function()
     applyBatModeVisual(batCounterMode)
   end
 
   local function setBatModeExpanded(expanded)
     batModeExpanded = expanded
-    _G._MetroExpand(batModeHolder, expanded, 42, arrowBtn)
+    _G._YaisExpand(batModeHolder, expanded, 42, arrowBtn)
   end
 
   arrowBtn.Activated:Connect(function()
@@ -16940,15 +16940,15 @@ section(Combat, "COUNTERS", 12)
 -- >>> ANTI BAT BEGIN
 do
   -- >>> ORDINE COUNTERS: Anti TP Bat (12) -> Bat Counter (12) -> Anti Bat (13) <<<
-  local _abRow, setAntiBatVisual = toggleRow(Combat, "Anti Bat", _G.MetroAntiBatEnabled == true, 13)
+  local _abRow, setAntiBatVisual = toggleRow(Combat, "Anti Bat", _G.YaisAntiBatEnabled == true, 13)
   _SV.setAntiBatVisual = setAntiBatVisual
   local _abBtn = _abRow and _abRow:FindFirstChild("ToggleButton")
   if _abBtn then
     _abBtn.Activated:Connect(function()
-      local on = not (_G.MetroAntiBatEnabled == true)
-      if _G.MetroAntiBat then _G.MetroAntiBat.setEnabled(on) end
+      local on = not (_G.YaisAntiBatEnabled == true)
+      if _G.YaisAntiBat then _G.YaisAntiBat.setEnabled(on) end
       if setAntiBatVisual then setAntiBatVisual(on) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
@@ -17099,14 +17099,14 @@ end
   spamShine.Parent = spamKnob
   corner(spamShine, 5)
 
-  _G._MetroRegAccent(spamFill, spamFillGrad, "toggle", spamTrack, spamKnob, spamRow)
+  _G._YaisRegAccent(spamFill, spamFillGrad, "toggle", spamTrack, spamKnob, spamRow)
 
   local spamTrackStroke = spamTrack:FindFirstChildOfClass("UIStroke")
   local spamRowStroke = spamRow:FindFirstChildOfClass("UIStroke")
 
   local function setSpamVisual(on)
     on = on and true or false
-    local onBg, onEdge = _G._MetroToggleOnColor()
+    local onBg, onEdge = _G._YaisToggleOnColor()
     tween(spamKnob, {Position = on and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)})
     tween(spamTrack, {
       BackgroundTransparency = on and 0 or 0.12,
@@ -17129,14 +17129,14 @@ end
       })
     end
   end
-  _G._MetroAntiTPBatSetSpamVisual = setSpamVisual
+  _G._YaisAntiTPBatSetSpamVisual = setSpamVisual
 
   spamBtn.Activated:Connect(function()
-    local on = not (_G.MetroAntiTPBatSpam == true)
-    if _G.MetroAntiTPBat then
-      _G.MetroAntiTPBat.setSpam(on)
+    local on = not (_G.YaisAntiTPBatSpam == true)
+    if _G.YaisAntiTPBat then
+      _G.YaisAntiTPBat.setSpam(on)
     else
-      _G.MetroAntiTPBatSpam = on
+      _G.YaisAntiTPBatSpam = on
     end
     setSpamVisual(on)
   end)
@@ -17157,7 +17157,7 @@ end
   verHolder.Parent = atpHolder
   corner(verHolder, 14)
   stroke(verHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-  _G._MetroRegAccent(verHolder, nil, "soft")
+  _G._YaisRegAccent(verHolder, nil, "soft")
 
   local verSlide = Instance.new("Frame")
   verSlide.Name = "AntiTPBatSlide"
@@ -17189,7 +17189,7 @@ end
   })
   verSlideGrad.Rotation = 22
   verSlideGrad.Parent = verSlide
-  _G._MetroRegAccent(verSlide, verSlideGrad, "slide")
+  _G._YaisRegAccent(verSlide, verSlideGrad, "slide")
 
   local verLabels = {}
   local atpSegW = 1 / ATP_N
@@ -17223,10 +17223,10 @@ end
     click.Parent = verHolder
     local idx = i
     click.MouseButton1Click:Connect(function()
-      if _G.MetroAntiTPBat then
-        _G.MetroAntiTPBat.setVersion(idx)
+      if _G.YaisAntiTPBat then
+        _G.YaisAntiTPBat.setVersion(idx)
       else
-        _G.MetroAntiTPBatVersion = idx
+        _G.YaisAntiTPBatVersion = idx
       end
     end)
   end
@@ -17239,7 +17239,7 @@ end
     -- il tween resta sempre 0.18s. Durata costante = piu' e' lontano il
     -- segmento, piu' veloce si muove la slide.
     local tweenTime = 0.18
-    _G._MetroAntiTPBatVisIndex = index
+    _G._YaisAntiTPBatVisIndex = index
     -- Stessa correzione di simmetria dello slider Animation Pack.
     tween(verSlide, {
       Position = UDim2.new(atpSegW * (index - 0.5), 0, 0.5, 0),
@@ -17254,12 +17254,12 @@ end
     end
 
   end
-  _G._MetroAntiTPBatSetVersionVisual = setVersionVisual
+  _G._YaisAntiTPBatSetVersionVisual = setVersionVisual
 
   -- ---- STATO VISIVO DELLA RIGA (acceso da keybind / bottone mobile) ----
   local function setRowVisual(on)
     on = on and true or false
-    local onBg = _G._MetroToggleOnColor()
+    local onBg = _G._YaisToggleOnColor()
     if atpRowStroke then
       tween(atpRowStroke, {
         Color = on and onBg or COLORS.strokeSoft,
@@ -17268,70 +17268,70 @@ end
       })
     end
   end
-  _G._MetroAntiTPBatSetRowVisual = setRowVisual
+  _G._YaisAntiTPBatSetRowVisual = setRowVisual
 
   -- ---- APERTURA / CHIUSURA ----
   atpArrow.Activated:Connect(function()
     atpExpanded = not atpExpanded
-    _G._MetroExpand(atpHolder, atpExpanded, ATP_HOLDER_H, atpArrow)
+    _G._YaisExpand(atpHolder, atpExpanded, ATP_HOLDER_H, atpArrow)
   end)
 
   -- Init visuale
-  setSpamVisual(_G.MetroAntiTPBatSpam == true)
-  setVersionVisual(_G.MetroAntiTPBatVersion or 1)
-  setRowVisual(_G.MetroAntiTPBatEnabled == true)
+  setSpamVisual(_G.YaisAntiTPBatSpam == true)
+  setVersionVisual(_G.YaisAntiTPBatVersion or 1)
+  setRowVisual(_G.YaisAntiTPBatEnabled == true)
 end)()
 -- <<< ANTI TP BAT UI END
 
 -- >>> ANTI VOID BEGIN
 do
-  local _avRow, setAntiVoidVisual = toggleRow(Combat, "Anti Void", _G.MetroAntiVoidEnabled == true, 14)
+  local _avRow, setAntiVoidVisual = toggleRow(Combat, "Anti Void", _G.YaisAntiVoidEnabled == true, 14)
   _SV.setAntiVoidVisual = setAntiVoidVisual
   local _avBtn = _avRow and _avRow:FindFirstChild("ToggleButton")
   if _avBtn then
     _avBtn.Activated:Connect(function()
-      local on = not (_G.MetroAntiVoidEnabled == true)
-      if _G.MetroAntiVoid then _G.MetroAntiVoid.setEnabled(on) end
+      local on = not (_G.YaisAntiVoidEnabled == true)
+      if _G.YaisAntiVoid then _G.YaisAntiVoid.setEnabled(on) end
       if setAntiVoidVisual then setAntiVoidVisual(on) end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
 -- <<< ANTI VOID END
 _, setBatCounterVisual = toggleRow(Combat, "Bat Counter", batCounterEnabled, 12)
 do
-  _MetroBtn = Combat:FindFirstChild("Bat Counter") and Combat:FindFirstChild("Bat Counter"):FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = Combat:FindFirstChild("Bat Counter") and Combat:FindFirstChild("Bat Counter"):FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       batCounterEnabled = not batCounterEnabled
       if setBatCounterVisual then setBatCounterVisual(batCounterEnabled) end
       if batCounterEnabled then
-        if _G.MetroDuelstartBatCounter then _G.MetroDuelstartBatCounter() end
+        if _G.YaisDuelstartBatCounter then _G.YaisDuelstartBatCounter() end
       else
-        if _G.MetroDuelstopBatCounter then _G.MetroDuelstopBatCounter() end
+        if _G.YaisDuelstopBatCounter then _G.YaisDuelstopBatCounter() end
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
   local batRow = Combat:FindFirstChild("Bat Counter")
   if batRow then
-    _G._MetroBuildBatCounterModeSelector(batRow, Combat)
+    _G._YaisBuildBatCounterModeSelector(batRow, Combat)
   end
 end
 
 _, setMedCounterVisual = toggleRow(Combat, "Med Counter", medCounterEnabled, 15)
 do
-  _MetroBtn = Combat:FindFirstChild("Med Counter") and Combat:FindFirstChild("Med Counter"):FindFirstChild("ToggleButton")
-  if _MetroBtn then
-    _MetroBtn.Activated:Connect(function()
+  _YaisBtn = Combat:FindFirstChild("Med Counter") and Combat:FindFirstChild("Med Counter"):FindFirstChild("ToggleButton")
+  if _YaisBtn then
+    _YaisBtn.Activated:Connect(function()
       medCounterEnabled = not medCounterEnabled
       if setMedCounterVisual then setMedCounterVisual(medCounterEnabled) end
       if medCounterEnabled then
-        if _G.MetroDuelstartMedCounter then _G.MetroDuelstartMedCounter(LP.Character) end
+        if _G.YaisDuelstartMedCounter then _G.YaisDuelstartMedCounter(LP.Character) end
       else
-        if _G.MetroDuelstopMedCounter then _G.MetroDuelstopMedCounter() end
+        if _G.YaisDuelstopMedCounter then _G.YaisDuelstopMedCounter() end
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 end
@@ -17366,7 +17366,7 @@ speedKeybindRow(Keybinds, "Instant Reset", "InstantReset", 12)
 do
   THEME_ACCENT = THEME_ACCENT or Color3.fromRGB(230, 230, 230)
   THEME_ACCENT_DIM = THEME_ACCENT_DIM or Color3.fromRGB(145, 145, 145)
-  PlayerESP = PlayerESP or {enabled=false, playerData={}, conns={}, discordText="discord.gg/MetroDuels"}
+  PlayerESP = PlayerESP or {enabled=false, playerData={}, conns={}, discordText="discord.gg/YaisDuels"}
   BoxedESPOptions = BoxedESPOptions or {box=false, tracker=false, trackerColor=Color3.fromRGB(255, 140, 0)}
   BoxedESPData = BoxedESPData or {}
   BoxedESPConn = BoxedESPConn or nil
@@ -17374,9 +17374,9 @@ do
   antiLagDescConn = antiLagDescConn or nil
   noCamCollisionConn = noCamCollisionConn or nil
   noCamCollisionParts = noCamCollisionParts or {}
-  _MetroCustomFontOrig = _MetroCustomFontOrig or {}
-  _MetroCustomFontConn = _MetroCustomFontConn or nil
-  _MetroCustomFont = _MetroCustomFont or nil
+  _YaisCustomFontOrig = _YaisCustomFontOrig or {}
+  _YaisCustomFontConn = _YaisCustomFontConn or nil
+  _YaisCustomFont = _YaisCustomFont or nil
 
 function startPlayerESP()
     if PlayerESP.enabled then return end
@@ -17398,11 +17398,11 @@ function startPlayerESP()
         if not hrp or not head then return end
 
         local hl = Instance.new("Highlight")
-        hl.Name = "MetroHubESP"; hl.Adornee = char; hl.FillColor = Color3.fromRGB(35,35,35); hl.FillTransparency = 0.72
+        hl.Name = "YaisHubESP"; hl.Adornee = char; hl.FillColor = Color3.fromRGB(35,35,35); hl.FillTransparency = 0.72
         hl.OutlineColor = Color3.fromRGB(245,245,245); hl.OutlineTransparency = 0; hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = char
 
         local bb = Instance.new("BillboardGui")
-        bb.Name = "MetroHubESPTag"; bb.Adornee = head; bb.Size = UDim2.new(0,124,0,34); bb.StudsOffset = Vector3.new(0,2.7,0); bb.AlwaysOnTop = true; bb.LightInfluence = 0; bb.Parent = head
+        bb.Name = "YaisHubESPTag"; bb.Adornee = head; bb.Size = UDim2.new(0,124,0,34); bb.StudsOffset = Vector3.new(0,2.7,0); bb.AlwaysOnTop = true; bb.LightInfluence = 0; bb.Parent = head
 
         local box = Instance.new("Frame", bb); box.Size = UDim2.new(1,0,1,0); box.BackgroundTransparency = 1; box.BorderSizePixel = 0
         Instance.new("UICorner", box).CornerRadius = UDim.new(0,9)
@@ -17467,7 +17467,7 @@ end
     PlayerESP.playerData = {}
   end
 
-  function _MetroEspColor()
+  function _YaisEspColor()
     if BoxedESPOptions and BoxedESPOptions.trackerColor then
       return BoxedESPOptions.trackerColor
     end
@@ -17610,8 +17610,8 @@ end
         -- >>> ANTI VOID BEGIN
         -- Nemico fuori dalla safe zone: il tracker punta all'ultima
         -- posizione valida invece di seguirlo nel vuoto.
-        if _G.MetroAntiVoid then
-          local gp, isGhost = _G.MetroAntiVoid.posFor(player, root.Position)
+        if _G.YaisAntiVoid then
+          local gp, isGhost = _G.YaisAntiVoid.posFor(player, root.Position)
           if isGhost then torsoPos = gp + Vector3.new(0, 1.2, 0) end
         end
         -- <<< ANTI VOID END
@@ -17630,14 +17630,14 @@ end
                 tracker = _safeDrawing("Line", {
                     Thickness = 2.5,
                     Transparency = 0.4,
-                    Color = _MetroEspColor(),
+                    Color = _YaisEspColor(),
                     Visible = false
                 }),
             }
             BoxedESPData[player] = data
         end
 
-        local color = _MetroEspColor()
+        local color = _YaisEspColor()
 
         if data.tracker then
             data.tracker.Color = color
@@ -17661,7 +17661,7 @@ end
 
 function refreshBoxedESP()
     local trackerOn = BoxedESPOptions and BoxedESPOptions.tracker == true
-    _G.MetroTrackerActive = trackerOn   -- <-- NUOVO
+    _G.YaisTrackerActive = trackerOn   -- <-- NUOVO
 
     if BoxedESPConn then
         BoxedESPConn:Disconnect()
@@ -17670,25 +17670,25 @@ function refreshBoxedESP()
 
     if trackerOn then
         if stretchCurrentIndex ~= 1 then
-            _G.MetroTrackerSavedStretchIndex = stretchCurrentIndex   -- <-- NUOVO
-            _G._MetroDuelstretchUILock = true
+            _G.YaisTrackerSavedStretchIndex = stretchCurrentIndex   -- <-- NUOVO
+            _G._YaisDuelstretchUILock = true
             applyStretchPreset(1)
-            _G._MetroDuelstretchUILock = false
+            _G._YaisDuelstretchUILock = false
 
             task.defer(function()
-                if _G.MetroTrackerSavedStretchIndex and _G.MetroTrackerSavedStretchIndex ~= 1 then
-                    local restoreIdx = _G.MetroTrackerSavedStretchIndex
+                if _G.YaisTrackerSavedStretchIndex and _G.YaisTrackerSavedStretchIndex ~= 1 then
+                    local restoreIdx = _G.YaisTrackerSavedStretchIndex
                     applyStretchPreset(restoreIdx)
                 end
             end)
         else
-            _G.MetroTrackerSavedStretchIndex = nil
+            _G.YaisTrackerSavedStretchIndex = nil
         end
 
         BoxedESPConn = RunService.RenderStepped:Connect(_updateBoxedESP)
     else
         _cleanupBoxedESP()
-        _G.MetroTrackerSavedStretchIndex = nil   -- <-- NUOVO
+        _G.YaisTrackerSavedStretchIndex = nil   -- <-- NUOVO
     end
 end
 
@@ -17704,12 +17704,12 @@ end
   function _vC3(t) return Color3.fromRGB(t[1], t[2], t[3]) end
   function _v4mpClearSky()
     for _, v in ipairs(Lighting:GetChildren()) do
-      if v:GetAttribute("_MetroHubSky") then pcall(function() v:Destroy() end) end
+      if v:GetAttribute("_YaisHubSky") then pcall(function() v:Destroy() end) end
     end
     local terrain = workspace:FindFirstChildOfClass("Terrain")
     if terrain then
       for _, v in ipairs(terrain:GetChildren()) do
-        if v:GetAttribute("_MetroHubSky") then pcall(function() v:Destroy() end) end
+        if v:GetAttribute("_YaisHubSky") then pcall(function() v:Destroy() end) end
       end
     end
   end
@@ -17721,7 +17721,7 @@ end
     skyTheme = (mode == "Off" or not SKY_PRESETS or not SKY_PRESETS[mode]) and "Off" or mode
   end
 
--- ========== STRETCH REZ: variabili e funzioni definite sopra (prima di loadMetroConfig) ==========
+-- ========== STRETCH REZ: variabili e funzioni definite sopra (prima di loadYaisConfig) ==========
 -- (blocco duplicato rimosso: usare le variabili/funzioni del primo blocco per il corretto save/load)
 
   function enableCustomFov()
@@ -17814,12 +17814,12 @@ do
 end
 
 -- ============================================================
--- ANTI-LAG (versione uranium, adattata a MetroTest)
+-- ANTI-LAG (versione uranium, adattata a YaisTest)
 -- ============================================================
 
 local function applyAntiLagDerender(obj)
     pcall(function()
-        if obj:GetAttribute("_MetroHubSky") ~= nil then return end
+        if obj:GetAttribute("_YaisHubSky") ~= nil then return end
         if obj:IsA("Sky") or obj:IsA("Atmosphere") or obj:IsA("Clouds") then return end
         if skyTheme ~= "Off" and obj.Parent == Lighting then
             if obj:IsA("BlurEffect") or obj:IsA("SunRaysEffect") or obj:IsA("ColorCorrectionEffect")
@@ -17852,7 +17852,7 @@ local function applyAntiLagDerender(obj)
             obj.Enabled = false
         elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
             obj.Enabled = false
-        elseif obj:IsA("SelectionBox") and obj.Name ~= "MetroHubESP" then
+        elseif obj:IsA("SelectionBox") and obj.Name ~= "YaisHubESP" then
             pcall(function() obj:Destroy() end)
         end
     end)
@@ -17862,9 +17862,9 @@ function enableAntiLag()
     antiLagVisualEnabled = true
     removeAccessoriesEnabled = true
 
-    _G._MetroDefLightBrightness = _G._MetroDefLightBrightness or Lighting.Brightness
-    _G._MetroDefLightClock = _G._MetroDefLightClock or Lighting.ClockTime
-    _G._MetroDefLightAmbient = _G._MetroDefLightAmbient or Lighting.OutdoorAmbient
+    _G._YaisDefLightBrightness = _G._YaisDefLightBrightness or Lighting.Brightness
+    _G._YaisDefLightClock = _G._YaisDefLightClock or Lighting.ClockTime
+    _G._YaisDefLightAmbient = _G._YaisDefLightAmbient or Lighting.OutdoorAmbient
 
     pcall(function()
         settings().Rendering.QualityLevel = 1
@@ -17885,7 +17885,7 @@ function enableAntiLag()
         for _, e in pairs(Lighting:GetChildren()) do
             pcall(function()
                 -- Non toccare gli effetti di Vivid Graphics
-                if e:GetAttribute("_MetroVivid") then return end
+                if e:GetAttribute("_YaisVivid") then return end
                 if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect")
                     or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") or e:IsA("BrightnessEffect")
                     or e:IsA("DitheringEffect") then
@@ -17931,7 +17931,7 @@ function enableAntiLag()
 
     if antiLagDescConn then antiLagDescConn:Disconnect() end
     antiLagDescConn = workspace.DescendantAdded:Connect(function(obj)
-        if obj:GetAttribute("_MetroHubSky") then return end
+        if obj:GetAttribute("_YaisHubSky") then return end
         if obj:IsA("Sky") or obj:IsA("Atmosphere") or obj:IsA("Clouds") then return end
         if removeAccessoriesEnabled then applyAntiLagDerender(obj) end
     end)
@@ -17949,9 +17949,9 @@ function disableAntiLag()
     end
     if skyTheme == "Off" then
         pcall(function()
-            if _G._MetroDefLightBrightness then Lighting.Brightness = _G._MetroDefLightBrightness end
-            if _G._MetroDefLightClock then Lighting.ClockTime = _G._MetroDefLightClock end
-            if _G._MetroDefLightAmbient then Lighting.OutdoorAmbient = _G._MetroDefLightAmbient end
+            if _G._YaisDefLightBrightness then Lighting.Brightness = _G._YaisDefLightBrightness end
+            if _G._YaisDefLightClock then Lighting.ClockTime = _G._YaisDefLightClock end
+            if _G._YaisDefLightAmbient then Lighting.OutdoorAmbient = _G._YaisDefLightAmbient end
             Lighting.ExposureCompensation = 0
             Lighting.GlobalShadows = true
         end)
@@ -17962,24 +17962,24 @@ end
   -- RIMOSSO NUKE OPTIMISER
 
   -- ===== X-RAY =====
-_G._MetroXRayFolders = {
+_G._YaisXRayFolders = {
     "Base", "PlotSign", "FriendPanel", "Cash", "Laser",
     "Decorations", "Skin", "Unlock", "Purchases"
 }
-_G._MetroXRayOrigTrans = {}  -- tabella forte: il GC non raccoglie le chiavi durante il restore
-_G._MetroXRayConns = {}
-_G._MetroXRayLoopId = 0
+_G._YaisXRayOrigTrans = {}  -- tabella forte: il GC non raccoglie le chiavi durante il restore
+_G._YaisXRayConns = {}
+_G._YaisXRayLoopId = 0
 
 do
 local function setXRayTargetTransparency(instance, alphaPercent, loopId)
     if not instance then return end
-    if loopId and loopId ~= _G._MetroXRayLoopId then return end
+    if loopId and loopId ~= _G._YaisXRayLoopId then return end
     local function apply(obj)
         if obj:IsA("BasePart") then
-            if _G._MetroXRayOrigTrans[obj] == nil then
-                _G._MetroXRayOrigTrans[obj] = obj.Transparency
+            if _G._YaisXRayOrigTrans[obj] == nil then
+                _G._YaisXRayOrigTrans[obj] = obj.Transparency
             end
-            local orig = _G._MetroXRayOrigTrans[obj]
+            local orig = _G._YaisXRayOrigTrans[obj]
             if orig < 1 then
                 local target = orig + (1 - orig) * alphaPercent
                 if math.abs(obj.Transparency - target) > 0.01 then
@@ -17987,10 +17987,10 @@ local function setXRayTargetTransparency(instance, alphaPercent, loopId)
                 end
             end
         elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            if _G._MetroXRayOrigTrans[obj] == nil then
-                _G._MetroXRayOrigTrans[obj] = { text = obj.TextTransparency, bg = obj.BackgroundTransparency }
+            if _G._YaisXRayOrigTrans[obj] == nil then
+                _G._YaisXRayOrigTrans[obj] = { text = obj.TextTransparency, bg = obj.BackgroundTransparency }
             end
-            local orig = _G._MetroXRayOrigTrans[obj]
+            local orig = _G._YaisXRayOrigTrans[obj]
             if orig.text < 1 then
                 local target = orig.text + (1 - orig.text) * alphaPercent
                 if math.abs(obj.TextTransparency - target) > 0.01 then obj.TextTransparency = target end
@@ -18000,19 +18000,19 @@ local function setXRayTargetTransparency(instance, alphaPercent, loopId)
                 if math.abs(obj.BackgroundTransparency - target) > 0.01 then obj.BackgroundTransparency = target end
             end
         elseif obj:IsA("Frame") or obj:IsA("ScrollingFrame") then
-            if _G._MetroXRayOrigTrans[obj] == nil then
-                _G._MetroXRayOrigTrans[obj] = obj.BackgroundTransparency
+            if _G._YaisXRayOrigTrans[obj] == nil then
+                _G._YaisXRayOrigTrans[obj] = obj.BackgroundTransparency
             end
-            local orig = _G._MetroXRayOrigTrans[obj]
+            local orig = _G._YaisXRayOrigTrans[obj]
             if orig < 1 then
                 local target = orig + (1 - orig) * alphaPercent
                 if math.abs(obj.BackgroundTransparency - target) > 0.01 then obj.BackgroundTransparency = target end
             end
         elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-            if _G._MetroXRayOrigTrans[obj] == nil then
-                _G._MetroXRayOrigTrans[obj] = { img = obj.ImageTransparency, bg = obj.BackgroundTransparency }
+            if _G._YaisXRayOrigTrans[obj] == nil then
+                _G._YaisXRayOrigTrans[obj] = { img = obj.ImageTransparency, bg = obj.BackgroundTransparency }
             end
-            local orig = _G._MetroXRayOrigTrans[obj]
+            local orig = _G._YaisXRayOrigTrans[obj]
             if orig.img < 1 then
                 local target = orig.img + (1 - orig.img) * alphaPercent
                 if math.abs(obj.ImageTransparency - target) > 0.01 then obj.ImageTransparency = target end
@@ -18029,33 +18029,33 @@ local function setXRayTargetTransparency(instance, alphaPercent, loopId)
         apply(child)
         if i % 300 == 0 then
             task.wait()
-            if loopId and loopId ~= _G._MetroXRayLoopId then return end
+            if loopId and loopId ~= _G._YaisXRayLoopId then return end
         end
     end
 end
 
 local function trackXRaySubtree(root, alphaPercent, loopId)
     if not root then return end
-    if loopId ~= _G._MetroXRayLoopId then return end
+    if loopId ~= _G._YaisXRayLoopId then return end
     setXRayTargetTransparency(root, alphaPercent, loopId)
-    if loopId ~= _G._MetroXRayLoopId then return end
-    table.insert(_G._MetroXRayConns, root.DescendantAdded:Connect(function(obj)
-        if loopId ~= _G._MetroXRayLoopId then return end
+    if loopId ~= _G._YaisXRayLoopId then return end
+    table.insert(_G._YaisXRayConns, root.DescendantAdded:Connect(function(obj)
+        if loopId ~= _G._YaisXRayLoopId then return end
         setXRayTargetTransparency(obj, alphaPercent, loopId)
     end))
 end
 
 local function processPlotXRay(plot, alphaPercent, loopId)
     if not plot then return end
-    if loopId ~= _G._MetroXRayLoopId then return end
-    for _, fname in ipairs(_G._MetroXRayFolders) do
-        if loopId ~= _G._MetroXRayLoopId then return end
+    if loopId ~= _G._YaisXRayLoopId then return end
+    for _, fname in ipairs(_G._YaisXRayFolders) do
+        if loopId ~= _G._YaisXRayLoopId then return end
         trackXRaySubtree(plot:FindFirstChild(fname), alphaPercent, loopId)
     end
-    if loopId ~= _G._MetroXRayLoopId then return end
-    table.insert(_G._MetroXRayConns, plot.ChildAdded:Connect(function(child)
-        if loopId ~= _G._MetroXRayLoopId then return end
-        for _, fname in ipairs(_G._MetroXRayFolders) do
+    if loopId ~= _G._YaisXRayLoopId then return end
+    table.insert(_G._YaisXRayConns, plot.ChildAdded:Connect(function(child)
+        if loopId ~= _G._YaisXRayLoopId then return end
+        for _, fname in ipairs(_G._YaisXRayFolders) do
             if child.Name == fname then
                 trackXRaySubtree(child, alphaPercent, loopId)
                 break
@@ -18078,10 +18078,10 @@ local function processPlotXRay(plot, alphaPercent, loopId)
         for _, podium in ipairs(animalPodiums:GetChildren()) do
             processPodium(podium)
         end
-        table.insert(_G._MetroXRayConns, animalPodiums.ChildAdded:Connect(function(podium)
-            if loopId ~= _G._MetroXRayLoopId then return end
+        table.insert(_G._YaisXRayConns, animalPodiums.ChildAdded:Connect(function(podium)
+            if loopId ~= _G._YaisXRayLoopId then return end
             task.wait(0.1)
-            if loopId ~= _G._MetroXRayLoopId then return end
+            if loopId ~= _G._YaisXRayLoopId then return end
             processPodium(podium)
         end))
     end
@@ -18091,36 +18091,36 @@ local function applyTransparencyToAllPlotsXRay(alphaPercent, loopId)
     local plotsFolder = workspace:FindFirstChild("Plots")
     if not plotsFolder then return end
     for _, plot in ipairs(plotsFolder:GetChildren()) do
-        if loopId ~= _G._MetroXRayLoopId then return end
+        if loopId ~= _G._YaisXRayLoopId then return end
         processPlotXRay(plot, alphaPercent, loopId)
         task.wait()
     end
-    table.insert(_G._MetroXRayConns, plotsFolder.ChildAdded:Connect(function(plot)
-        if loopId ~= _G._MetroXRayLoopId then return end
+    table.insert(_G._YaisXRayConns, plotsFolder.ChildAdded:Connect(function(plot)
+        if loopId ~= _G._YaisXRayLoopId then return end
         task.wait(0.2)
         processPlotXRay(plot, alphaPercent, loopId)
     end))
 end
 
 function setXRay(enabled)
-    for _, conn in ipairs(_G._MetroXRayConns) do
+    for _, conn in ipairs(_G._YaisXRayConns) do
         if typeof(conn) == "RBXScriptConnection" then conn:Disconnect() end
     end
-    _G._MetroXRayConns = {}
-    _G._MetroXRayLoopId = _G._MetroXRayLoopId + 1
-    local currentLoopId = _G._MetroXRayLoopId
+    _G._YaisXRayConns = {}
+    _G._YaisXRayLoopId = _G._YaisXRayLoopId + 1
+    local currentLoopId = _G._YaisXRayLoopId
     if enabled then
         local alphaPercent = 0.5
         task.spawn(function()
-            while currentLoopId == _G._MetroXRayLoopId and not workspace:FindFirstChild("Plots") do
+            while currentLoopId == _G._YaisXRayLoopId and not workspace:FindFirstChild("Plots") do
                 task.wait(0.5)
             end
-            if currentLoopId ~= _G._MetroXRayLoopId then return end
+            if currentLoopId ~= _G._YaisXRayLoopId then return end
             pcall(applyTransparencyToAllPlotsXRay, alphaPercent, currentLoopId)
         end)
     else
-        local snapshot = _G._MetroXRayOrigTrans
-        _G._MetroXRayOrigTrans = {}  -- tabella forte: il GC non raccoglie le chiavi durante il restore
+        local snapshot = _G._YaisXRayOrigTrans
+        _G._YaisXRayOrigTrans = {}  -- tabella forte: il GC non raccoglie le chiavi durante il restore
         for obj, orig in pairs(snapshot) do
             pcall(function()
                 if obj:IsA("BasePart") then
@@ -18145,7 +18145,7 @@ end -- X-RAY do block
 --
 -- NOTA SUI LOCAL: il main chunk e' a ridosso del limite di 200 local, quindi
 -- qui NON se ne dichiara nemmeno uno: stato e funzioni stanno tutti dentro
--- la tabella _G._MetroBrainrotXRay. I local dentro le funzioni non
+-- la tabella _G._YaisBrainrotXRay. I local dentro le funzioni non
 -- contano, vivono nello scope della funzione.
 --
 -- Logica a eventi, come il No Animations dell'Anti Lag:
@@ -18155,7 +18155,7 @@ end -- X-RAY do block
 --    animale applica a quello, se e' una parte risale al massimo 3 livelli.
 --  * Spegnendolo, ogni istanza toccata torna alla trasparenza ORIGINALE,
 --    con lo stesso snapshot che usa l'X-Ray normale.
-_G._MetroBrainrotXRay = {
+_G._YaisBrainrotXRay = {
   enabled = false,
   trans   = 0.5,
   names   = nil,
@@ -18170,8 +18170,8 @@ _G._MetroBrainrotXRay = {
   scanId  = 0,
 }
 
-_G._MetroBrainrotXRay.loadNames = function()
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.loadNames = function()
+  local BRX = _G._YaisBrainrotXRay
   if BRX.names then return BRX.names end
   local t = {}
   pcall(function()
@@ -18185,15 +18185,15 @@ _G._MetroBrainrotXRay.loadNames = function()
   return t
 end
 
-_G._MetroBrainrotXRay.isHitbox = function(o)
+_G._YaisBrainrotXRay.isHitbox = function(o)
   local n = string.lower(o.Name)
   return (string.find(n, "hit") or string.find(n, "target") or string.find(n, "box")
        or string.find(n, "root") or string.find(n, "collect") or string.find(n, "prompt")) ~= nil
 end
 
 -- Applica a UNA istanza, salvando il valore originale la prima volta.
-_G._MetroBrainrotXRay.applyOne = function(o)
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.applyOne = function(o)
+  local BRX = _G._YaisBrainrotXRay
   if not (o:IsA("BasePart") or o:IsA("Decal") or o:IsA("Texture")) then return end
   local orig = BRX.saved[o]
   if orig == nil then
@@ -18211,21 +18211,21 @@ _G._MetroBrainrotXRay.applyOne = function(o)
   end
 end
 
-_G._MetroBrainrotXRay.applyModel = function(m)
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.applyModel = function(m)
+  local BRX = _G._YaisBrainrotXRay
   for _, o in ipairs(m:GetDescendants()) do
     BRX.applyOne(o)
   end
 end
 
-_G._MetroBrainrotXRay.isAnimal = function(m)
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.isAnimal = function(m)
+  local BRX = _G._YaisBrainrotXRay
   return m:IsA("Model") and BRX.names and BRX.names[m.Name] == true
 end
 
 -- Gate O(1): si risale di pochi livelli, non si cerca nulla.
-_G._MetroBrainrotXRay.animalAncestor = function(inst)
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.animalAncestor = function(inst)
+  local BRX = _G._YaisBrainrotXRay
   local p = inst.Parent
   -- 5 livelli invece di 3: mesh e accessori possono stare piu' in fondo,
   -- e se non li si riconosce restano opachi (e poi non si ripristinano).
@@ -18237,8 +18237,8 @@ _G._MetroBrainrotXRay.animalAncestor = function(inst)
   return nil
 end
 
-_G._MetroBrainrotXRay.restoreAll = function()
-  local BRX = _G._MetroBrainrotXRay
+_G._YaisBrainrotXRay.restoreAll = function()
+  local BRX = _G._YaisBrainrotXRay
   -- Si stacca lo snapshot e si riparte da zero, cosi' la tabella non
   -- accumula istanze morte da una sessione all'altra.
   local snapshot = BRX.saved
@@ -18250,11 +18250,11 @@ _G._MetroBrainrotXRay.restoreAll = function()
   end
 end
 
-function _G.MetroDuelsetBrainrotXRay(on)
-  local BRX = _G._MetroBrainrotXRay
+function _G.YaisDuelsetBrainrotXRay(on)
+  local BRX = _G._YaisBrainrotXRay
   on = on and true or false
   BRX.enabled = on
-  _G.MetroBrainrotXRayEnabled = on
+  _G.YaisBrainrotXRayEnabled = on
 
   for _, c in ipairs(BRX.conns) do
     pcall(function() c:Disconnect() end)
@@ -18305,26 +18305,26 @@ function enableVividGraphics()
     vividGraphicsEnabled = true
     -- Pulisci eventuali effetti precedenti
     for _, child in ipairs(Lighting:GetChildren()) do
-        if child:GetAttribute("_MetroVivid") then child:Destroy() end
+        if child:GetAttribute("_YaisVivid") then child:Destroy() end
     end
     -- COLOR CORRECTION
     local color = Instance.new("ColorCorrectionEffect")
-    color:SetAttribute("_MetroVivid", true)
+    color:SetAttribute("_YaisVivid", true)
     color.Parent = Lighting
-    color.Saturation = _G._MetroVivid.saturation
+    color.Saturation = _G._YaisVivid.saturation
     color.Contrast = 0.4
     color.Brightness = 0.05
     color.TintColor = Color3.fromRGB(255, 240, 220)
     -- BLOOM
     local bloom = Instance.new("BloomEffect")
-    bloom:SetAttribute("_MetroVivid", true)
+    bloom:SetAttribute("_YaisVivid", true)
     bloom.Parent = Lighting
-    bloom.Intensity = _G._MetroVivid.bloomIntensity
-    bloom.Size = _G._MetroVivid.bloomSize
+    bloom.Intensity = _G._YaisVivid.bloomIntensity
+    bloom.Size = _G._YaisVivid.bloomSize
     bloom.Threshold = 1
     -- ATMOSPHERE
     local atmosphere = Instance.new("Atmosphere")
-    atmosphere:SetAttribute("_MetroVivid", true)
+    atmosphere:SetAttribute("_YaisVivid", true)
     atmosphere.Parent = Lighting
     atmosphere.Density = 0.3
     atmosphere.Offset = 0.25
@@ -18334,15 +18334,15 @@ function enableVividGraphics()
     atmosphere.Haze = 1
     -- SUN RAYS
     local sun = Instance.new("SunRaysEffect")
-    sun:SetAttribute("_MetroVivid", true)
+    sun:SetAttribute("_YaisVivid", true)
     sun.Parent = Lighting
-    sun.Intensity = _G._MetroVivid.sunIntensity
+    sun.Intensity = _G._YaisVivid.sunIntensity
     sun.Spread = 0.8
     -- DEPTH OF FIELD
     local dof = Instance.new("DepthOfFieldEffect")
-    dof:SetAttribute("_MetroVivid", true)
+    dof:SetAttribute("_YaisVivid", true)
     dof.Parent = Lighting
-    dof.FocusDistance = _G._MetroVivid.dofFocus
+    dof.FocusDistance = _G._YaisVivid.dofFocus
     dof.InFocusRadius = 10
     dof.NearIntensity = 0.2
     dof.FarIntensity = 0.4
@@ -18365,7 +18365,7 @@ function disableVividGraphics()
         _vividContrastConn = nil
     end
     for _, child in ipairs(Lighting:GetChildren()) do
-        if child:GetAttribute("_MetroVivid") then
+        if child:GetAttribute("_YaisVivid") then
             pcall(function() child:Destroy() end)
         end
     end
@@ -18429,7 +18429,7 @@ do -- do-block HEADLESS (locals: HEADLESS_MESH_ID, _headlessCharConn + 5 funzion
         local char = LP.Character
         if char then _applyHeadlessToCharacter(char) end
         _headlessCharConn = LP.CharacterAdded:Connect(function(char)
-            _G._MetroWaitCharReady(char, 10)
+            _G._YaisWaitCharReady(char, 10)
             if headlessEnabled then _applyHeadlessToCharacter(char) end
         end)
         if _SV.setHeadlessVisual then _SV.setHeadlessVisual(true) end
@@ -18542,7 +18542,7 @@ do -- do-block KORBLOX
         local char = LP.Character
         if char then _applyKorbloxToCharacter(char) end
         _korbloxCharConn = LP.CharacterAdded:Connect(function(char)
-            _G._MetroWaitCharReady(char, 10)
+            _G._YaisWaitCharReady(char, 10)
             if korbloxEnabled then _applyKorbloxToCharacter(char) end
         end)
         if _SV.setKorbloxVisual then _SV.setKorbloxVisual(true) end
@@ -18597,11 +18597,11 @@ V.skyTheme = skyTheme or V.skyTheme or "Off"
 V.customFontEnabled = false
 V.potatoGraphicsEnabled = V.potatoGraphicsEnabled or false
 
-_G._MetroNC = _G._MetroNC or {targetZoom=10, currentZoom=10, zoomConn=nil, watchConns={}, resync=true}
+_G._YaisNC = _G._YaisNC or {targetZoom=10, currentZoom=10, zoomConn=nil, watchConns={}, resync=true}
 
 function enableNoCamCollision()
   noCamCollisionEnabled = true
-  local NC = _G._MetroNC
+  local NC = _G._YaisNC
   local cam0 = workspace.CurrentCamera
   NC.targetZoom  = math.clamp(10, LP.CameraMinZoomDistance, LP.CameraMaxZoomDistance)
   NC.currentZoom = NC.targetZoom
@@ -18633,8 +18633,8 @@ function enableNoCamCollision()
     table.insert(NC.watchConns, cam0:GetPropertyChangedSignal("CameraSubject"):Connect(askResync))
   end
 
-  pcall(function() RunService:UnbindFromRenderStep("MetroNoCamCollision") end)
-  RunService:BindToRenderStep("MetroNoCamCollision", Enum.RenderPriority.Camera.Value + 1, function(deltaTime)
+  pcall(function() RunService:UnbindFromRenderStep("YaisNoCamCollision") end)
+  RunService:BindToRenderStep("YaisNoCamCollision", Enum.RenderPriority.Camera.Value + 1, function(deltaTime)
     if not noCamCollisionEnabled then return end
 
     -- la camera si rilegge ogni frame: dopo un respawn quella vecchia e' morta
@@ -18682,10 +18682,10 @@ end
 
 function disableNoCamCollision()
   noCamCollisionEnabled = false
-  pcall(function() RunService:UnbindFromRenderStep("MetroNoCamCollision") end)
-  if _G._MetroNC.zoomConn then _G._MetroNC.zoomConn:Disconnect(); _G._MetroNC.zoomConn = nil end
-  for _, c in ipairs(_G._MetroNC.watchConns or {}) do pcall(function() c:Disconnect() end) end
-  _G._MetroNC.watchConns = {}
+  pcall(function() RunService:UnbindFromRenderStep("YaisNoCamCollision") end)
+  if _G._YaisNC.zoomConn then _G._YaisNC.zoomConn:Disconnect(); _G._YaisNC.zoomConn = nil end
+  for _, c in ipairs(_G._YaisNC.watchConns or {}) do pcall(function() c:Disconnect() end) end
+  _G._YaisNC.watchConns = {}
   noCamCollisionParts = {}
 end
 
@@ -19039,15 +19039,15 @@ SKY_PRESETS = {
 
 function _vC3(t) return Color3.fromRGB(t[1], t[2], t[3]) end
 
--- Rimuove solo gli oggetti sky taggati da MetroHub
+-- Rimuove solo gli oggetti sky taggati da YaisHub
 function _v4mpClearSky()
   for _, v in ipairs(Lighting:GetChildren()) do
-    if v:GetAttribute("_MetroHubSky") then pcall(function() v:Destroy() end) end
+    if v:GetAttribute("_YaisHubSky") then pcall(function() v:Destroy() end) end
   end
   local terrain = workspace:FindFirstChildOfClass("Terrain")
   if terrain then
     for _, v in ipairs(terrain:GetChildren()) do
-      if v:GetAttribute("_MetroHubSky") then pcall(function() v:Destroy() end) end
+      if v:GetAttribute("_YaisHubSky") then pcall(function() v:Destroy() end) end
     end
   end
 end
@@ -19114,7 +19114,7 @@ end
 -- Distrugge gli oggetti originali del gioco per fare posto al preset
 local function removeOriginalSkyObjects()
   local function remove(obj)
-    if obj and not obj:GetAttribute("_MetroHubSky") then
+    if obj and not obj:GetAttribute("_YaisHubSky") then
       obj:Destroy()
     end
   end
@@ -19135,17 +19135,17 @@ function applyCustomSky(mode)
   _v4mpClearSky()
   clearSkyConnections()
   -- >>> RAINBOW <<< ferma il ciclo di tinte del preset precedente
-  _G._MetroDuelskyRainbowToken = (_G._MetroDuelskyRainbowToken or 0) + 1
+  _G._YaisDuelskyRainbowToken = (_G._YaisDuelskyRainbowToken or 0) + 1
   -- Stessa cosa per i preset che si muovono da soli (giorno che scorre,
   -- lampi, pulsazione, lampeggio): un token che cambia e il vecchio ciclo
   -- si accorge di non essere piu' quello buono e si ferma.
-  _G._MetroDuelskyDynToken = (_G._MetroDuelskyDynToken or 0) + 1
+  _G._YaisDuelskyDynToken = (_G._YaisDuelskyDynToken or 0) + 1
   -- Il vecchio ciclo si spegne al frame dopo: la sua luce del lampo la si
   -- toglie subito, per non lasciarla accesa in mezzo alla scena.
-  local _oldFlash = workspace:FindFirstChild("MetroDuelskyFlash")
+  local _oldFlash = workspace:FindFirstChild("YaisDuelskyFlash")
   while _oldFlash do
     pcall(function() _oldFlash:Destroy() end)
-    _oldFlash = workspace:FindFirstChild("MetroDuelskyFlash")
+    _oldFlash = workspace:FindFirstChild("YaisDuelskyFlash")
   end
 
   if mode == "Off" then
@@ -19221,7 +19221,7 @@ function applyCustomSky(mode)
   -- il gioco ci butta dentro un suo Sky, i nostri oggetti vengono rifatti
   -- e con loro riparte il ciclo): ripartendo da capo ogni volta, il sole
   -- tornava di colpo all'ora iniziale. Cosi' invece riprende da dov'era.
-  _G._MetroDuelskyClk = preset.clock or 14
+  _G._YaisDuelskyClk = preset.clock or 14
   Lighting.Brightness  = preset.brightness or 2
   if preset.outAmb then Lighting.OutdoorAmbient = _vC3(preset.outAmb) end
   if preset.ambient  then Lighting.Ambient        = _vC3(preset.ambient) end
@@ -19233,7 +19233,7 @@ function applyCustomSky(mode)
 
     if preset.sky then
       local sky = Instance.new("Sky")
-      sky:SetAttribute("_MetroHubSky", true)
+      sky:SetAttribute("_YaisHubSky", true)
       if preset.sky.stars   then sky.StarCount        = preset.sky.stars   end
       if preset.sky.moon    then sky.MoonAngularSize  = preset.sky.moon    end
       if preset.sky.sun     then sky.SunAngularSize   = preset.sky.sun     end
@@ -19246,7 +19246,7 @@ function applyCustomSky(mode)
     local atm = nil
     if not preset.noAtm then
       atm = Instance.new("Atmosphere")
-      atm:SetAttribute("_MetroHubSky", true)
+      atm:SetAttribute("_YaisHubSky", true)
       if preset.atm then
         atm.Density = preset.atm.dens  or 0.3
         atm.Color   = _vC3(preset.atm.color)
@@ -19260,7 +19260,7 @@ function applyCustomSky(mode)
     local terrain = workspace:FindFirstChildOfClass("Terrain")
     if preset.clouds and terrain then
       local clouds = Instance.new("Clouds")
-      clouds:SetAttribute("_MetroHubSky", true)
+      clouds:SetAttribute("_YaisHubSky", true)
       clouds.Cover   = preset.clouds.cover or 0.5
       clouds.Density = preset.clouds.dens  or 0.5
       clouds.Color   = _vC3(preset.clouds.color)
@@ -19274,12 +19274,12 @@ function applyCustomSky(mode)
     -- Decay resta sempre a RAINBOW_GAP di distanza da Color, quindi le due
     -- tinte in cielo restano contrastate come nel dorato/rosa.
     if preset.rainbow and atm then
-      local myToken = (_G._MetroDuelskyRainbowToken or 0) + 1
-      _G._MetroDuelskyRainbowToken = myToken
+      local myToken = (_G._YaisDuelskyRainbowToken or 0) + 1
+      _G._YaisDuelskyRainbowToken = myToken
       local RAINBOW_PERIOD = 34
       local RAINBOW_GAP    = 0.55
       task.spawn(function()
-        while _G._MetroDuelskyRainbowToken == myToken do
+        while _G._YaisDuelskyRainbowToken == myToken do
           if not (atm and atm.Parent) then break end
           local h = (os.clock() % RAINBOW_PERIOD) / RAINBOW_PERIOD
           pcall(function()
@@ -19303,8 +19303,8 @@ function applyCustomSky(mode)
     --            un difetto e non un temporale
     --   pulse  - respiro lento della luminosita', avanti e indietro
     if preset.drift or preset.flash or preset.pulse then
-      local myTok = (_G._MetroDuelskyDynToken or 0) + 1
-      _G._MetroDuelskyDynToken = myTok
+      local myTok = (_G._YaisDuelskyDynToken or 0) + 1
+      _G._YaisDuelskyDynToken = myTok
       local baseB = preset.brightness or 2
       task.spawn(function()
         local nextFlash = os.clock() + 1.5
@@ -19317,7 +19317,7 @@ function applyCustomSky(mode)
         -- chiudeva mai — l'ora ballava avanti e indietro e il sole
         -- restava piantato. Tenendo il conto per conto nostro l'ultima
         -- parola e' la nostra e il giro si completa.
-        local clk = _G._MetroDuelskyClk or (preset.clock or 14)
+        local clk = _G._YaisDuelskyClk or (preset.clock or 14)
 
         -- DA DOVE ARRIVA IL LAMPO.
         -- Alzare la luminosita' generale illumina tutto in modo uguale e
@@ -19332,7 +19332,7 @@ function applyCustomSky(mode)
         local flashPart, flashLight
         if preset.flash then
           flashPart = Instance.new("Part")
-          flashPart.Name         = "MetroDuelskyFlash"
+          flashPart.Name         = "YaisDuelskyFlash"
           flashPart.Anchored     = true
           flashPart.CanCollide   = false
           flashPart.CanQuery     = false
@@ -19350,11 +19350,11 @@ function applyCustomSky(mode)
           flashLight.Enabled    = false
           flashLight.Parent     = flashPart
         end
-        while _G._MetroDuelskyDynToken == myTok do
+        while _G._YaisDuelskyDynToken == myTok do
           local dt = RunService.Heartbeat:Wait()
           if preset.drift then
             clk = (clk + preset.drift * dt) % 24
-            _G._MetroDuelskyClk = clk
+            _G._YaisDuelskyClk = clk
             Lighting.ClockTime = clk
           end
           if preset.pulse then
@@ -19383,14 +19383,14 @@ function applyCustomSky(mode)
               -- Due o tre colpi ravvicinati: un lampo singolo e pulito
               -- non somiglia a niente, il tremolio si'.
               for _ = 1, (preset.flash.bursts or 2) do
-                if _G._MetroDuelskyDynToken ~= myTok then return end
+                if _G._YaisDuelskyDynToken ~= myTok then return end
                 if flashLight then
                   flashLight.Brightness = 14
                   flashLight.Enabled = true
                 end
                 Lighting.Brightness = preset.flash.peak or 6
                 task.wait(0.05)
-                if _G._MetroDuelskyDynToken ~= myTok then return end
+                if _G._YaisDuelskyDynToken ~= myTok then return end
                 if flashLight then flashLight.Enabled = false end
                 Lighting.Brightness = baseB
                 task.wait(0.06 + math.random() * 0.1)
@@ -19427,7 +19427,7 @@ function applyCustomSky(mode)
         -- vede — il sole partiva nel posto sbagliato e si rimetteva a
         -- posto solo quando quello script la smetteva. Adesso ogni
         -- scrittura che non sia la nostra viene corretta all'istante.
-        expected = p.drift and (_G._MetroDuelskyClk or p.clock or 14)
+        expected = p.drift and (_G._YaisDuelskyClk or p.clock or 14)
                    or (p.clock or 14)
       elseif prop == "Brightness"      then
         if p.flash or p.pulse then return end
@@ -19453,10 +19453,10 @@ function applyCustomSky(mode)
   end
 
   -- 2) Anti-destroy: se un oggetto esterno (Sky/Atmosphere/Clouds) viene aggiunto, lo distruggiamo
-  --    e ricreamo i nostri. Compatibile con l'anti-lag di MetroTest (controlla _MetroHubSky).
+  --    e ricreamo i nostri. Compatibile con l'anti-lag di YaisTest (controlla _YaisHubSky).
   local function onForeignObjectAdded(obj)
     if skyTheme == "Off" then return end
-    if obj:GetAttribute("_MetroHubSky") then return end
+    if obj:GetAttribute("_YaisHubSky") then return end
     if obj:IsA("Sky") or obj:IsA("Atmosphere") or obj:IsA("Clouds") then
       pcall(function() obj:Destroy() end)
       task.defer(createSkyObjects)
@@ -19475,7 +19475,7 @@ function applyCustomSky(mode)
   -- 3) Se i nostri oggetti vengono rimossi (Destroy dall'esterno), li ricreamo
   local function onOurObjectRemoved(obj)
     if skyTheme == "Off" then return end
-    if obj:GetAttribute("_MetroHubSky") then
+    if obj:GetAttribute("_YaisHubSky") then
       task.defer(createSkyObjects)
     end
   end
@@ -19488,13 +19488,13 @@ function applyCustomSky(mode)
   end
 
   for _, obj in ipairs(Lighting:GetDescendants()) do
-    if obj:GetAttribute("_MetroHubSky") then
+    if obj:GetAttribute("_YaisHubSky") then
       attachAncestryChanged(obj)
     end
   end
   if terrain then
     for _, obj in ipairs(terrain:GetDescendants()) do
-      if obj:GetAttribute("_MetroHubSky") then
+      if obj:GetAttribute("_YaisHubSky") then
         attachAncestryChanged(obj)
       end
     end
@@ -19571,15 +19571,15 @@ function disableCustomFont()
   if V then V.customFontEnabled = false end
 end
 
-__Metro_src_enableNoCamCollision = enableNoCamCollision
+__Yais_src_enableNoCamCollision = enableNoCamCollision
 function enableNoCamCollision()
-  __Metro_src_enableNoCamCollision()
+  __Yais_src_enableNoCamCollision()
   noCamCollisionEnabled = true
 end
 
-__Metro_src_disableNoCamCollision = disableNoCamCollision
+__Yais_src_disableNoCamCollision = disableNoCamCollision
 function disableNoCamCollision()
-  __Metro_src_disableNoCamCollision()
+  __Yais_src_disableNoCamCollision()
   noCamCollisionEnabled = false
 end
 
@@ -19587,11 +19587,11 @@ end
 -- ============================================================
 -- RAINBOW MOBILE JOYSTICK
 -- Colora in arcobaleno il thumbstick e il tasto salto dei controlli touch.
--- Il modulo sta FUORI da __MetroDuelsSetupVisualsUI: quella funzione
+-- Il modulo sta FUORI da __YaisDuelsSetupVisualsUI: quella funzione
 -- viene richiamata dal Reset All Settings, e definirlo li' dentro
 -- significherebbe registrare un secondo set di connessioni ad ogni reset.
 -- ============================================================
-_G.MetroRainbowJoystickEnabled = _G.MetroRainbowJoystickEnabled == true
+_G.YaisRainbowJoystickEnabled = _G.YaisRainbowJoystickEnabled == true
 ;(function()
   local conns = {}
   local renderConn = nil
@@ -19667,9 +19667,9 @@ _G.MetroRainbowJoystickEnabled = _G.MetroRainbowJoystickEnabled == true
     -- scontato che TouchGui esista gia'. Niente WaitForChild con timeout,
     -- che bloccherebbe il toggle per dieci secondi su PC.
     table.insert(conns, PlayerGui.ChildAdded:Connect(function(ch)
-      if ch.Name == "TouchGui" and _G.MetroRainbowJoystickEnabled then
+      if ch.Name == "TouchGui" and _G.YaisRainbowJoystickEnabled then
         task.wait(0.2)
-        if _G.MetroRainbowJoystickEnabled then startRJ() end
+        if _G.YaisRainbowJoystickEnabled then startRJ() end
       end
     end))
 
@@ -19677,7 +19677,7 @@ _G.MetroRainbowJoystickEnabled = _G.MetroRainbowJoystickEnabled == true
     if touchGui then
       table.insert(conns, touchGui.DescendantAdded:Connect(function()
         task.wait(0.2)
-        if _G.MetroRainbowJoystickEnabled then rescan() end
+        if _G.YaisRainbowJoystickEnabled then rescan() end
       end))
     end
 
@@ -19700,20 +19700,20 @@ _G.MetroRainbowJoystickEnabled = _G.MetroRainbowJoystickEnabled == true
     end)
   end
 
-  function _G.MetroDuelsetRainbowJoystick(on)
+  function _G.YaisDuelsetRainbowJoystick(on)
     on = on and true or false
-    _G.MetroRainbowJoystickEnabled = on
+    _G.YaisRainbowJoystickEnabled = on
     if on then startRJ() else stopRJ() end
   end
 end)()
 
--- Applica lo stato letto dal config (loadMetroConfig gira prima di qui).
-if _G.MetroRainbowJoystickEnabled then
-  pcall(_G.MetroDuelsetRainbowJoystick, true)
+-- Applica lo stato letto dal config (loadYaisConfig gira prima di qui).
+if _G.YaisRainbowJoystickEnabled then
+  pcall(_G.YaisDuelsetRainbowJoystick, true)
 end
 -- <<< RAINBOW MOBILE JOYSTICK END
 
-function __MetroDuelsSetupVisualsUI()
+function __YaisDuelsSetupVisualsUI()
   local Utility = pages.VISUALS
   local skyThemes = SKY_PRESETS_LIST or {"Off", "Night", "Aurora", "Sunset", "Galaxy", "Cyber", "Sakura"}
   local skyIndex = 1
@@ -19750,7 +19750,7 @@ function __MetroDuelsSetupVisualsUI()
     })
     skyHolderGrad.Rotation = 18
     skyHolderGrad.Parent = holder
-    _G._MetroRegAccent(holder, skyHolderGrad, "pick")
+    _G._YaisRegAccent(holder, skyHolderGrad, "pick")
 
     skyValueLabel = Instance.new("TextLabel")
     skyValueLabel.Name = "SkyValue"
@@ -19809,7 +19809,7 @@ function __MetroDuelsSetupVisualsUI()
       end
 
       skyPickerGui = Instance.new("ScreenGui")
-      skyPickerGui.Name = "MetroHubSkyPicker"
+      skyPickerGui.Name = "YaisHubSkyPicker"
       skyPickerGui.ResetOnSpawn = false
       skyPickerGui.IgnoreGuiInset = true
       skyPickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -20026,7 +20026,7 @@ function __MetroDuelsSetupVisualsUI()
           skyTheme = presetName
           if skyValueLabel then skyValueLabel.Text = skyTheme end
           if applyCustomSky then applyCustomSky(skyTheme) end
-          saveMetroConfig()
+          saveYaisConfig()
           closeSkyPicker()
         end)
       end
@@ -20054,11 +20054,11 @@ function __MetroDuelsSetupVisualsUI()
     -- ORDINE ESP: Show Tracker (2) -> Tracker Color (2, tendina) -> ESP (3) -> Ragdoll Countdown (3)
     local espRow, setESPVisual = toggleRow(Utility, "ESP", espEnabled, 3)
     _SV.setPlayerESPVisual = setESPVisual
-    _MetroBtn = espRow and espRow:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-      _MetroBtn.Activated:Connect(function()
+    _YaisBtn = espRow and espRow:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+      _YaisBtn.Activated:Connect(function()
         espEnabled = not espEnabled
-        _G.MetroESPOn = espEnabled   -- >>> ANTI VOID <<<
+        _G.YaisESPOn = espEnabled   -- >>> ANTI VOID <<<
         if espEnabled then
           if startPlayerESP then startPlayerESP() end
           if BoxedESPOptions then BoxedESPOptions.box = true end
@@ -20068,7 +20068,7 @@ function __MetroDuelsSetupVisualsUI()
         end
         if refreshBoxedESP then refreshBoxedESP() end
         if setESPVisual then setESPVisual(espEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20076,9 +20076,9 @@ function __MetroDuelsSetupVisualsUI()
   do
     local trackerRow, setTrackerVisual = toggleRow(Utility, "Show Tracker", showTrackerEnabled, 2)
     _SV.setTrackerESPVisual = setTrackerVisual
-    _MetroBtn = trackerRow and trackerRow:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-      _MetroBtn.Activated:Connect(function()
+    _YaisBtn = trackerRow and trackerRow:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+      _YaisBtn.Activated:Connect(function()
         showTrackerEnabled = not showTrackerEnabled
         if BoxedESPOptions then
           BoxedESPOptions.tracker = showTrackerEnabled
@@ -20086,7 +20086,7 @@ function __MetroDuelsSetupVisualsUI()
         end
         if refreshBoxedESP then refreshBoxedESP() end
         if setTrackerVisual then setTrackerVisual(showTrackerEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20103,10 +20103,10 @@ function __MetroDuelsSetupVisualsUI()
           pcall(function() data.box.Color = newColor end)
         end
       end
-      saveMetroConfig()
+      saveYaisConfig()
     end
 
-    local colorRow, setTrackerPreview = _G._MetroBuildColorPickerRow({
+    local colorRow, setTrackerPreview = _G._YaisBuildColorPickerRow({
       parent    = Utility,
       anchorRow = Utility:FindFirstChild("Show Tracker"),
       rowName   = "Tracker Color",
@@ -20119,8 +20119,8 @@ function __MetroDuelsSetupVisualsUI()
     })
 
     -- Bridge storici: il Reset All Settings passa da qui.
-    _G.MetroColorPreview = colorRow:FindFirstChild("ColorPreview")
-    _G.MetroUpdateTrackerColor = function(c)
+    _G.YaisColorPreview = colorRow:FindFirstChild("ColorPreview")
+    _G.YaisUpdateTrackerColor = function(c)
       setTrackerPreview(c)
       updateTrackerColor(c)
     end
@@ -20128,21 +20128,21 @@ function __MetroDuelsSetupVisualsUI()
 
   do
     -- Ordine 3 come il toggle ESP: creata dopo, finisce subito sotto di esso.
-    local row, setVisual = _G.MetroActionToggleRow(Utility, "Ragdoll Countdown", ragdollCountdownEnabled, 3)
+    local row, setVisual = _G.YaisActionToggleRow(Utility, "Ragdoll Countdown", ragdollCountdownEnabled, 3)
     _SV.setRagdollCountdownVisual = setVisual
-    _MetroBtn = row and row:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-      _MetroBtn.Activated:Connect(function()
+    _YaisBtn = row and row:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+      _YaisBtn.Activated:Connect(function()
         ragdollCountdownEnabled = not ragdollCountdownEnabled
         if ragdollCountdownEnabled then
           hookRagdollCountdown(LP.Character)
-          _G.MetroDuelstartEnemyRagdollCountdown()
+          _G.YaisDuelstartEnemyRagdollCountdown()
         else
           stopRagdollCountdown()
-          _G.MetroDuelstopEnemyRagdollCountdown()
+          _G.YaisDuelstopEnemyRagdollCountdown()
         end
         if setVisual then setVisual(ragdollCountdownEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20156,12 +20156,12 @@ function __MetroDuelsSetupVisualsUI()
   do
     local row, setVisual = toggleRow(Utility, "Anti Lag", antiLagVisualEnabled, 9)
     _SV.setAntiLagVisual = setVisual
-    _MetroBtn = row and row:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-      _MetroBtn.Activated:Connect(function()
+    _YaisBtn = row and row:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+      _YaisBtn.Activated:Connect(function()
         if antiLagVisualEnabled then disableAntiLag() else enableAntiLag() end
         if setVisual then setVisual(antiLagVisualEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20175,7 +20175,7 @@ function __MetroDuelsSetupVisualsUI()
       _vividToggleBtn.Activated:Connect(function()
         if vividGraphicsEnabled then disableVividGraphics() else enableVividGraphics() end
         if setVisual2 then setVisual2(vividGraphicsEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
 
@@ -20210,7 +20210,7 @@ function __MetroDuelsSetupVisualsUI()
       stroke(vividArrow, COLORS.strokeSoft, 1, 0.45)
       vividArrow.Activated:Connect(function()
         vividExpanded = not vividExpanded
-        _G._MetroExpand(vividChangerRow, vividExpanded, 42, vividArrow)
+        _G._YaisExpand(vividChangerRow, vividExpanded, 42, vividArrow)
       end)
     end
     -- <<< VIVID CHANGER A TENDINA END
@@ -20237,7 +20237,7 @@ function __MetroDuelsSetupVisualsUI()
     })
     vividPickGrad.Rotation = 18
     vividPickGrad.Parent = vividBtnHolder
-    _G._MetroRegAccent(vividBtnHolder, vividPickGrad, "pick")
+    _G._YaisRegAccent(vividBtnHolder, vividPickGrad, "pick")
 
     local vividPickBtn = Instance.new("TextButton")
     vividPickBtn.Name = "VividPickBtn"
@@ -20264,16 +20264,16 @@ function __MetroDuelsSetupVisualsUI()
     end)
 
     local function _closeVividPicker()
-      if _G._MetroVivid.pickerGui and _G._MetroVivid.pickerGui.Parent then
-        local fr = _G._MetroVivid.pickerGui:FindFirstChild("Frame")
+      if _G._YaisVivid.pickerGui and _G._YaisVivid.pickerGui.Parent then
+        local fr = _G._YaisVivid.pickerGui:FindFirstChild("Frame")
         if fr then
           TweenService:Create(fr, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
         end
         task.delay(0.25, function()
-          if _G._MetroVivid.pickerGui and _G._MetroVivid.pickerGui.Parent then
-            _G._MetroVivid.pickerGui:Destroy()
+          if _G._YaisVivid.pickerGui and _G._YaisVivid.pickerGui.Parent then
+            _G._YaisVivid.pickerGui:Destroy()
           end
-          _G._MetroVivid.pickerGui = nil
+          _G._YaisVivid.pickerGui = nil
         end)
       end
     end
@@ -20372,18 +20372,18 @@ function __MetroDuelsSetupVisualsUI()
     end
 
     vividPickBtn.MouseButton1Click:Connect(function()
-      if _G._MetroVivid.pickerGui and _G._MetroVivid.pickerGui.Parent then
+      if _G._YaisVivid.pickerGui and _G._YaisVivid.pickerGui.Parent then
         _closeVividPicker()
         return
       end
 
-      _G._MetroVivid.pickerGui = Instance.new("ScreenGui")
-      _G._MetroVivid.pickerGui.Name = "MetroHubVividPicker"
-      _G._MetroVivid.pickerGui.ResetOnSpawn = false
-      _G._MetroVivid.pickerGui.IgnoreGuiInset = true
-      _G._MetroVivid.pickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-      _G._MetroVivid.pickerGui.DisplayOrder = 9999
-      _G._MetroVivid.pickerGui.Parent = HubGui
+      _G._YaisVivid.pickerGui = Instance.new("ScreenGui")
+      _G._YaisVivid.pickerGui.Name = "YaisHubVividPicker"
+      _G._YaisVivid.pickerGui.ResetOnSpawn = false
+      _G._YaisVivid.pickerGui.IgnoreGuiInset = true
+      _G._YaisVivid.pickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+      _G._YaisVivid.pickerGui.DisplayOrder = 9999
+      _G._YaisVivid.pickerGui.Parent = HubGui
 
       local backdrop = Instance.new("Frame")
       backdrop.Name = "Backdrop"
@@ -20392,7 +20392,7 @@ function __MetroDuelsSetupVisualsUI()
       backdrop.BackgroundTransparency = 0.5
       backdrop.BorderSizePixel = 0
       backdrop.ZIndex = 1
-      backdrop.Parent = _G._MetroVivid.pickerGui
+      backdrop.Parent = _G._YaisVivid.pickerGui
 
       local POPUP_H = 348
       local pickerFrame = Instance.new("Frame")
@@ -20402,7 +20402,7 @@ function __MetroDuelsSetupVisualsUI()
       pickerFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
       pickerFrame.BorderSizePixel = 0
       pickerFrame.ZIndex = 2
-      pickerFrame.Parent = _G._MetroVivid.pickerGui
+      pickerFrame.Parent = _G._YaisVivid.pickerGui
       corner(pickerFrame, 16)
       stroke(pickerFrame, Color3.fromRGB(90, 90, 105), 1.2, 0.3)
 
@@ -20451,34 +20451,34 @@ function __MetroDuelsSetupVisualsUI()
       local contentStart = 56
       local stepSpacing = 50
 
-      _makeVividStepper(pickerFrame, "Saturation", function() return _G._MetroVivid.saturation end, function(v)
-        _G._MetroVivid.saturation = v
-        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("ColorCorrectionEffect") and c:GetAttribute("_MetroVivid") then c.Saturation = v end end end
-        saveMetroConfig()
+      _makeVividStepper(pickerFrame, "Saturation", function() return _G._YaisVivid.saturation end, function(v)
+        _G._YaisVivid.saturation = v
+        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("ColorCorrectionEffect") and c:GetAttribute("_YaisVivid") then c.Saturation = v end end end
+        saveYaisConfig()
       end, 0, 2, 0.1, "%.1f", contentStart)
 
-      _makeVividStepper(pickerFrame, "Bloom Intensity", function() return _G._MetroVivid.bloomIntensity end, function(v)
-        _G._MetroVivid.bloomIntensity = v
-        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("BloomEffect") and c:GetAttribute("_MetroVivid") then c.Intensity = v end end end
-        saveMetroConfig()
+      _makeVividStepper(pickerFrame, "Bloom Intensity", function() return _G._YaisVivid.bloomIntensity end, function(v)
+        _G._YaisVivid.bloomIntensity = v
+        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("BloomEffect") and c:GetAttribute("_YaisVivid") then c.Intensity = v end end end
+        saveYaisConfig()
       end, 0, 3, 0.1, "%.1f", contentStart + stepSpacing)
 
-      _makeVividStepper(pickerFrame, "Bloom Size", function() return _G._MetroVivid.bloomSize end, function(v)
-        _G._MetroVivid.bloomSize = v
-        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("BloomEffect") and c:GetAttribute("_MetroVivid") then c.Size = v end end end
-        saveMetroConfig()
+      _makeVividStepper(pickerFrame, "Bloom Size", function() return _G._YaisVivid.bloomSize end, function(v)
+        _G._YaisVivid.bloomSize = v
+        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("BloomEffect") and c:GetAttribute("_YaisVivid") then c.Size = v end end end
+        saveYaisConfig()
       end, 1, 56, 1, "%.0f", contentStart + stepSpacing * 2)
 
-      _makeVividStepper(pickerFrame, "Sun Rays", function() return _G._MetroVivid.sunIntensity end, function(v)
-        _G._MetroVivid.sunIntensity = v
-        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("SunRaysEffect") and c:GetAttribute("_MetroVivid") then c.Intensity = v end end end
-        saveMetroConfig()
+      _makeVividStepper(pickerFrame, "Sun Rays", function() return _G._YaisVivid.sunIntensity end, function(v)
+        _G._YaisVivid.sunIntensity = v
+        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("SunRaysEffect") and c:GetAttribute("_YaisVivid") then c.Intensity = v end end end
+        saveYaisConfig()
       end, 0, 1, 0.05, "%.2f", contentStart + stepSpacing * 3)
 
-      _makeVividStepper(pickerFrame, "DOF Focus Dist", function() return _G._MetroVivid.dofFocus end, function(v)
-        _G._MetroVivid.dofFocus = v
-        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("DepthOfFieldEffect") and c:GetAttribute("_MetroVivid") then c.FocusDistance = v end end end
-        saveMetroConfig()
+      _makeVividStepper(pickerFrame, "DOF Focus Dist", function() return _G._YaisVivid.dofFocus end, function(v)
+        _G._YaisVivid.dofFocus = v
+        if vividGraphicsEnabled then for _, c in ipairs(Lighting:GetChildren()) do if c:IsA("DepthOfFieldEffect") and c:GetAttribute("_YaisVivid") then c.FocusDistance = v end end end
+        saveYaisConfig()
       end, 1, 100, 1, "%.0f", contentStart + stepSpacing * 4)
 
       -- RESET TO DEFAULT footer
@@ -20502,7 +20502,7 @@ function __MetroDuelsSetupVisualsUI()
       })
       vividResetGrad.Rotation = 18
       vividResetGrad.Parent = resetHolder
-      _G._MetroRegAccent(resetHolder, vividResetGrad, "button")
+      _G._YaisRegAccent(resetHolder, vividResetGrad, "button")
 
       local resetBtn = Instance.new("TextButton")
       resetBtn.Name = "ResetToDefault"
@@ -20529,15 +20529,15 @@ function __MetroDuelsSetupVisualsUI()
       end)
       resetBtn.MouseButton1Click:Connect(function()
         -- Ripristina valori di default
-        _G._MetroVivid.saturation = 0.6
-        _G._MetroVivid.bloomIntensity = 0.8
-        _G._MetroVivid.bloomSize = 24
-        _G._MetroVivid.sunIntensity = 0.2
-        _G._MetroVivid.dofFocus = 25
+        _G._YaisVivid.saturation = 0.6
+        _G._YaisVivid.bloomIntensity = 0.8
+        _G._YaisVivid.bloomSize = 24
+        _G._YaisVivid.sunIntensity = 0.2
+        _G._YaisVivid.dofFocus = 25
         -- Applica subito se vivid e' attivo
         if vividGraphicsEnabled then
           for _, c in ipairs(Lighting:GetChildren()) do
-            if c:GetAttribute("_MetroVivid") then
+            if c:GetAttribute("_YaisVivid") then
               if c:IsA("ColorCorrectionEffect") then c.Saturation = 0.6
               elseif c:IsA("BloomEffect") then c.Intensity = 0.8; c.Size = 24
               elseif c:IsA("SunRaysEffect") then c.Intensity = 0.2
@@ -20545,7 +20545,7 @@ function __MetroDuelsSetupVisualsUI()
             end
           end
         end
-        saveMetroConfig()
+        saveYaisConfig()
         -- Chiudi e riapri il popup per aggiornare i valori mostrati
         _closeVividPicker()
         task.delay(0.28, function()
@@ -20578,21 +20578,21 @@ function __MetroDuelsSetupVisualsUI()
         xrayEnabled = not xrayEnabled
         pcall(setXRay, xrayEnabled)
         if setVisualXR then setVisualXR(xrayEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
   -- >>> BRAINROT X-RAY <<< riga subito sotto X-Ray
   do
-    local rowBX, setVisualBX = toggleRow(Utility, "Brainrot X-Ray", _G.MetroBrainrotXRayEnabled == true, 10)
+    local rowBX, setVisualBX = toggleRow(Utility, "Brainrot X-Ray", _G.YaisBrainrotXRayEnabled == true, 10)
     _SV.setBrainrotXRayVisual = setVisualBX
     local _bxBtn = rowBX and rowBX:FindFirstChild("ToggleButton")
     if _bxBtn then
       _bxBtn.Activated:Connect(function()
-        local on = not (_G.MetroBrainrotXRayEnabled == true)
-        if _G.MetroDuelsetBrainrotXRay then _G.MetroDuelsetBrainrotXRay(on) end
+        local on = not (_G.YaisBrainrotXRayEnabled == true)
+        if _G.YaisDuelsetBrainrotXRay then _G.YaisDuelsetBrainrotXRay(on) end
         if setVisualBX then setVisualBX(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20600,7 +20600,7 @@ function __MetroDuelsSetupVisualsUI()
     -- LayoutOrder 8 come Vivid Graphics e la sua riga Changer, ma creata
     -- dopo: a parita' di ordine il UIListLayout rispetta l'inserimento,
     -- quindi finisce subito sotto quelle due e sopra Anti Lag (9).
-    local rowKW, setVisualKW = toggleRow(Utility, "Kick Warning", _G._MetroKickWarn.enabled, 8)
+    local rowKW, setVisualKW = toggleRow(Utility, "Kick Warning", _G._YaisKickWarn.enabled, 8)
     _SV.setKickWarningVisual = setVisualKW
 
     -- ---- tendina con l'Ultimate Anti Kick ----
@@ -20660,7 +20660,7 @@ function __MetroDuelsSetupVisualsUI()
     local uakFill = Instance.new("Frame")
     uakFill.Name = "Fill"
     uakFill.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
-    uakFill.BackgroundTransparency = (_G.MetroUAKEnabled == true) and 0 or 1
+    uakFill.BackgroundTransparency = (_G.YaisUAKEnabled == true) and 0 or 1
     uakFill.Size = UDim2.new(1, 0, 1, 0)
     uakFill.BorderSizePixel = 0
     uakFill.ZIndex = 5
@@ -20679,7 +20679,7 @@ function __MetroDuelsSetupVisualsUI()
     uakKnob.Name = "Knob"
     uakKnob.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
     uakKnob.Size = UDim2.new(0, 16, 0, 16)
-    uakKnob.Position = (_G.MetroUAKEnabled == true)
+    uakKnob.Position = (_G.YaisUAKEnabled == true)
       and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
     uakKnob.BorderSizePixel = 0
     uakKnob.ZIndex = 7
@@ -20687,7 +20687,7 @@ function __MetroDuelsSetupVisualsUI()
     corner(uakKnob, 999)
     local uakKnobStroke = Instance.new("UIStroke")
     uakKnobStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    uakKnobStroke.Color = (_G.MetroUAKEnabled == true)
+    uakKnobStroke.Color = (_G.YaisUAKEnabled == true)
       and Color3.fromRGB(216, 180, 254) or Color3.fromRGB(120, 120, 135)
     uakKnobStroke.Thickness = 1.4
     uakKnobStroke.Transparency = 0.15
@@ -20702,10 +20702,10 @@ function __MetroDuelsSetupVisualsUI()
     uakShine.ZIndex = 8
     uakShine.Parent = uakKnob
     corner(uakShine, 5)
-    _G._MetroRegAccent(uakFill, uakFillGrad, "toggle", uakTrack, uakKnob, uakRow)
+    _G._YaisRegAccent(uakFill, uakFillGrad, "toggle", uakTrack, uakKnob, uakRow)
 
     local function uakPaint(on)
-      local onBg, onEdge = _G._MetroToggleOnColor()
+      local onBg, onEdge = _G._YaisToggleOnColor()
       tween(uakKnob, {Position = on and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)})
       tween(uakTrack, {
         BackgroundTransparency = on and 0 or 0.12,
@@ -20724,8 +20724,8 @@ function __MetroDuelsSetupVisualsUI()
         Thickness = 1.25
       })
     end
-    _G.MetroRefreshUAKVisual = function()
-      uakPaint(_G.MetroUAKEnabled == true)
+    _G.YaisRefreshUAKVisual = function()
+      uakPaint(_G.YaisUAKEnabled == true)
     end
 
     local uakBtn = Instance.new("TextButton")
@@ -20737,16 +20737,16 @@ function __MetroDuelsSetupVisualsUI()
     uakBtn.ZIndex = 9
     uakBtn.Parent = uakRow
     uakBtn.Activated:Connect(function()
-      _G.MetroUAKEnabled = not (_G.MetroUAKEnabled == true)
+      _G.YaisUAKEnabled = not (_G.YaisUAKEnabled == true)
       -- Spento a muro alzato: va tolto subito, se no resti chiuso dentro
       -- fino alla scadenza del timer.
-      if not _G.MetroUAKEnabled and _G.MetroUltimateAntiKick then
-        pcall(_G.MetroUltimateAntiKick.clear)
+      if not _G.YaisUAKEnabled and _G.YaisUltimateAntiKick then
+        pcall(_G.YaisUltimateAntiKick.clear)
       end
-      uakPaint(_G.MetroUAKEnabled)
-      saveMetroConfig()
+      uakPaint(_G.YaisUAKEnabled)
+      saveYaisConfig()
     end)
-    uakPaint(_G.MetroUAKEnabled == true)
+    uakPaint(_G.YaisUAKEnabled == true)
 
     -- ---- freccetta sulla riga Kick Warning ----
     local kwArrow = Instance.new("TextButton")
@@ -20771,22 +20771,22 @@ function __MetroDuelsSetupVisualsUI()
     local kwExpanded = false
     kwArrow.Activated:Connect(function()
       kwExpanded = not kwExpanded
-      _G._MetroExpand(kwHolder, kwExpanded, 38, kwArrow)
+      _G._YaisExpand(kwHolder, kwExpanded, 38, kwArrow)
     end)
 
     local _kwBtn = rowKW and rowKW:FindFirstChild("ToggleButton")
     if _kwBtn then
       _kwBtn.Activated:Connect(function()
-        _G._MetroKickWarn.enabled = not _G._MetroKickWarn.enabled
-        if not _G._MetroKickWarn.enabled then
-          if _G.MetroDestroyKickWarning then _G.MetroDestroyKickWarning() end
+        _G._YaisKickWarn.enabled = not _G._YaisKickWarn.enabled
+        if not _G._YaisKickWarn.enabled then
+          if _G.YaisDestroyKickWarning then _G.YaisDestroyKickWarning() end
         else
           local _c = LP.Character
           local _h = _c and _c:FindFirstChildOfClass("Humanoid")
-          _G._MetroKickWarn.wasLow = (_h ~= nil) and (_h.WalkSpeed < 25) or false
+          _G._YaisKickWarn.wasLow = (_h ~= nil) and (_h.WalkSpeed < 25) or false
         end
-        if setVisualKW then setVisualKW(_G._MetroKickWarn.enabled) end
-        saveMetroConfig()
+        if setVisualKW then setVisualKW(_G._YaisKickWarn.enabled) end
+        saveYaisConfig()
       end)
     end
   end
@@ -20801,12 +20801,12 @@ function __MetroDuelsSetupVisualsUI()
       _hpwBtn.Activated:Connect(function()
         highPingWarningEnabled = not highPingWarningEnabled
         if not highPingWarningEnabled then
-          local existingWarning = HubGui:FindFirstChild("MetroHubPingWarning")
+          local existingWarning = HubGui:FindFirstChild("YaisHubPingWarning")
           if existingWarning then pcall(function() existingWarning:Destroy() end) end
-          _G._MetroHPWNextAllowed = 0
+          _G._YaisHPWNextAllowed = 0
         end
         if setVisualHPW then setVisualHPW(highPingWarningEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -20839,7 +20839,7 @@ function __MetroDuelsSetupVisualsUI()
     animPackHolder.Parent = Utility
     corner(animPackHolder, 14)
     stroke(animPackHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-    _G._MetroRegAccent(animPackHolder, nil, "soft")
+    _G._YaisRegAccent(animPackHolder, nil, "soft")
 
     -- Slide indicator (si muove orizzontalmente)
     local animSlide = Instance.new("Frame")
@@ -20871,7 +20871,7 @@ function __MetroDuelsSetupVisualsUI()
       NumberSequenceKeypoint.new(1, 0.08),
     })
     animSlideGrad.Parent = animSlide
-    _G._MetroRegAccent(animSlide, animSlideGrad, "slide")
+    _G._YaisRegAccent(animSlide, animSlideGrad, "slide")
     animSlideGrad.Rotation = 22
 
     -- Crea label e click per ogni bottone
@@ -20918,7 +20918,7 @@ function __MetroDuelsSetupVisualsUI()
       clickBtn.Parent = animPackHolder
       local idx = i
       clickBtn.MouseButton1Click:Connect(function()
-        if _G.MetroDuelsetAnimPack then _G.MetroDuelsetAnimPack(idx) end
+        if _G.YaisDuelsetAnimPack then _G.YaisDuelsetAnimPack(idx) end
       end)
     end
 
@@ -20964,8 +20964,8 @@ function __MetroDuelsSetupVisualsUI()
   -- >>> CUSTOM ANIM PACK BEGIN
   -- ===== CUSTOM ANIMATION PACK ROW + PICKER =====
   ;(function()
-    local SLOTS  = _G.MetroCustomAnimSlots
-    local LABELS = _G.MetroCustomAnimLabels
+    local SLOTS  = _G.YaisCustomAnimSlots
+    local LABELS = _G.YaisCustomAnimLabels
 
     -- ---------- LA RIGA ----------
     local capRow = baseRow(Utility, "Custom Animation Pack", 10)
@@ -20997,7 +20997,7 @@ function __MetroDuelsSetupVisualsUI()
     })
     capGrad.Rotation = 18
     capGrad.Parent = capHolder
-    _G._MetroRegAccent(capHolder, capGrad, "pick")
+    _G._YaisRegAccent(capHolder, capGrad, "pick")
 
     local capBtn = Instance.new("TextButton")
     capBtn.Name = "CustomAnimButton"
@@ -21026,12 +21026,12 @@ function __MetroDuelsSetupVisualsUI()
     -- impostati si vede aprendo il picker, e nessun'altra riga della hub
     -- mostra un valore li'.
     local function refreshCount() end
-    _G.MetroCustomAnimRefreshRow = refreshCount
+    _G.YaisCustomAnimRefreshRow = refreshCount
 
     -- >>> VISIBILE SOLO CON CUSTOM <<<
     -- animate = false allo start e al load config (deve solo trovarsi gia'
     -- nello stato giusto), true quando l'utente cambia pack.
-    _G.MetroCustomAnimSetRowVisible = function(show, animate)
+    _G.YaisCustomAnimSetRowVisible = function(show, animate)
       show = show and true or false
       if animate == false then
         capRow.Visible = show
@@ -21052,7 +21052,7 @@ function __MetroDuelsSetupVisualsUI()
       end
     end
 
-    _G.MetroCustomAnimSetRowVisible(selectedAnimPackIndex == 7, false)
+    _G.YaisCustomAnimSetRowVisible(selectedAnimPackIndex == 7, false)
 
     -- ---------- IL PICKER ----------
     local capGui = nil
@@ -21075,13 +21075,13 @@ function __MetroDuelsSetupVisualsUI()
         task.delay(0.25, function() pcall(function() g:Destroy() end) end)
       end
     end
-    _G.MetroCustomAnimClose = closeCap
+    _G.YaisCustomAnimClose = closeCap
 
     -- Aggiorna una card dopo che l'ID e' stato messo o tolto.
     local function refreshCard(slot)
       local r = cardRefs[slot]
       if not r then return end
-      local id = _G.MetroCustomAnimIds[slot] or ""
+      local id = _G.YaisCustomAnimIds[slot] or ""
       if id ~= "" then
         r.mark.Text = "\u{2713}"
         r.mark.TextSize = 18
@@ -21216,7 +21216,7 @@ function __MetroDuelsSetupVisualsUI()
       mBox.BorderSizePixel = 0
       mBox.PlaceholderText = "Insert The Asset ID"
       mBox.PlaceholderColor3 = Color3.fromRGB(80, 80, 92)
-      mBox.Text = _G.MetroCustomAnimIds[slot] or ""
+      mBox.Text = _G.YaisCustomAnimIds[slot] or ""
       mBox.TextColor3 = COLORS.white
       mBox.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
       mBox.TextStrokeTransparency = 0.4
@@ -21313,11 +21313,11 @@ function __MetroDuelsSetupVisualsUI()
 
           if not miniOverlay or not miniOverlay.Parent then return end
           if valid then
-            _G.MetroCustomAnimIds[slot] = assetId
+            _G.YaisCustomAnimIds[slot] = assetId
             refreshCard(slot)
-            saveMetroConfig()
-            if _G.MetroReloadCustomAnimPack then
-              pcall(_G.MetroReloadCustomAnimPack)
+            saveYaisConfig()
+            if _G.YaisReloadCustomAnimPack then
+              pcall(_G.YaisReloadCustomAnimPack)
             end
             miniOverlay:Destroy()
           else
@@ -21340,7 +21340,7 @@ function __MetroDuelsSetupVisualsUI()
       if tick() - capJustClosedAt < 0.25 then return end
 
       capGui = Instance.new("ScreenGui")
-      capGui.Name = "MetroHubCustomAnimPicker"
+      capGui.Name = "YaisHubCustomAnimPicker"
       capGui.ResetOnSpawn = false
       capGui.IgnoreGuiInset = true
       capGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -21522,11 +21522,11 @@ function __MetroDuelsSetupVisualsUI()
           TweenService:Create(clear, TweenInfo.new(0.1), {TextColor3 = Color3.fromRGB(255, 55, 55)}):Play()
         end)
         clear.MouseButton1Click:Connect(function()
-          _G.MetroCustomAnimIds[slot] = ""
+          _G.YaisCustomAnimIds[slot] = ""
           refreshCard(slot)
-          saveMetroConfig()
-          if _G.MetroReloadCustomAnimPack then
-            pcall(_G.MetroReloadCustomAnimPack)
+          saveYaisConfig()
+          if _G.YaisReloadCustomAnimPack then
+            pcall(_G.YaisReloadCustomAnimPack)
           end
         end)
 
@@ -21558,7 +21558,7 @@ function __MetroDuelsSetupVisualsUI()
   -- ===== AVATAR CHANGER =====
   do
     -- ---- Stato persistente ----
-    _G._MetroAvatarChanger = {
+    _G._YaisAvatarChanger = {
       Hair     = { enabled=false, savedId=nil, savedName="" },
       Hats     = { enabled=false, savedId=nil, savedName="" },
       Face     = { enabled=false, savedId=nil, savedName="" },
@@ -21575,15 +21575,15 @@ function __MetroDuelsSetupVisualsUI()
       Bottoms  = { enabled=false, savedId=nil, savedName="" },
     }
     -- Applica i dati caricati dal config se presenti
-    if type(_G._MetroAvatarChangerPending) == "table" then
-      for k,v in pairs(_G._MetroAvatarChangerPending) do
-        if _G._MetroAvatarChanger[k] then
-          _G._MetroAvatarChanger[k].enabled   = v.enabled == true
-          _G._MetroAvatarChanger[k].savedId   = tonumber(v.savedId)
-          _G._MetroAvatarChanger[k].savedName = tostring(v.savedName or "")
+    if type(_G._YaisAvatarChangerPending) == "table" then
+      for k,v in pairs(_G._YaisAvatarChangerPending) do
+        if _G._YaisAvatarChanger[k] then
+          _G._YaisAvatarChanger[k].enabled   = v.enabled == true
+          _G._YaisAvatarChanger[k].savedId   = tonumber(v.savedId)
+          _G._YaisAvatarChanger[k].savedName = tostring(v.savedName or "")
         end
       end
-      _G._MetroAvatarChangerPending = nil
+      _G._YaisAvatarChangerPending = nil
     end
 
     local AC_CATEGORIES = {
@@ -21612,7 +21612,7 @@ function __MetroDuelsSetupVisualsUI()
     local _acAssetCache = {}
 
     -- Usa l'helper condiviso definito in cima allo script
-    local _acWaitCharReady = _G._MetroWaitCharReady
+    local _acWaitCharReady = _G._YaisWaitCharReady
 
     -- Ritorna true solo se l'item e' stato davvero applicato.
     local function _acEquipItem(itemId, itemType, itemName, gen)
@@ -21730,10 +21730,10 @@ function __MetroDuelsSetupVisualsUI()
 
     -- ---- Save/Load separato ----
     local function _acSaveConfig()
-      pcall(saveMetroConfig)
+      pcall(saveYaisConfig)
     end
 
-    -- (load avviene in loadMetroConfig, già eseguita prima di questo blocco)
+    -- (load avviene in loadYaisConfig, già eseguita prima di questo blocco)
 
     -- Applica tutti gli item con toggle ON
     local function _acApplyAll(gen)
@@ -21747,7 +21747,7 @@ function __MetroDuelsSetupVisualsUI()
 
       for _,cat in ipairs(AC_CATEGORIES) do
         if gen ~= _acGen then return end   -- respawn nel frattempo: si abortisce
-        local entry=_G._MetroAvatarChanger[cat.Name]
+        local entry=_G._YaisAvatarChanger[cat.Name]
         if entry and entry.enabled and entry.savedId then
           -- Fino a 3 tentativi: se l'asset tarda o il weld non trova
           -- l'attachment, si riprova invece di perdere l'item.
@@ -21833,7 +21833,7 @@ function __MetroDuelsSetupVisualsUI()
         if hum and hum.Health <= 0 then return end
         local now = tick()
         for _, cat in ipairs(AC_CATEGORIES) do
-          local entry = _G._MetroAvatarChanger[cat.Name]
+          local entry = _G._YaisAvatarChanger[cat.Name]
           if entry and entry.enabled and entry.savedId then
             if isPresent(character, cat, entry) then
               fails[cat.Name] = nil
@@ -21860,7 +21860,7 @@ function __MetroDuelsSetupVisualsUI()
           end
         end
       end
-      _G._MetroAvatarChangerRecheck = function() fails = {}; pcall(runCheck) end
+      _G._YaisAvatarChangerRecheck = function() fails = {}; pcall(runCheck) end
 
       local function hookCharacter(character)
         for _, c in ipairs(charConns) do pcall(function() c:Disconnect() end) end
@@ -21936,7 +21936,7 @@ function __MetroDuelsSetupVisualsUI()
       _acPickerCat = catName
 
       _acPickerGui=Instance.new("ScreenGui")
-      _acPickerGui.Name="MetroHubAVChanger"
+      _acPickerGui.Name="YaisHubAVChanger"
       _acPickerGui.ResetOnSpawn=false
       _acPickerGui.IgnoreGuiInset=true
       _acPickerGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
@@ -22123,14 +22123,14 @@ function __MetroDuelsSetupVisualsUI()
         end)
         card.MouseLeave:Connect(function()
           -- ripristina colore normale (verde=selezionato gia' equipaggiato)
-          local entry=_G._MetroAvatarChanger[catName]
+          local entry=_G._YaisAvatarChanger[catName]
           local isSaved = entry and entry.savedId == item.Id
           tween(card,{BackgroundColor3=isSaved and Color3.fromRGB(20,36,20) or Color3.fromRGB(16,16,20)},0.1)
           tween(cardStroke,{Color=isSaved and Color3.fromRGB(120,220,120) or Color3.fromRGB(50,50,62),Transparency=isSaved and 0.15 or 0.5},0.1)
         end)
 
         -- Evidenzia se gia' salvato
-        local entry=_G._MetroAvatarChanger[catName]
+        local entry=_G._YaisAvatarChanger[catName]
         if entry and entry.savedId == item.Id then
           card.BackgroundColor3=Color3.fromRGB(20,36,20)
           cardStroke.Color=Color3.fromRGB(120,220,120)
@@ -22138,7 +22138,7 @@ function __MetroDuelsSetupVisualsUI()
         end
 
         card.Activated:Connect(function()
-          local ent=_G._MetroAvatarChanger[catName]
+          local ent=_G._YaisAvatarChanger[catName]
           if not ent then return end
           -- Se toggle ON e c'era un vecchio item, rimuovilo prima
           if ent.enabled and ent.savedId and ent.savedName ~= "" then
@@ -22278,7 +22278,7 @@ function __MetroDuelsSetupVisualsUI()
     for i,cat in ipairs(AC_CATEGORIES) do
       local catName=cat.Name
       local catAssetTypes=cat.AssetTypes
-      local entry=_G._MetroAvatarChanger[catName]
+      local entry=_G._YaisAvatarChanger[catName]
 
       -- Usa baseRow identico a toggleRow, poi aggiungi manualmente toggle+PICK
       local subRow=Instance.new("Frame")
@@ -22366,12 +22366,12 @@ function __MetroDuelsSetupVisualsUI()
       shine.ZIndex=8
       shine.Parent=knob
       corner(shine,5)
-      _G._MetroRegAccent(fill, acFillGrad, "toggle", track, knob, subRow)
+      _G._YaisRegAccent(fill, acFillGrad, "toggle", track, knob, subRow)
 
       -- setVisual identico a toggleRow
       local function subSetVisual(on)
         tween(knob,{Position=on and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8)})
-        local _onBg, _onEdge = _G._MetroToggleOnColor()
+        local _onBg, _onEdge = _G._YaisToggleOnColor()
         tween(track,{
           BackgroundTransparency=on and 0 or 0.12,
           BackgroundColor3=on and _onBg or COLORS.toggleBg
@@ -22409,7 +22409,7 @@ function __MetroDuelsSetupVisualsUI()
         local _cn=catName
         local _cat=catAssetTypes
         toggleBtn.Activated:Connect(function()
-          local ent=_G._MetroAvatarChanger[_cn]
+          local ent=_G._YaisAvatarChanger[_cn]
           if not ent then return end
           ent.enabled=not ent.enabled
           subSetVisual(ent.enabled)
@@ -22448,7 +22448,7 @@ function __MetroDuelsSetupVisualsUI()
       })
       pickGradAc.Rotation = 18
       pickGradAc.Parent = pickHolder
-      _G._MetroRegAccent(pickHolder, pickGradAc, "pick")
+      _G._YaisRegAccent(pickHolder, pickGradAc, "pick")
 
       local pickBtn=Instance.new("TextButton")
       pickBtn.Name="PickBtn"
@@ -22489,15 +22489,15 @@ function __MetroDuelsSetupVisualsUI()
       acExpanded=on
       -- Animazione a tendina + freccia che ruota, come Infinite Jump / Anti Ragdoll.
       -- Usa la variante Auto perche' il sub holder ha AutomaticSize.Y (14 sub-righe).
-      _G._MetroExpandAuto(acSubHolder, on, acSubLayout, acArrowBtn)
-      _G._MetroClampCanvas(Utility)
+      _G._YaisExpandAuto(acSubHolder, on, acSubLayout, acArrowBtn)
+      _G._YaisClampCanvas(Utility)
     end
     acArrowBtn.Activated:Connect(function() acSetExpanded(not acExpanded) end)
 
     -- ---- Hook Reset All Settings ----
-    _G._MetroAvatarChangerReset=function()
+    _G._YaisAvatarChangerReset=function()
       for _,cat in ipairs(AC_CATEGORIES) do
-        local entry=_G._MetroAvatarChanger[cat.Name]
+        local entry=_G._YaisAvatarChanger[cat.Name]
         if entry then
           -- Rimuovi subito dal personaggio se era attivo
           if entry.enabled and entry.savedId then
@@ -22519,7 +22519,7 @@ function __MetroDuelsSetupVisualsUI()
       _headlessBtn.Activated:Connect(function()
         if headlessEnabled then disableHeadless() else enableHeadless() end
         if setVisualH then setVisualH(headlessEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -22531,7 +22531,7 @@ function __MetroDuelsSetupVisualsUI()
       _korbloxBtn.Activated:Connect(function()
         if korbloxEnabled then disableKorblox() else enableKorblox() end
         if setVisualK then setVisualK(korbloxEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -22545,15 +22545,15 @@ function __MetroDuelsSetupVisualsUI()
   -- scelta skin: due sezioni (Bat / Medusa) con slide fluida e anteprime 3D
   -- dell'oggetto che ruota.
   do
-    local rowCT, setVisualCT = toggleRow(Utility, "Custom Tools", _G.MetroCustomToolsEnabled == true, 12)
+    local rowCT, setVisualCT = toggleRow(Utility, "Custom Tools", _G.YaisCustomToolsEnabled == true, 12)
     _SV.setCustomToolsVisual = setVisualCT
     local btn = rowCT and rowCT:FindFirstChild("ToggleButton")
     if btn then
       btn.Activated:Connect(function()
-        local on = not (_G.MetroCustomToolsEnabled == true)
-        if _G.MetroCustomTools then _G.MetroCustomTools.setEnabled(on) end
+        local on = not (_G.YaisCustomToolsEnabled == true)
+        if _G.YaisCustomTools then _G.YaisCustomTools.setEnabled(on) end
         if setVisualCT then setVisualCT(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
 
@@ -22585,7 +22585,7 @@ function __MetroDuelsSetupVisualsUI()
       stroke(ctArrow, COLORS.strokeSoft, 1, 0.45)
       ctArrow.Activated:Connect(function()
         ctExpanded = not ctExpanded
-        _G._MetroExpand(ctSelRow, ctExpanded, 42, ctArrow)
+        _G._YaisExpand(ctSelRow, ctExpanded, 42, ctArrow)
       end)
     end
 
@@ -22610,7 +22610,7 @@ function __MetroDuelsSetupVisualsUI()
     })
     ctGrad.Rotation = 18
     ctGrad.Parent = ctBtnHolder
-    _G._MetroRegAccent(ctBtnHolder, ctGrad, "pick")
+    _G._YaisRegAccent(ctBtnHolder, ctGrad, "pick")
 
     local ctPickBtn = Instance.new("TextButton")
     ctPickBtn.Name = "CustomToolsPick"
@@ -22652,7 +22652,7 @@ function __MetroDuelsSetupVisualsUI()
       if ctGui and ctGui.Parent then closeCTPicker() return end
 
       ctGui = Instance.new("ScreenGui")
-      ctGui.Name = "MetroCustomToolsPicker"
+      ctGui.Name = "YaisCustomToolsPicker"
       ctGui.ResetOnSpawn = false
       ctGui.IgnoreGuiInset = true
       ctGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -22871,7 +22871,7 @@ function __MetroDuelsSetupVisualsUI()
 
 
         local function refreshSel()
-          local sel = (_G.MetroCustomToolSkins[def.cat] == key)
+          local sel = (_G.YaisCustomToolSkins[def.cat] == key)
           tween(cStroke, {
             -- lo stesso bianco del resto della GUI, non il viola
             Color = sel and COLORS.white or COLORS.strokeSoft,
@@ -22902,8 +22902,8 @@ function __MetroDuelsSetupVisualsUI()
           }, 0.12)
         end)
         click.MouseButton1Click:Connect(function()
-          if _G.MetroDuelsetCustomToolSkin then
-            _G.MetroDuelsetCustomToolSkin(def.cat, key)
+          if _G.YaisDuelsetCustomToolSkin then
+            _G.YaisDuelsetCustomToolSkin(def.cat, key)
           end
           for _, e in ipairs(cards) do e.refresh() end
         end)
@@ -22912,7 +22912,7 @@ function __MetroDuelsSetupVisualsUI()
         return entry
       end
 
-      for key, def in pairs(_G.MetroCustomToolAssets or {}) do
+      for key, def in pairs(_G.YaisCustomToolAssets or {}) do
         cards[#cards + 1] = buildCard(def, key, #cards + 1)
       end
 
@@ -23057,43 +23057,43 @@ function __MetroDuelsSetupVisualsUI()
   -- <<< CUSTOM TOOLS + SELETTORE SKIN END
 
   do
-    local rowRT, setVisualRT = toggleRow(Utility, "Rainbow Tools", _G.MetroRainbowToolsEnabled == true, 12)
+    local rowRT, setVisualRT = toggleRow(Utility, "Rainbow Tools", _G.YaisRainbowToolsEnabled == true, 12)
     _SV.setRainbowToolsVisual = setVisualRT
     local btn = rowRT and rowRT:FindFirstChild("ToggleButton")
     if btn then
       btn.Activated:Connect(function()
-        local on = not (_G.MetroRainbowToolsEnabled == true)
-        if _G.MetroRainbowTools then _G.MetroRainbowTools.setEnabled(on) end
+        local on = not (_G.YaisRainbowToolsEnabled == true)
+        if _G.YaisRainbowTools then _G.YaisRainbowTools.setEnabled(on) end
         if setVisualRT then setVisualRT(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
 
   do
-    local rowTT, setVisualTT = toggleRow(Utility, "Transparent Tools", _G.MetroTransparentToolsEnabled == true, 12)
+    local rowTT, setVisualTT = toggleRow(Utility, "Transparent Tools", _G.YaisTransparentToolsEnabled == true, 12)
     _SV.setTransparentToolsVisual = setVisualTT
     local btn = rowTT and rowTT:FindFirstChild("ToggleButton")
     if btn then
       btn.Activated:Connect(function()
-        local on = not (_G.MetroTransparentToolsEnabled == true)
-        if _G.MetroTransparentTools then _G.MetroTransparentTools.setEnabled(on) end
+        local on = not (_G.YaisTransparentToolsEnabled == true)
+        if _G.YaisTransparentTools then _G.YaisTransparentTools.setEnabled(on) end
         if setVisualTT then setVisualTT(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
 
   do
-    local rowCS, setVisualCS = toggleRow(Utility, "Custom Sounds", _G.MetroCustomSoundsEnabled == true, 12)
+    local rowCS, setVisualCS = toggleRow(Utility, "Custom Sounds", _G.YaisCustomSoundsEnabled == true, 12)
     _SV.setCustomSoundsVisual = setVisualCS
     local btn = rowCS and rowCS:FindFirstChild("ToggleButton")
     if btn then
       btn.Activated:Connect(function()
-        local on = not (_G.MetroCustomSoundsEnabled == true)
-        if _G.MetroCustomSounds then _G.MetroCustomSounds.setEnabled(on) end
+        local on = not (_G.YaisCustomSoundsEnabled == true)
+        if _G.YaisCustomSounds then _G.YaisCustomSounds.setEnabled(on) end
         if setVisualCS then setVisualCS(on) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
   end
@@ -23111,7 +23111,7 @@ do
     local SEG_N = #STRETCH_PICKS
 
     -- Valore scelto quando il toggle e' acceso (indice dentro stretchPresetOrder)
-    _G.MetroDuelstretchPick = _G.MetroDuelstretchPick
+    _G.YaisDuelstretchPick = _G.YaisDuelstretchPick
         or ((stretchCurrentIndex and stretchCurrentIndex > 1) and stretchCurrentIndex or 2)
 
     local row, setStretchVisual = toggleRow(Utility, "Stretch Rez", stretchEnabled == true, 14)
@@ -23130,7 +23130,7 @@ do
     segHolder.Parent = Utility
     corner(segHolder, 14)
     stroke(segHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-    _G._MetroRegAccent(segHolder, nil, "soft")
+    _G._YaisRegAccent(segHolder, nil, "soft")
 
     local segSlide = Instance.new("Frame")
     segSlide.Name = "SelectedSlide"
@@ -23157,7 +23157,7 @@ do
     })
     segSlideGrad.Rotation = 22
     segSlideGrad.Parent = segSlide
-    _G._MetroRegAccent(segSlide, segSlideGrad, "slide")
+    _G._YaisRegAccent(segSlide, segSlideGrad, "slide")
 
     local segLabels = {}
     local segW = 1 / SEG_N
@@ -23188,19 +23188,19 @@ do
         clk.Parent = segHolder
         local picked = p.idx
         clk.MouseButton1Click:Connect(function()
-            _G.MetroDuelstretchPick = picked
+            _G.YaisDuelstretchPick = picked
             -- Se il toggle e' acceso il nuovo valore parte subito;
             -- se e' spento resta memorizzato per la prossima accensione.
             if stretchEnabled then applyStretchPreset(picked) end
-            if _G.MetroRefreshStretchSelector then _G.MetroRefreshStretchSelector() end
-            saveMetroConfig()
+            if _G.YaisRefreshStretchSelector then _G.YaisRefreshStretchSelector() end
+            saveYaisConfig()
         end)
     end
 
     local function refreshStretchSelector()
         -- Quale segmento evidenziare: quello scelto, non stretchCurrentIndex,
         -- che a toggle spento vale 1 e non corrisponde a nessun segmento.
-        local pick = _G.MetroDuelstretchPick or 2
+        local pick = _G.YaisDuelstretchPick or 2
         local segIdx = 1
         for i, p in ipairs(STRETCH_PICKS) do
             if p.idx == pick then segIdx = i break end
@@ -23217,7 +23217,7 @@ do
         end
         if setStretchVisual then pcall(setStretchVisual, stretchEnabled == true) end
     end
-    _G.MetroRefreshStretchSelector = refreshStretchSelector
+    _G.YaisRefreshStretchSelector = refreshStretchSelector
 
     local sBtn = row and row:FindFirstChild("ToggleButton")
     if sBtn then
@@ -23225,10 +23225,10 @@ do
             if stretchEnabled then
                 applyStretchPreset(1)                       -- spento = X1
             else
-                applyStretchPreset(_G.MetroDuelstretchPick or 2)
+                applyStretchPreset(_G.YaisDuelstretchPick or 2)
             end
             refreshStretchSelector()
-            saveMetroConfig()
+            saveYaisConfig()
         end)
     end
 
@@ -23254,7 +23254,7 @@ do
     local sExpanded = false
     sArrow.Activated:Connect(function()
         sExpanded = not sExpanded
-        _G._MetroExpand(segHolder, sExpanded, 42, sArrow)
+        _G._YaisExpand(segHolder, sExpanded, 42, sArrow)
     end)
 
     refreshStretchSelector()
@@ -23270,7 +23270,7 @@ do
             _motionBlurEffect = Lighting:FindFirstChildOfClass("BlurEffect")
             if not _motionBlurEffect then
                 _motionBlurEffect = Instance.new("BlurEffect")
-                _motionBlurEffect.Name = "MetroMotionBlur"
+                _motionBlurEffect.Name = "YaisMotionBlur"
             end
         end
         _motionBlurEffect.Size = 0
@@ -23325,7 +23325,7 @@ do
                 _stopMotionBlur()
             end
             if setVisual then setVisual(motionBlurEnabled) end
-            saveMetroConfig()
+            saveYaisConfig()
         end)
     end
 
@@ -23339,12 +23339,12 @@ end
 do
     local row, setVisual = toggleRow(Utility, "No Cam Collision", noCamCollisionEnabled, 16)
     _SV.setNoCamCollisionVisual = setVisual
-    _MetroBtn = row and row:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-        _MetroBtn.Activated:Connect(function()
+    _YaisBtn = row and row:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+        _YaisBtn.Activated:Connect(function()
             if noCamCollisionEnabled then disableNoCamCollision() else enableNoCamCollision() end
             if setVisual then setVisual(noCamCollisionEnabled) end
-            saveMetroConfig()
+            saveYaisConfig()
         end)
     end
 end
@@ -23359,12 +23359,12 @@ do
     -- Ordine 14 come lo Stretch Rez: creata dopo, finisce subito sotto di esso.
     local row, setVisual = toggleRow(Utility, "FOV", fovEnabled, 14)
     _SV.setFOVVisual = setVisual
-    _MetroBtn = row and row:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-        _MetroBtn.Activated:Connect(function()
+    _YaisBtn = row and row:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+        _YaisBtn.Activated:Connect(function()
             if fovEnabled then disableCustomFov() else enableCustomFov() end
             if setVisual then setVisual(fovEnabled) end
-            saveMetroConfig()
+            saveYaisConfig()
         end)
     end
 
@@ -23400,7 +23400,7 @@ do
     fovHolder.Parent = Utility
     corner(fovHolder, 14)
     stroke(fovHolder, Color3.fromRGB(126, 71, 190), 1.4, 0.32)
-    _G._MetroRegAccent(fovHolder, nil, "soft")
+    _G._YaisRegAccent(fovHolder, nil, "soft")
 
     local fovLabel = Instance.new("TextLabel")
     fovLabel.Name = "Label"
@@ -23435,8 +23435,8 @@ do
     stroke(fovBox, COLORS.strokeSoft, 1, 0.45)
 
     -- Bridge per Reset All Settings / load config
-    _G.MetroFovValueBox = fovBox
-    _G.MetroRefreshFovValueBox = function()
+    _G.YaisFovValueBox = fovBox
+    _G.YaisRefreshFovValueBox = function()
         pcall(function() fovBox.Text = tostring(fovValue) end)
     end
 
@@ -23449,12 +23449,12 @@ do
             end
         end
         fovBox.Text = tostring(fovValue)
-        saveMetroConfig()
+        saveYaisConfig()
     end)
 
     fovArrow.Activated:Connect(function()
         fovExpanded = not fovExpanded
-        _G._MetroExpand(fovHolder, fovExpanded, 42, fovArrow)
+        _G._YaisExpand(fovHolder, fovExpanded, 42, fovArrow)
     end)
 end
 -- <<< FOV VALUE ARROW END
@@ -23464,43 +23464,43 @@ end
 section(Utility, "RAINBOW MOBILE JOYSTICK", 18)
 do
     local row, setVisual = toggleRow(Utility, "Rainbow Mobile Joystick",
-      _G.MetroRainbowJoystickEnabled == true, 19)
+      _G.YaisRainbowJoystickEnabled == true, 19)
     _SV.setRainbowJoystickVisual = setVisual
-    _MetroBtn = row and row:FindFirstChild("ToggleButton")
-    if _MetroBtn then
-        _MetroBtn.Activated:Connect(function()
-            local on = not (_G.MetroRainbowJoystickEnabled == true)
-            if _G.MetroDuelsetRainbowJoystick then
-              pcall(_G.MetroDuelsetRainbowJoystick, on)
+    _YaisBtn = row and row:FindFirstChild("ToggleButton")
+    if _YaisBtn then
+        _YaisBtn.Activated:Connect(function()
+            local on = not (_G.YaisRainbowJoystickEnabled == true)
+            if _G.YaisDuelsetRainbowJoystick then
+              pcall(_G.YaisDuelsetRainbowJoystick, on)
             end
-            if setVisual then setVisual(_G.MetroRainbowJoystickEnabled == true) end
-            saveMetroConfig()
+            if setVisual then setVisual(_G.YaisRainbowJoystickEnabled == true) end
+            saveYaisConfig()
         end)
     end
-    if setVisual then setVisual(_G.MetroRainbowJoystickEnabled == true) end
+    if setVisual then setVisual(_G.YaisRainbowJoystickEnabled == true) end
 end
 -- <<< RAINBOW MOBILE JOYSTICK END
-end -- chiude __MetroDuelsSetupVisualsUI
+end -- chiude __YaisDuelsSetupVisualsUI
 
 -- ============================================================
 -- SETTINGS PAGE
 -- ============================================================
 Settings = pages.SETTINGS
-MetroGuiScaleValue = tonumber(savedConfig.MetroGuiScaleValue) or 0.75
-MetroGuiScaleValue = math.clamp(tonumber(MetroGuiScaleValue) or 0.50, 0.50, 1.50)
-MetroProgressBarScaleValue = tonumber(savedConfig.MetroProgressBarScaleValue) or 0.85
-MetroMainScale = Main:FindFirstChild("MetroMainScale") or Instance.new("UIScale")
-MetroMainScale.Name = "MetroMainScale"
-MetroMainScale.Scale = MetroGuiScaleValue
-MetroMainScale.Parent = Main
+YaisGuiScaleValue = tonumber(savedConfig.YaisGuiScaleValue) or 0.75
+YaisGuiScaleValue = math.clamp(tonumber(YaisGuiScaleValue) or 0.50, 0.50, 1.50)
+YaisProgressBarScaleValue = tonumber(savedConfig.YaisProgressBarScaleValue) or 0.85
+YaisMainScale = Main:FindFirstChild("YaisMainScale") or Instance.new("UIScale")
+YaisMainScale.Name = "YaisMainScale"
+YaisMainScale.Scale = YaisGuiScaleValue
+YaisMainScale.Parent = Main
 
-local function applyMetroProgressBarScale()
-  local sg = HubGui:FindFirstChild("MetroHubStealBarGui")
+local function applyYaisProgressBarScale()
+  local sg = HubGui:FindFirstChild("YaisHubStealBarGui")
   local bar = sg and sg:FindFirstChild("StealBar")
   if not bar then return end
-  local sc = bar:FindFirstChild("MetroProgressBarScale") or Instance.new("UIScale")
-  sc.Name = "MetroProgressBarScale"
-  sc.Scale = MetroProgressBarScaleValue
+  local sc = bar:FindFirstChild("YaisProgressBarScale") or Instance.new("UIScale")
+  sc.Name = "YaisProgressBarScale"
+  sc.Scale = YaisProgressBarScaleValue
   sc.Parent = bar
 
   -- UIScale ridimensiona i frame ma NON il TextSize fisso: senza questo
@@ -23515,29 +23515,29 @@ local function applyMetroProgressBarScale()
         d:SetAttribute("AmbBaseTextSize", base)
       end
       pcall(function()
-        d.TextSize = math.max(1, math.floor(base * MetroProgressBarScaleValue + 0.5))
+        d.TextSize = math.max(1, math.floor(base * YaisProgressBarScaleValue + 0.5))
       end)
     end
   end
 end
-_G.MetroApplyProgressBarScale = applyMetroProgressBarScale
+_G.YaisApplyProgressBarScale = applyYaisProgressBarScale
 
-_G.__MetroDuelsSetupSettingsUI = function()
+_G.__YaisDuelsSetupSettingsUI = function()
   section(Settings, "GUI SETTINGS", 1)
   -- La riga "Lock GUI" e' stata tolta: il lucchetto sta gia' in alto a
   -- sinistra nella finestra, averlo anche qui era un doppione. La funzione
   -- e il salvataggio restano identici, comanda solo quel bottone.
 
   do
-    local row, setVisual = _G.MetroActionToggleRow(Settings, "Hide Mobile Buttons", _G.MetroHideMobileButtons == true, 9)
+    local row, setVisual = _G.YaisActionToggleRow(Settings, "Hide Mobile Buttons", _G.YaisHideMobileButtons == true, 9)
     setHideMobileButtonsVisual = setVisual
     local btn = row and row:FindFirstChild("ToggleButton")
     if btn then
       btn.Activated:Connect(function()
-        _G.MetroHideMobileButtons = not (_G.MetroHideMobileButtons == true)
-        if setVisual then setVisual(_G.MetroHideMobileButtons == true) end
-        if _G.MetroApplyMobileButtonsHidden then _G.MetroApplyMobileButtonsHidden() end
-        saveMetroConfig()
+        _G.YaisHideMobileButtons = not (_G.YaisHideMobileButtons == true)
+        if setVisual then setVisual(_G.YaisHideMobileButtons == true) end
+        if _G.YaisApplyMobileButtonsHidden then _G.YaisApplyMobileButtonsHidden() end
+        saveYaisConfig()
       end)
     end
 
@@ -23626,7 +23626,7 @@ _G.__MetroDuelsSetupSettingsUI = function()
       lbl.ZIndex = 5
       lbl.Parent = r
 
-      local startOn = _G.MetroMobileHideIncluded(item.key)
+      local startOn = _G.YaisMobileHideIncluded(item.key)
 
       local track = Instance.new("Frame")
       track.Name = "Track"
@@ -23683,10 +23683,10 @@ _G.__MetroDuelsSetupSettingsUI = function()
       shine.ZIndex = 8
       shine.Parent = knob
       corner(shine, 5)
-      _G._MetroRegAccent(fill, fillGrad, "toggle", track, knob, r)
+      _G._YaisRegAccent(fill, fillGrad, "toggle", track, knob, r)
 
       local function paint(on)
-        local onBg, onEdge = _G._MetroToggleOnColor()
+        local onBg, onEdge = _G._YaisToggleOnColor()
         tween(knob, {Position = on and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)})
         tween(track, {
           BackgroundTransparency = on and 0 or 0.12,
@@ -23716,11 +23716,11 @@ _G.__MetroDuelsSetupSettingsUI = function()
       toggleBtn.ZIndex = 9
       toggleBtn.Parent = r
       toggleBtn.Activated:Connect(function()
-        local on = not _G.MetroMobileHideIncluded(item.key)
-        _G.MetroMobileHideList[item.key] = on
+        local on = not _G.YaisMobileHideIncluded(item.key)
+        _G.YaisMobileHideList[item.key] = on
         paint(on)
-        if _G.MetroApplyMobileButtonsHidden then _G.MetroApplyMobileButtonsHidden() end
-        saveMetroConfig()
+        if _G.YaisApplyMobileButtonsHidden then _G.YaisApplyMobileButtonsHidden() end
+        saveYaisConfig()
       end)
 
       -- Refresh esterno (load config / reset)
@@ -23733,10 +23733,10 @@ _G.__MetroDuelsSetupSettingsUI = function()
       paint(startOn)
     end
 
-    _G.MetroRefreshMobileHideList = function()
+    _G.YaisRefreshMobileHideList = function()
       for _, item in ipairs(HIDE_ITEMS) do
         local f = _G["_AmbHideOptPaint_" .. item.key]
-        if f then pcall(f, _G.MetroMobileHideIncluded(item.key)) end
+        if f then pcall(f, _G.YaisMobileHideIncluded(item.key)) end
       end
     end
 
@@ -23762,7 +23762,7 @@ _G.__MetroDuelsSetupSettingsUI = function()
     local hmExpanded = false
     hmArrow.Activated:Connect(function()
       hmExpanded = not hmExpanded
-      _G._MetroExpand(hmHolder, hmExpanded, HOLDER_H, hmArrow)
+      _G._YaisExpand(hmHolder, hmExpanded, HOLDER_H, hmArrow)
     end)
   end
 
@@ -23791,7 +23791,7 @@ _G.__MetroDuelsSetupSettingsUI = function()
         st.Thickness = selected and 1.15 or 1
       end
     end
-    if _G.MetroCustomBgPreviewUpdate then pcall(_G.MetroCustomBgPreviewUpdate) end
+    if _G.YaisCustomBgPreviewUpdate then pcall(_G.YaisCustomBgPreviewUpdate) end
   end
 
   -- RIMOSSO il pulsante "None"
@@ -23890,7 +23890,7 @@ makeImageButton(4, 220) -- +68
     customBgPreviewNone.Parent = customBgPreview
 
     -- Funzione aggiorna preview (chiamabile globalmente)
-    _G.MetroCustomBgPreviewUpdate = function()
+    _G.YaisCustomBgPreviewUpdate = function()
       if customBgSelected then
         customBgPreviewImg.Image = "rbxassetid://" .. customBgSelected
         customBgPreviewImg.Visible = true
@@ -23924,7 +23924,7 @@ makeImageButton(4, 220) -- +68
     })
     customBgPickGrad.Rotation = 18
     customBgPickGrad.Parent = customBgBtnHolder
-    _G._MetroRegAccent(customBgBtnHolder, customBgPickGrad, "pick")
+    _G._YaisRegAccent(customBgBtnHolder, customBgPickGrad, "pick")
 
     local customBgBtn = Instance.new("TextButton")
     customBgBtn.Name = "CustomBgButton"
@@ -24035,7 +24035,7 @@ makeImageButton(4, 220) -- +68
             customBgSelected = nil
             applyBackground(1)
           end
-          saveMetroConfig()
+          saveYaisConfig()
           if customBgPickerGui and customBgPickerGui.Parent then
             local sf2 = customBgPickerGui:FindFirstChild("Frame") and customBgPickerGui.Frame:FindFirstChild("Scroll")
             if sf2 then rebuildCustomThumbs(sf2) end
@@ -24338,7 +24338,7 @@ makeImageButton(4, 220) -- +68
             if not miniOverlay or not miniOverlay.Parent then return end
             if valid then
               table.insert(customBgIds, assetId)
-              saveMetroConfig()
+              saveYaisConfig()
               if customBgPickerGui and customBgPickerGui.Parent then
                 local sf = customBgPickerGui:FindFirstChild("Frame") and customBgPickerGui.Frame:FindFirstChild("Scroll")
                 if sf then rebuildCustomThumbs(sf) end
@@ -24365,7 +24365,7 @@ makeImageButton(4, 220) -- +68
       end
 
       customBgPickerGui = Instance.new("ScreenGui")
-      customBgPickerGui.Name = "MetroHubCustomBgPicker"
+      customBgPickerGui.Name = "YaisHubCustomBgPicker"
       customBgPickerGui.ResetOnSpawn = false
       customBgPickerGui.IgnoreGuiInset = true
       customBgPickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -24484,7 +24484,7 @@ makeImageButton(4, 220) -- +68
       }):Play()
     end)
 
-    _G.MetroCustomBgPreviewUpdate()
+    _G.YaisCustomBgPreviewUpdate()
   end
   -- ===== FINE CUSTOM BACKGROUND ROW =====
 
@@ -24515,16 +24515,16 @@ makeImageButton(4, 220) -- +68
 --
 -- Tutto su _G: zero local aggiunti al chunk principale.
 -- ============================================================
-_G.MetroFonts = _G.MetroFonts or {}
-_G.MetroFonts.orig = _G.MetroFonts.orig or {}
-_G.MetroFonts.conns = _G.MetroFonts.conns or {}
+_G.YaisFonts = _G.YaisFonts or {}
+_G.YaisFonts.orig = _G.YaisFonts.orig or {}
+_G.YaisFonts.conns = _G.YaisFonts.conns or {}
 -- TextSize di partenza di ogni elemento, per l'adattamento automatico.
 -- Strong come orig: senza il valore originale il ripristino non tornerebbe.
-_G.MetroFonts.size = _G.MetroFonts.size or {}
-_G.MetroFontChoice = _G.MetroFontChoice or "Default"
+_G.YaisFonts.size = _G.YaisFonts.size or {}
+_G.YaisFontChoice = _G.YaisFontChoice or "Default"
 
 -- Nome breve del peso, per l'etichetta della card.
-_G.MetroFonts.WEIGHT_LABEL = {
+_G.YaisFonts.WEIGHT_LABEL = {
   Thin = "Thin", ExtraLight = "ExLight", Light = "Light", Regular = "",
   Medium = "Medium", SemiBold = "SemiBold", Bold = "Bold",
   ExtraBold = "ExBold", Heavy = "Heavy",
@@ -24532,8 +24532,8 @@ _G.MetroFonts.WEIGHT_LABEL = {
 
 -- Catalogo completo, costruito una volta sola e tenuto in cache: sono
 -- centinaia di voci, rifarle a ogni apertura del popup sarebbe sprecato.
-function _G.MetroFonts.list()
-  local F = _G.MetroFonts
+function _G.YaisFonts.list()
+  local F = _G.YaisFonts
   if F.cache then return F.cache end
 
   local out = {{ key = "Default", label = "Default", font = nil }}
@@ -24581,8 +24581,8 @@ function _G.MetroFonts.list()
   return out
 end
 
-function _G.MetroFonts.byKey(key)
-  for _, e in ipairs(_G.MetroFonts.list()) do
+function _G.YaisFonts.byKey(key)
+  for _, e in ipairs(_G.YaisFonts.list()) do
     if e.key == key then return e end
   end
   return nil
@@ -24590,12 +24590,12 @@ end
 
 -- I contenitori da percorrere. HubGui copre tutte le ScreenGui della hub;
 -- il billboard sopra la testa vive sulla Head e va aggiunto a mano.
-function _G.MetroFonts.roots()
+function _G.YaisFonts.roots()
   local list = {}
   if HubGui then list[#list + 1] = HubGui end
   local char = LP.Character
   local head = char and char:FindFirstChild("Head")
-  local oh = head and head:FindFirstChild("MetroHubOverheadInfo")
+  local oh = head and head:FindFirstChild("YaisHubOverheadInfo")
   if oh then list[#list + 1] = oh end
   return list
 end
@@ -24605,7 +24605,7 @@ end
 -- disegnato apposta per quel quadratino: prendendo il font scelto puo'
 -- venire tutt'altra forma, storto o di un peso che stona. Il controllo e'
 -- sui caratteri veri e non sui byte, se no una freccia ne conterebbe tre.
-function _G.MetroFonts.isGlyph(obj)
+function _G.YaisFonts.isGlyph(obj)
   local t = obj.Text
   if t == nil then return false end
   -- Una lettera o una cifra sono scrittura anche da sole: la "Q" di una
@@ -24617,7 +24617,7 @@ function _G.MetroFonts.isGlyph(obj)
   return ok and n ~= nil and n <= 1
 end
 
-function _G.MetroFonts.applyOne(obj, font)
+function _G.YaisFonts.applyOne(obj, font)
   if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
     return
   end
@@ -24626,7 +24626,7 @@ function _G.MetroFonts.applyOne(obj, font)
   -- quindi senza questa uscita il font scelto le sovrascriverebbe e i
   -- campioni diventerebbero tutti uguali fra loro.
   if obj:GetAttribute("AmbFontLock") then return end
-  local F = _G.MetroFonts
+  local F = _G.YaisFonts
   -- Primo contatto: si conservano FontFace e TextSize di partenza.
   if F.orig[obj] == nil then
     F.orig[obj] = obj.FontFace
@@ -24659,22 +24659,22 @@ end
 -- dai lati prima di fare il conto.
 --
 -- Su "Default" non gira affatto: le misure restano quelle di sempre.
-_G.MetroFonts.MIN_SIZE = 7    -- sotto e' illeggibile
-_G.MetroFonts.MARGIN   = 8    -- respiro ai lati, in pixel
-_G.MetroFonts.MAX_GROW = 1.35 -- quanto al massimo puo' crescere
+_G.YaisFonts.MIN_SIZE = 7    -- sotto e' illeggibile
+_G.YaisFonts.MARGIN   = 8    -- respiro ai lati, in pixel
+_G.YaisFonts.MAX_GROW = 1.35 -- quanto al massimo puo' crescere
 -- Chiavi deboli: qui non si conserva niente da ripristinare, sono solo
 -- appunti su chi e' gia' stato agganciato. Se l'oggetto sparisce dalla
 -- GUI puo' sparire anche l'appunto.
-_G.MetroFonts.tconns = _G.MetroFonts.tconns
+_G.YaisFonts.tconns = _G.YaisFonts.tconns
   or setmetatable({}, {__mode = "k"})
 -- Lunghezza del testo con cui ogni scritta e' stata adattata l'ultima
 -- volta, per non rifare il conto a vuoto su un contatore che cambia cifra
 -- restando lungo uguale.
-_G.MetroFonts.lastLen = _G.MetroFonts.lastLen
+_G.YaisFonts.lastLen = _G.YaisFonts.lastLen
   or setmetatable({}, {__mode = "k"})
 
-function _G.MetroFonts.params()
-  local F = _G.MetroFonts
+function _G.YaisFonts.params()
+  local F = _G.YaisFonts
   if F.gtbp == nil then
     local ok, p = pcall(function() return Instance.new("GetTextBoundsParams") end)
     F.gtbp = (ok and p) or false
@@ -24708,14 +24708,14 @@ end
 -- tendina chiusa: quando compare e prende una dimensione, si sistema da
 -- se' senza che nessuno la tocchi.
 -- ------------------------------------------------------------
-_G.MetroFonts.m = _G.MetroFonts.m or setmetatable({}, {__mode = "k"})
-_G.MetroFonts.aconns = _G.MetroFonts.aconns
+_G.YaisFonts.m = _G.YaisFonts.m or setmetatable({}, {__mode = "k"})
+_G.YaisFonts.aconns = _G.YaisFonts.aconns
   or setmetatable({}, {__mode = "k"})
-_G.MetroFonts.stamp = _G.MetroFonts.stamp or 0
+_G.YaisFonts.stamp = _G.YaisFonts.stamp or 0
 
 -- Parte 2: solo aritmetica sui numeri gia' in cache.
-function _G.MetroFonts.reclamp(obj)
-  local F = _G.MetroFonts
+function _G.YaisFonts.reclamp(obj)
+  local F = _G.YaisFonts
   local c = F.m[obj]
   if not c then return end
   -- Stessa esenzione di fitOne: un simbolo solo resta com'era.
@@ -24754,8 +24754,8 @@ function _G.MetroFonts.reclamp(obj)
 end
 
 -- Parte 1: le due misurazioni, e il rapporto con l'ingombro di Default.
-function _G.MetroFonts.measure(obj)
-  local F = _G.MetroFonts
+function _G.YaisFonts.measure(obj)
+  local F = _G.YaisFonts
   local font = F.current()
   if not font then return false end
   local prm = F.params()
@@ -24809,8 +24809,8 @@ end
 
 -- Misura se serve, poi contiene. noBox e' rimasto per compatibilita': la
 -- casella ormai la guarda solo reclamp, che e' gratis.
-function _G.MetroFonts.fitOne(obj)
-  local F = _G.MetroFonts
+function _G.YaisFonts.fitOne(obj)
+  local F = _G.YaisFonts
   if not F.current() then return end
   if obj:GetAttribute("AmbFontLock") then return end
   if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
@@ -24832,14 +24832,14 @@ end
 
 -- Aggancia una scritta: da qui in poi si tiene aggiornata da sola.
 -- Un aggancio per oggetto, fatto una volta sola.
-function _G.MetroFonts.watch(obj)
-  local F = _G.MetroFonts
+function _G.YaisFonts.watch(obj)
+  local F = _G.YaisFonts
   if F.aconns[obj] then return end
   -- La casella cambia: durante l'apertura di un popup, con la GUI Scale,
   -- quando una tendina si apre. Qui non si rimisura niente, si ricontiene
   -- e basta.
   F.aconns[obj] = obj:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-    local G = _G.MetroFonts
+    local G = _G.YaisFonts
     if not G.current() then return end
     if G.m[obj] then G.reclamp(obj) else pcall(G.fitOne, obj) end
   end)
@@ -24850,7 +24850,7 @@ function _G.MetroFonts.watch(obj)
   -- anche piu' volte al secondo: si rifa il conto quando cambia la
   -- lunghezza.
   F.tconns[obj] = obj:GetPropertyChangedSignal("Text"):Connect(function()
-    local G = _G.MetroFonts
+    local G = _G.YaisFonts
     if not G.current() then return end
     if G.lastLen[obj] == #obj.Text then return end
     G.lastLen[obj] = #obj.Text
@@ -24861,8 +24861,8 @@ function _G.MetroFonts.watch(obj)
   end)
 end
 
-function _G.MetroFonts.fit(pass)
-  local F = _G.MetroFonts
+function _G.YaisFonts.fit(pass)
+  local F = _G.YaisFonts
   F.fitToken = (F.fitToken or 0) + 1
   local myToken = F.fitToken
   if not F.current() then return end   -- Default: nessuna modifica
@@ -24905,15 +24905,15 @@ function _G.MetroFonts.fit(pass)
 end
 
 -- Font attualmente scelto, oppure nil se siamo su "Default".
-function _G.MetroFonts.current()
-  local key = _G.MetroFontChoice
+function _G.YaisFonts.current()
+  local key = _G.YaisFontChoice
   if not key or key == "Default" then return nil end
-  local e = _G.MetroFonts.byKey(key)
+  local e = _G.YaisFonts.byKey(key)
   return e and e.font or nil
 end
 
-function _G.MetroFonts.applyAll()
-  local F = _G.MetroFonts
+function _G.YaisFonts.applyAll()
+  local F = _G.YaisFonts
   local font = F.current()
   for _, root in ipairs(F.roots()) do
     F.applyOne(root, font)
@@ -24926,13 +24926,13 @@ end
 
 -- Aggancio a eventi, non a un loop: i popup e le righe create dopo
 -- devono nascere gia' col font giusto, ma senza riscandire niente.
-function _G.MetroFonts.hook()
-  local F = _G.MetroFonts
+function _G.YaisFonts.hook()
+  local F = _G.YaisFonts
   for _, c in ipairs(F.conns) do pcall(function() c:Disconnect() end) end
   F.conns = {}
   for _, root in ipairs(F.roots()) do
     F.conns[#F.conns + 1] = root.DescendantAdded:Connect(function(d)
-      if _G.MetroFontChoice == "Default" then return end
+      if _G.YaisFontChoice == "Default" then return end
       F.applyOne(d, F.current())
       -- Subito, nello stesso istante in cui nasce: cosi' compare gia'
       -- della misura giusta invece di correggersi sotto gli occhi un
@@ -24944,28 +24944,28 @@ function _G.MetroFonts.hook()
   end
 end
 
-function _G.MetroFonts.set(key, skipSave)
-  _G.MetroFontChoice = key or "Default"
+function _G.YaisFonts.set(key, skipSave)
+  _G.YaisFontChoice = key or "Default"
   -- Font diverso, misure diverse: quello che c'e' in cache non vale piu'.
-  _G.MetroFonts.stamp = (_G.MetroFonts.stamp or 0) + 1
-  _G.MetroFonts.applyAll()
-  _G.MetroFonts.hook()
-  if not skipSave and saveMetroConfig then pcall(saveMetroConfig) end
+  _G.YaisFonts.stamp = (_G.YaisFonts.stamp or 0) + 1
+  _G.YaisFonts.applyAll()
+  _G.YaisFonts.hook()
+  if not skipSave and saveYaisConfig then pcall(saveYaisConfig) end
 end
 
 -- Il catalogo si costruisce una volta sola; farlo adesso in sottofondo
 -- vuol dire che al primo click sul PICK e' gia' pronto in cache.
-task.spawn(function() pcall(_G.MetroFonts.list) end)
+task.spawn(function() pcall(_G.YaisFonts.list) end)
 
 
 -- L'etichetta sopra la testa viene ricreata a ogni respawn: si riapplica
 -- il font e si riaggancia il listener sul nuovo billboard.
-if not _G.MetroFonts.charConn then
-  _G.MetroFonts.charConn = LP.CharacterAdded:Connect(function()
+if not _G.YaisFonts.charConn then
+  _G.YaisFonts.charConn = LP.CharacterAdded:Connect(function()
     task.delay(1.5, function()
-      if _G.MetroFontChoice == "Default" then return end
-      pcall(_G.MetroFonts.applyAll)
-      pcall(_G.MetroFonts.hook)
+      if _G.YaisFontChoice == "Default" then return end
+      pcall(_G.YaisFonts.applyAll)
+      pcall(_G.YaisFonts.hook)
     end)
   end)
 end
@@ -25000,7 +25000,7 @@ end
     })
     tpGrad.Rotation = 18
     tpGrad.Parent = tpHolder
-    _G._MetroRegAccent(tpHolder, tpGrad, "pick")
+    _G._YaisRegAccent(tpHolder, tpGrad, "pick")
 
     -- Identico a quello della Custom Background, proprieta' per proprieta'.
     local tpBtn = Instance.new("TextButton")
@@ -25172,14 +25172,14 @@ end
         task.delay(0.25, function() pcall(function() g:Destroy() end) end)
       end
     end
-    _G.MetroTabPosClose = closeTabPosPicker
+    _G.YaisTabPosClose = closeTabPosPicker
 
     tpBtn.Activated:Connect(function()
       if tpGui then closeTabPosPicker() return end
       if tick() - tpJustClosedAt < 0.25 then return end
 
       tpGui = Instance.new("ScreenGui")
-      tpGui.Name = "MetroHubTabPosPicker"
+      tpGui.Name = "YaisHubTabPosPicker"
       tpGui.ResetOnSpawn = false
       tpGui.IgnoreGuiInset = true
       tpGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -25293,7 +25293,7 @@ end
       -- selezione, e qui stonava con tutto il resto.
       local function refreshCards()
         for mode, st in pairs(cardStrokes) do
-          local on = (_G._MetroTabPosition == mode)
+          local on = (_G._YaisTabPosition == mode)
           st.Color = on and Color3.fromRGB(255, 140, 0) or Color3.fromRGB(50, 50, 58)
           st.Thickness = on and 1.8 or 1
           st.Transparency = on and 0.05 or 0.5
@@ -25329,9 +25329,9 @@ end
         caption.Parent = card
 
         card.Activated:Connect(function()
-          _G.MetroApplyTabPosition(mode)
+          _G.YaisApplyTabPosition(mode)
           refreshCards()
-          saveMetroConfig()
+          saveYaisConfig()
         end)
       end
       refreshCards()
@@ -25385,7 +25385,7 @@ end
     })
     cfGrad.Rotation = 18
     cfGrad.Parent = cfHolder
-    _G._MetroRegAccent(cfHolder, cfGrad, "pick")
+    _G._YaisRegAccent(cfHolder, cfGrad, "pick")
 
     local cfBtn = Instance.new("TextButton")
     cfBtn.Name = "CustomFontsButton"
@@ -25428,7 +25428,7 @@ end
         end)
       end
     end
-    _G.MetroFontPickerClose = closeFontPicker
+    _G.YaisFontPickerClose = closeFontPicker
 
     cfBtn.Activated:Connect(function()
       if fontPickerGui and fontPickerGui.Parent then
@@ -25437,7 +25437,7 @@ end
       end
 
       fontPickerGui = Instance.new("ScreenGui")
-      fontPickerGui.Name = "MetroHubFontPicker"
+      fontPickerGui.Name = "YaisHubFontPicker"
       fontPickerGui.ResetOnSpawn = false
       fontPickerGui.IgnoreGuiInset = true
       fontPickerGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -25536,7 +25536,7 @@ end
       -- pero' sono identiche a quelle dello Sky Picker (108 + 10 di gap).
       local FP_COLS, FP_CELL, FP_GAP = 3, 108, 10
       local FP_STEP = FP_CELL + FP_GAP
-      local fpList = _G.MetroFonts.list()
+      local fpList = _G.YaisFonts.list()
       local fpRows = math.ceil(#fpList / FP_COLS)
       -- L'altezza del canvas e' quella che avrebbero TUTTE le righe: la
       -- barra di scorrimento resta giusta anche se le card non esistono.
@@ -25552,7 +25552,7 @@ end
       local function fpPaint()
         for _, c in ipairs(fpPool) do
           local e = fpEntryOf(c)
-          local sel = (e ~= nil and _G.MetroFontChoice == e.key)
+          local sel = (e ~= nil and _G.YaisFontChoice == e.key)
           local st = c:FindFirstChildOfClass("UIStroke")
           if st then
             tween(st, {
@@ -25649,7 +25649,7 @@ end
         end)
         card.MouseLeave:Connect(function()
           local e = fpEntryOf(card)
-          local sel = (e ~= nil and _G.MetroFontChoice == e.key)
+          local sel = (e ~= nil and _G.YaisFontChoice == e.key)
           tween(cardStroke, {
             Transparency = sel and 0 or 0.55,
             Thickness = sel and 2.4 or 1.2,
@@ -25660,7 +25660,7 @@ end
         card.Activated:Connect(function()
           local e = fpEntryOf(card)
           if not e then return end
-          _G.MetroFonts.set(e.key)
+          _G.YaisFonts.set(e.key)
           fpPaint()
         end)
 
@@ -25708,7 +25708,7 @@ end
   -- di LayoutOrder il UIListLayout rispetta l'ordine di inserimento, quindi
   -- finisce esattamente sotto.
   ;(function()
-    local N = #_G.MetroTitleStyles
+    local N = #_G.YaisTitleStyles
 
     -- Riga alta come tutte le altre: il logo sta in mezzo alle due frecce,
     -- senza riquadro attorno.
@@ -25785,8 +25785,8 @@ end
     stroke(tsNext, COLORS.strokeSoft, 1, 0.5)
 
     local function refreshTitleStyleSelector()
-      local idx = math.clamp(math.floor(tonumber(_G.MetroTitleStyle) or 1), 1, N)
-      local st = _G.MetroTitleStyles[idx]
+      local idx = math.clamp(math.floor(tonumber(_G.YaisTitleStyle) or 1), 1, N)
+      local st = _G.YaisTitleStyles[idx]
       if st then
         tsImg.Text = st.name or ("Style " .. tostring(idx))
         tsImg.Font = st.font or Enum.Font.GothamBlack
@@ -25797,14 +25797,14 @@ end
         tsImg.Rotation = st.rotation or 0
       end
     end
-    _G.MetroRefreshTitleStyleSelector = refreshTitleStyleSelector
+    _G.YaisRefreshTitleStyleSelector = refreshTitleStyleSelector
 
     local function step(d)
-      local idx = math.clamp(math.floor(tonumber(_G.MetroTitleStyle) or 1), 1, N)
+      local idx = math.clamp(math.floor(tonumber(_G.YaisTitleStyle) or 1), 1, N)
       idx = ((idx - 1 + d) % N) + 1
-      _G.MetroApplyTitleStyle(idx)
+      _G.YaisApplyTitleStyle(idx)
       refreshTitleStyleSelector()
-      if type(saveMetroConfig) == "function" then pcall(saveMetroConfig) end
+      if type(saveYaisConfig) == "function" then pcall(saveYaisConfig) end
     end
 
     tsPrev.Activated:Connect(function() step(-1) end)
@@ -25911,25 +25911,25 @@ end
     return row
   end
 
-  stepperRow(Settings, "GUI Scale", MetroGuiScaleValue, 4, function(v)
-    MetroGuiScaleValue = v
-    MetroMainScale.Scale = v
-    saveMetroConfig()
+  stepperRow(Settings, "GUI Scale", YaisGuiScaleValue, 4, function(v)
+    YaisGuiScaleValue = v
+    YaisMainScale.Scale = v
+    saveYaisConfig()
   end, 0.50, 1.50)
 
-  stepperRow(Settings, "Progress Bar Size", MetroProgressBarScaleValue, 5, function(v)
-    MetroProgressBarScaleValue = v
-    applyMetroProgressBarScale()
-    saveMetroConfig()
+  stepperRow(Settings, "Progress Bar Size", YaisProgressBarScaleValue, 5, function(v)
+    YaisProgressBarScaleValue = v
+    applyYaisProgressBarScale()
+    saveYaisConfig()
   end, 0.50, 1.50)
 
   speedKeybindRow(Settings, "Toggle UI", "ToggleUI", 6)
 
   section(Settings, "MOBILE BUTTONS", 7)
-  stepperRow(Settings, "Mobile Buttons Size", tonumber(_G.MetroMobileButtonScale) or 0.75, 10, function(v)
-    _G.MetroMobileButtonScale = math.clamp(tonumber(v) or 0.35, 0.30, 1.35)
-    if _G.MetroApplyMobileButtonSize then _G.MetroApplyMobileButtonSize() end
-    saveMetroConfig()
+  stepperRow(Settings, "Mobile Buttons Size", tonumber(_G.YaisMobileButtonScale) or 0.75, 10, function(v)
+    _G.YaisMobileButtonScale = math.clamp(tonumber(v) or 0.35, 0.30, 1.35)
+    if _G.YaisApplyMobileButtonSize then _G.YaisApplyMobileButtonSize() end
+    saveYaisConfig()
   end, 0.30, 1.35)
 
   do
@@ -25970,7 +25970,7 @@ end
     })
     mobResetGrad.Rotation = 18
     mobResetGrad.Parent = mobResetBg
-    _G._MetroRegAccent(mobResetBg, mobResetGrad, "button")
+    _G._YaisRegAccent(mobResetBg, mobResetGrad, "button")
 
     button.MouseEnter:Connect(function()
       tween(mobResetBg, {Size = UDim2.new(0, 82, 0, 26), Position = UDim2.new(1, -90, 0.5, -13)}, 0.12)
@@ -25979,14 +25979,14 @@ end
       tween(mobResetBg, {Size = UDim2.new(0, 78, 0, 24), Position = UDim2.new(1, -88, 0.5, -12)}, 0.12)
     end)
     button.Activated:Connect(function()
-      if _G.MetroResetMobileButtons then
-        _G.MetroResetMobileButtons()
+      if _G.YaisResetMobileButtons then
+        _G.YaisResetMobileButtons()
       else
-        _G.MetroMobileButtonScale = 0.75
-        _G.MetroHideMobileButtons = false
-        if _G.MetroApplyMobileButtonsHidden then _G.MetroApplyMobileButtonsHidden() end
-        if _G.MetroApplyMobileButtonSize then _G.MetroApplyMobileButtonSize() end
-        saveMetroConfig()
+        _G.YaisMobileButtonScale = 0.75
+        _G.YaisHideMobileButtons = false
+        if _G.YaisApplyMobileButtonsHidden then _G.YaisApplyMobileButtonsHidden() end
+        if _G.YaisApplyMobileButtonSize then _G.YaisApplyMobileButtonSize() end
+        saveYaisConfig()
       end
     end)
   end
@@ -26001,7 +26001,7 @@ end
         _introEnabled = not _introEnabled
         if not _introEnabled then stopIntroPlayback(); stopIntroPreview() end
         if setIntroVisual then setIntroVisual(_introEnabled) end
-        saveMetroConfig()
+        saveYaisConfig()
       end)
     end
     if setIntroVisual then setIntroVisual(_introEnabled) end
@@ -26072,7 +26072,7 @@ end
     })
     songGrad.Rotation = 18
     songGrad.Parent = songBg
-    _G._MetroRegAccent(songBg, songGrad, "button")
+    _G._YaisRegAccent(songBg, songGrad, "button")
 
     btn.MouseEnter:Connect(function()
       tween(songBg, {Size = UDim2.new(0, 126, 0, 32), Position = UDim2.new(1, -133, 0.5, -16)}, 0.12)
@@ -26090,7 +26090,7 @@ end
       if selectedIntroMusic > #INTRO_MUSIC_OPTIONS then selectedIntroMusic = 1 end
       if setIntroSongVisual then setIntroSongVisual() end
       previewIntroMusic(selectedIntroMusic)
-      saveMetroConfig()
+      saveYaisConfig()
     end)
   end
 
@@ -26121,7 +26121,7 @@ end
     })
     mpPickGrad.Rotation = 18
     mpPickGrad.Parent = mpHolder
-    _G._MetroRegAccent(mpHolder, mpPickGrad, "pick")
+    _G._YaisRegAccent(mpHolder, mpPickGrad, "pick")
 
     local mpPickBtn = Instance.new("TextButton")
     mpPickBtn.Name = "MusicPlayerPickBtn"
@@ -26150,7 +26150,7 @@ end
     local mpGui = nil
 
     local function closeMusicPlayer()
-      _G.MetroMusicRefreshUI = nil
+      _G.YaisMusicRefreshUI = nil
       if mpGui and mpGui.Parent then
         local fr = mpGui:FindFirstChild("Frame")
         if fr then TweenService:Create(fr, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play() end
@@ -26163,7 +26163,7 @@ end
         mpGui = nil
       end
     end
-    _G.MetroMusicCloseUI = closeMusicPlayer
+    _G.YaisMusicCloseUI = closeMusicPlayer
 
     local function _mpFmtTime(t)
       t = math.max(0, math.floor(tonumber(t) or 0))
@@ -26241,7 +26241,7 @@ local function _mpToggleRow(parent, labelText, getVal, setVal, yPos)
     pillBgStroke.Transparency = 0.5
     pillBgStroke.Parent = pillBg
 
-    -- Gradiente (sarà gestito da _G._MetroApplyAccent)
+    -- Gradiente (sarà gestito da _G._YaisApplyAccent)
     local pillBgGrad = Instance.new("UIGradient")
     pillBgGrad.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 100, 255)),
@@ -26253,7 +26253,7 @@ local function _mpToggleRow(parent, labelText, getVal, setVal, yPos)
     pillBgGrad.Parent = pillBg
 
     -- Registra lo sfondo con il gradiente per l'accentatura
-    _G._MetroRegAccent(pillBg, pillBgGrad, "toggle")
+    _G._YaisRegAccent(pillBg, pillBgGrad, "toggle")
 
     -- Testo (trasparente, sopra lo sfondo)
     local pill = Instance.new("TextButton")
@@ -26274,10 +26274,10 @@ local function _mpToggleRow(parent, labelText, getVal, setVal, yPos)
     corner(pill, 12)
 
     local function apply(v)
-        local isGrey = _G._MetroAccentIsGrey and _G._MetroAccentIsGrey() or false
+        local isGrey = _G._YaisAccentIsGrey and _G._YaisAccentIsGrey() or false
         local onBase, onEdge = Color3.fromRGB(147, 51, 234), Color3.fromRGB(216, 180, 254)
-        if _G._MetroToggleOnColor then
-            local b, e = _G._MetroToggleOnColor()
+        if _G._YaisToggleOnColor then
+            local b, e = _G._YaisToggleOnColor()
             if b then onBase = b end
             if e then onEdge = e end
         end
@@ -26458,7 +26458,7 @@ end
         ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 51, 234)),
       })
       barGrad.Parent = barFill
-      _G._MetroRegAccent(barFill, barGrad, "button")
+      _G._YaisRegAccent(barFill, barGrad, "button")
 
       local curLbl = Instance.new("TextLabel")
       curLbl.BackgroundTransparency = 1
@@ -26519,7 +26519,7 @@ end
       })
       playGrad.Rotation = 18
       playGrad.Parent = playHolder
-      _G._MetroRegAccent(playHolder, playGrad, "button")
+      _G._YaisRegAccent(playHolder, playGrad, "button")
 
       local playBtn = Instance.new("TextButton")
       playBtn.Name = "PlayPause"
@@ -26551,17 +26551,17 @@ end
       -- OPZIONI
       local _, applyAutoNext = _mpToggleRow(frame, "Auto Play Next", function() return musicAutoPlayNext end, function(v)
         musicAutoPlayNext = v
-        if saveMetroConfig then pcall(saveMetroConfig) end
+        if saveYaisConfig then pcall(saveYaisConfig) end
       end, 194)
 
       local _, applyShuffle = _mpToggleRow(frame, "Shuffle", function() return musicShuffleEnabled end, function(v)
         musicShuffleEnabled = v
-        if saveMetroConfig then pcall(saveMetroConfig) end
+        if saveYaisConfig then pcall(saveYaisConfig) end
       end, 236)
 
       local _, applyLoop = _mpToggleRow(frame, "Loop", function() return musicLoopEnabled end, function(v)
         musicLoopEnabled = v
-        if saveMetroConfig then pcall(saveMetroConfig) end
+        if saveYaisConfig then pcall(saveYaisConfig) end
       end, 278)
 
       -- FOOTER VOLUME
@@ -26714,7 +26714,7 @@ end
           totLbl.Text = "0:00"
         end
       end
-      _G.MetroMusicRefreshUI = refresh
+      _G.YaisMusicRefreshUI = refresh
       refresh()
 
       task.spawn(function()
@@ -26792,17 +26792,17 @@ end
   resetStroke.Transparency = 0.15
   resetStroke.Parent = resetBg
 
-  _G._MetroRegAccent(resetBg, resetGrad, "button")
+  _G._YaisRegAccent(resetBg, resetGrad, "button")
   local function resetDefaultBg()
-    local b = _G._MetroToggleOnColor()
+    local b = _G._YaisToggleOnColor()
     return b
   end
   local function resetEdgeCol()
-    local _, e = _G._MetroToggleOnColor()
+    local _, e = _G._YaisToggleOnColor()
     return e
   end
   local function resetHoverBg()
-    local b = _G._MetroToggleOnColor()
+    local b = _G._YaisToggleOnColor()
     return b:Lerp(Color3.fromRGB(255, 140, 0), 0.16)
   end
   local resetConfirmBg = Color3.fromRGB(35, 35, 38)
@@ -26890,56 +26890,56 @@ end
       end
     end)
     pcall(function()
-      MetroGuiScaleValue = 0.75
-      MetroProgressBarScaleValue = 0.90
+      YaisGuiScaleValue = 0.75
+      YaisProgressBarScaleValue = 0.90
       NS = 59.5; CS = 28.8; LAGGER_SPEED = 29; LAGGER_CARRY_SPEED = 15
       currentSpeedMode = "Normal"
       autoCarrySpeedEnabled = false
-      _G._MetroAutoCarryMode = "NORMAL"
-      _G._MetroAS.locked = false; _G._MetroAS.wasLow = false; _G._MetroAS.savedMode = nil; _G._MetroAS.restoring = false
-      _G._MetroAutoCarrySoft.animals = {}; _G._MetroAutoCarrySoft.lastScan = 0
+      _G._YaisAutoCarryMode = "NORMAL"
+      _G._YaisAS.locked = false; _G._YaisAS.wasLow = false; _G._YaisAS.savedMode = nil; _G._YaisAS.restoring = false
+      _G._YaisAutoCarrySoft.animals = {}; _G._YaisAutoCarrySoft.lastScan = 0
       autoTPHeight = 20
       -- >>> TP DOWN METHOD BEGIN
-      _G._MetroTPDownMethod = "NORMAL"
-      if _G.MetroRefreshTPDownMethodSelector then pcall(_G.MetroRefreshTPDownMethodSelector) end
+      _G._YaisTPDownMethod = "NORMAL"
+      if _G.YaisRefreshTPDownMethodSelector then pcall(_G.YaisRefreshTPDownMethodSelector) end
       -- <<< TP DOWN METHOD END
       autoStealEnabled = false; selectedStealMode = "Normal"; selectedSemiMode = "V1"; autoStealRadius = 62
       -- >>> RADIUS CIRCLE <<<
-      if _G.MetroDuelsetRadiusCircle then pcall(_G.MetroDuelsetRadiusCircle, false) end
-      if _G.MetroRadiusCircleSetVisual then pcall(_G.MetroRadiusCircleSetVisual, false) end
-      if _G.MetroDuelsetRadiusCircleColor then pcall(_G.MetroDuelsetRadiusCircleColor, Color3.fromRGB(230, 230, 230)) end
-      if _G.MetroRadiusCircleSetColorPreview then pcall(_G.MetroRadiusCircleSetColorPreview, Color3.fromRGB(230, 230, 230)) end
-      _G._MetroDuelsyncAfterHit.enabled = false; _stopSyncAfterHitWatcher()
-      _G.MetroDuelstealRadii = {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
+      if _G.YaisDuelsetRadiusCircle then pcall(_G.YaisDuelsetRadiusCircle, false) end
+      if _G.YaisRadiusCircleSetVisual then pcall(_G.YaisRadiusCircleSetVisual, false) end
+      if _G.YaisDuelsetRadiusCircleColor then pcall(_G.YaisDuelsetRadiusCircleColor, Color3.fromRGB(230, 230, 230)) end
+      if _G.YaisRadiusCircleSetColorPreview then pcall(_G.YaisRadiusCircleSetColorPreview, Color3.fromRGB(230, 230, 230)) end
+      _G._YaisDuelsyncAfterHit.enabled = false; _stopSyncAfterHitWatcher()
+      _G.YaisDuelstealRadii = {Normal = 62, Semi = 60, SemiV2Radius = 60, SemiV2SemiRadius = 8}
       selectedAimbotMode = "V1"
       AIMBOT_SPEED = 58; LAGGER_AIMBOT_SPEED = 40
-      _G._MetroAimbotChase = { V1 = "NORMAL", V2 = "NORMAL" }   -- >>> AIMBOT CHASE MODE <<<
-      _G.MetroBatAimbotV2Speed = 58; _G.MetroBatAimbotV2LaggerSpeed = 40; TP_BAT_SPEED = 58
+      _G._YaisAimbotChase = { V1 = "NORMAL", V2 = "NORMAL" }   -- >>> AIMBOT CHASE MODE <<<
+      _G.YaisBatAimbotV2Speed = 58; _G.YaisBatAimbotV2LaggerSpeed = 40; TP_BAT_SPEED = 58
       autoSwingEnabled = false; mirrorTPDownEnabled = false; tpBatAutoSwingEnabled = false
       -- ORDINE SPEGNIMENTO: prima il TP Bat, poi l'Anti-Void
-      if _G.MetroTPBatOn and _G.MetroDuelstopTPBat then pcall(_G.MetroDuelstopTPBat) end
-      if _G._MetroDuelsetTPBatCameraLock then _G._MetroDuelsetTPBatCameraLock(false) end
-      if _G.MetroTPBatCameraLockSetVisual then _G.MetroTPBatCameraLockSetVisual(false) end
+      if _G.YaisTPBatOn and _G.YaisDuelstopTPBat then pcall(_G.YaisDuelstopTPBat) end
+      if _G._YaisDuelsetTPBatCameraLock then _G._YaisDuelsetTPBatCameraLock(false) end
+      if _G.YaisTPBatCameraLockSetVisual then _G.YaisTPBatCameraLockSetVisual(false) end
       -- >>> TP BAT VERSIONS: torna alla V1 <<<
-      _G.MetroTPBatVersion = 1
-      if _G._MetroTPBatSetVersionVisual then pcall(_G._MetroTPBatSetVersionVisual, 1) end
-      _G.MetroNormalAimbotOn = false; _G.MetroBatAimbotV2On = false; _G.MetroTPBatOn = false
-      antiRagdollEnabled = false; _G._MetroAntiRagdollMode = "V1"; infJumpEnabled = false; infJumpMode = "HOLD"; autoTPEnabled = false
-      if _G.MetroTPRagdoll then pcall(_G.MetroTPRagdoll.set, false) end
+      _G.YaisTPBatVersion = 1
+      if _G._YaisTPBatSetVersionVisual then pcall(_G._YaisTPBatSetVersionVisual, 1) end
+      _G.YaisNormalAimbotOn = false; _G.YaisBatAimbotV2On = false; _G.YaisTPBatOn = false
+      antiRagdollEnabled = false; _G._YaisAntiRagdollMode = "V1"; infJumpEnabled = false; infJumpMode = "HOLD"; autoTPEnabled = false
+      if _G.YaisTPRagdoll then pcall(_G.YaisTPRagdoll.set, false) end
       if _SV.setTPRagdollVisual then pcall(_SV.setTPRagdollVisual, false) end
-      _G.MetroLookAtEnabled = false; _G.MetroLookAtRadius = 20
-      if _G.MetroDuelstopLookAt then _G.MetroDuelstopLookAt() end
+      _G.YaisLookAtEnabled = false; _G.YaisLookAtRadius = 20
+      if _G.YaisDuelstopLookAt then _G.YaisDuelstopLookAt() end
       batCounterEnabled = false; batCounterMode = "V1"; medCounterEnabled = false; antiKickEnabled = false
       espEnabled = false; showTrackerEnabled = false; ragdollCountdownEnabled = false
       fpsBoostEnabled = false; antiLagVisualEnabled = false; vividGraphicsEnabled = false; xrayEnabled = false; highPingWarningEnabled = false
-      _G._MetroKickWarn.enabled = false; _G._MetroKickWarn.wasLow = false
-      _G.MetroUAKEnabled = false
-      if _G.MetroUltimateAntiKick then pcall(_G.MetroUltimateAntiKick.clear) end
-      if _G.MetroRefreshUAKVisual then pcall(_G.MetroRefreshUAKVisual) end
-      if _G.MetroDestroyKickWarning then pcall(_G.MetroDestroyKickWarning) end
-      _G._MetroHPWNextAllowed = 0
-      fovEnabled = false; fovValue = 70; noCamCollisionEnabled = false; _G.MetroNoPlayerCollisionEnabled = false
-      if _G.MetroRefreshFovValueBox then pcall(_G.MetroRefreshFovValueBox) end   -- >>> FOV VALUE ARROW <<<
+      _G._YaisKickWarn.enabled = false; _G._YaisKickWarn.wasLow = false
+      _G.YaisUAKEnabled = false
+      if _G.YaisUltimateAntiKick then pcall(_G.YaisUltimateAntiKick.clear) end
+      if _G.YaisRefreshUAKVisual then pcall(_G.YaisRefreshUAKVisual) end
+      if _G.YaisDestroyKickWarning then pcall(_G.YaisDestroyKickWarning) end
+      _G._YaisHPWNextAllowed = 0
+      fovEnabled = false; fovValue = 70; noCamCollisionEnabled = false; _G.YaisNoPlayerCollisionEnabled = false
+      if _G.YaisRefreshFovValueBox then pcall(_G.YaisRefreshFovValueBox) end   -- >>> FOV VALUE ARROW <<<
       motionBlurEnabled = false
       if _motionBlurConn then pcall(function() _motionBlurConn:Disconnect() end); _motionBlurConn = nil end
       if _motionBlurEffect and _motionBlurEffect.Parent then _motionBlurEffect.Size = 0; _motionBlurEffect.Enabled = false end
@@ -26948,22 +26948,22 @@ end
       skyTheme = "Off"; currentBackground = 1; customBgIds = {}; customBgSelected = nil
       -- >>> TAB POSITION BEGIN
       -- >>> CUSTOM ANIM PACK BEGIN
-      for _, _slot in ipairs(_G.MetroCustomAnimSlots) do
-        _G.MetroCustomAnimIds[_slot] = ""
+      for _, _slot in ipairs(_G.YaisCustomAnimSlots) do
+        _G.YaisCustomAnimIds[_slot] = ""
       end
-      if _G.MetroCustomAnimClose then pcall(_G.MetroCustomAnimClose) end
-      if _G.MetroCustomAnimRefreshRow then pcall(_G.MetroCustomAnimRefreshRow) end
-      if _G.MetroCustomAnimSetRowVisible then pcall(_G.MetroCustomAnimSetRowVisible, false, false) end
+      if _G.YaisCustomAnimClose then pcall(_G.YaisCustomAnimClose) end
+      if _G.YaisCustomAnimRefreshRow then pcall(_G.YaisCustomAnimRefreshRow) end
+      if _G.YaisCustomAnimSetRowVisible then pcall(_G.YaisCustomAnimSetRowVisible, false, false) end
       -- <<< CUSTOM ANIM PACK END
       -- >>> CUSTOM FONTS <<< si torna ai font originali di ogni elemento
-      if _G.MetroFonts then pcall(_G.MetroFonts.set, "Default", true) end
-      if _G.MetroFontPickerClose then pcall(_G.MetroFontPickerClose) end
-      _G._MetroTabPosition = "Up"
-      if _G.MetroTabPosClose then pcall(_G.MetroTabPosClose) end
-      if _G.MetroApplyTabPosition then pcall(_G.MetroApplyTabPosition, "Up") end
+      if _G.YaisFonts then pcall(_G.YaisFonts.set, "Default", true) end
+      if _G.YaisFontPickerClose then pcall(_G.YaisFontPickerClose) end
+      _G._YaisTabPosition = "Up"
+      if _G.YaisTabPosClose then pcall(_G.YaisTabPosClose) end
+      if _G.YaisApplyTabPosition then pcall(_G.YaisApplyTabPosition, "Up") end
       -- >>> TITLE STYLE <<< torna allo stile 1, anche visivamente
-      if _G.MetroApplyTitleStyle then pcall(_G.MetroApplyTitleStyle, 1) end
-      if _G.MetroRefreshTitleStyleSelector then pcall(_G.MetroRefreshTitleStyleSelector) end
+      if _G.YaisApplyTitleStyle then pcall(_G.YaisApplyTitleStyle, 1) end
+      if _G.YaisRefreshTitleStyleSelector then pcall(_G.YaisRefreshTitleStyleSelector) end
       -- <<< TAB POSITION END
       selectedIntroMusic = 1; _introEnabled = true
       headlessEnabled = false; korbloxEnabled = false
@@ -26974,77 +26974,77 @@ end
       selectedMusicSong = 1; musicPlayerVolume = 1; musicPlayerSpeed = 1
       musicAutoPlayNext = false; musicShuffleEnabled = false; musicLoopEnabled = false
       if stopMusicPlayback then pcall(function() stopMusicPlayback(false) end) end
-      if _G.MetroMusicCloseUI then pcall(_G.MetroMusicCloseUI) end
+      if _G.YaisMusicCloseUI then pcall(_G.YaisMusicCloseUI) end
       autoLeftEnabled = false; autoRightEnabled = false
       selectedDropMode = "TP UP"
-      _G.MetroInstantResetVersion = 1
-      if _G.MetroRefreshInstantResetSelector then
-        pcall(_G.MetroRefreshInstantResetSelector)
+      _G.YaisInstantResetVersion = 1
+      if _G.YaisRefreshInstantResetSelector then
+        pcall(_G.YaisRefreshInstantResetSelector)
       end
-      if _G.MetroAfterDrop then
-        _G.MetroAfterDrop.enabled = false
-        _G.MetroAfterDrop.action = "AIMBOT"
+      if _G.YaisAfterDrop then
+        _G.YaisAfterDrop.enabled = false
+        _G.YaisAfterDrop.action = "AIMBOT"
       end
-      if _G.MetroRefreshAfterDropSelector then pcall(_G.MetroRefreshAfterDropSelector) end
-      if _G.MetroRefreshDropMethodSelector then pcall(_G.MetroRefreshDropMethodSelector) end   -- >>> DROP METHOD <<<
-      _G.MetroGuiLocked = false; _G.MetroHideMobileButtons = false; _G.MetroMobileButtonScale = 0.75
-      _G.MetroMobileHideList = {}   -- >>> HIDE PER BOTTONE <<<
-      if _G.MetroRefreshMobileHideList then pcall(_G.MetroRefreshMobileHideList) end
-      if MetroUpdateGuiLockVisual then MetroUpdateGuiLockVisual() end
+      if _G.YaisRefreshAfterDropSelector then pcall(_G.YaisRefreshAfterDropSelector) end
+      if _G.YaisRefreshDropMethodSelector then pcall(_G.YaisRefreshDropMethodSelector) end   -- >>> DROP METHOD <<<
+      _G.YaisGuiLocked = false; _G.YaisHideMobileButtons = false; _G.YaisMobileButtonScale = 0.75
+      _G.YaisMobileHideList = {}   -- >>> HIDE PER BOTTONE <<<
+      if _G.YaisRefreshMobileHideList then pcall(_G.YaisRefreshMobileHideList) end
+      if YaisUpdateGuiLockVisual then YaisUpdateGuiLockVisual() end
       unwalkEnabled = false
       -- Reset animation pack
       selectedAnimPackIndex = 1
       _animPackSavedIndex = 1
       _animPackSystemEnabled = false
       _animPackUnwalkWasActive = false
-      if _G.MetroDuelsetAnimPack then pcall(function() _G.MetroDuelsetAnimPack(1) end) end
+      if _G.YaisDuelsetAnimPack then pcall(function() _G.YaisDuelsetAnimPack(1) end) end
       antiDieEnabled = false
-      _G._MetroAntiDieUserWanted = false
-      _G._MetroAntiDieAutoOn = false
+      _G._YaisAntiDieUserWanted = false
+      _G._YaisAntiDieAutoOn = false
       stretchCurrentIndex = 1    -- <-- AGGIUNGI
       stretchEnabled = false      -- <-- AGGIUNGI   
-      _G.MetroTrackerSavedStretchIndex = nil 
+      _G.YaisTrackerSavedStretchIndex = nil 
       -- Reset semi steal settings (Stop Time & Delay Radius)
-if _G.MetroDuelsemiSteal then
-    _G.MetroDuelsemiSteal.autoGrabStopTime = 1.29
-    _G.MetroDuelsemiSteal.autoGrabStopPercent = 75
-    _G.MetroDuelsemiSteal.autoGrabSetDelayRadius = 8
+if _G.YaisDuelsemiSteal then
+    _G.YaisDuelsemiSteal.autoGrabStopTime = 1.29
+    _G.YaisDuelsemiSteal.autoGrabStopPercent = 75
+    _G.YaisDuelsemiSteal.autoGrabSetDelayRadius = 8
 end
-if _G.MetroDuelstopTimeBox then
-    _G.MetroDuelstopTimeBox.Text = "1.29"
+if _G.YaisDuelstopTimeBox then
+    _G.YaisDuelstopTimeBox.Text = "1.29"
 end
-if _G.MetroDuelstopPctBox then
-    _G.MetroDuelstopPctBox.Text = "75"
+if _G.YaisDuelstopPctBox then
+    _G.YaisDuelstopPctBox.Text = "75"
 end
-if _G.MetroDelayRadBox then
-    _G.MetroDelayRadBox.Text = "8"
+if _G.YaisDelayRadBox then
+    _G.YaisDelayRadBox.Text = "8"
 end
 -- Reset semi V2 settings
-if _G.MetroDuelsemiV2Steal then
-    local B = _G.MetroDuelsemiV2Steal
+if _G.YaisDuelsemiV2Steal then
+    local B = _G.YaisDuelsemiV2Steal
     B.radius     = 60
     B.semiRadius = 8
 end
-if _G.MetroDuelsemiV2RadBox then
-    _G.MetroDuelsemiV2RadBox.Text = "8"
+if _G.YaisDuelsemiV2RadBox then
+    _G.YaisDuelsemiV2RadBox.Text = "8"
 end
 
 -- Reset tracker color
 if BoxedESPOptions then
     BoxedESPOptions.trackerColor = Color3.fromRGB(230, 230, 230)
 end
-if _G.MetroColorPreview then
-    _G.MetroColorPreview.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+if _G.YaisColorPreview then
+    _G.YaisColorPreview.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
 end
-if _G.MetroUpdateTrackerColor then
-    _G.MetroUpdateTrackerColor(Color3.fromRGB(230, 230, 230))
+if _G.YaisUpdateTrackerColor then
+    _G.YaisUpdateTrackerColor(Color3.fromRGB(230, 230, 230))
 end
-      MetroMainScale.Scale = MetroGuiScaleValue
-      applyMetroProgressBarScale()
+      YaisMainScale.Scale = YaisGuiScaleValue
+      applyYaisProgressBarScale()
       applyBackground(1)
       updateBackgroundButtons()
-      if _G.MetroCustomBgPreviewUpdate then pcall(_G.MetroCustomBgPreviewUpdate) end
-      applyDefaultMetroKeybinds()
+      if _G.YaisCustomBgPreviewUpdate then pcall(_G.YaisCustomBgPreviewUpdate) end
+      applyDefaultYaisKeybinds()
       -- Forza il reset di TUTTI i keybind ai valori di default
 for keyId, defaultKey in pairs(DEFAULT_SPEED_KEYBINDS) do
     speedKeybinds[keyId] = defaultKey
@@ -27060,12 +27060,12 @@ end
       if setXRay then pcall(setXRay, false) end
       if _SV.setXRayVisual then _SV.setXRayVisual(false) end
       -- >>> BRAINROT X-RAY <<<
-      if _G.MetroDuelsetBrainrotXRay then pcall(_G.MetroDuelsetBrainrotXRay, false) end
+      if _G.YaisDuelsetBrainrotXRay then pcall(_G.YaisDuelsetBrainrotXRay, false) end
       if _SV.setBrainrotXRayVisual then pcall(_SV.setBrainrotXRayVisual, false) end
       -- La hub potrebbe essere sbiadita dall'idle proprio mentre resetti:
       -- si riporta a piena visibilita', altrimenti resti a guardare i
       -- toggle appena resettati attraverso la trasparenza.
-      if _G.MetroIdleWake then pcall(_G.MetroIdleWake) end
+      if _G.YaisIdleWake then pcall(_G.YaisIdleWake) end
       if _SV.setMotionBlurVisual then _SV.setMotionBlurVisual(false) end
       if _SV.setHighPingWarningVisual then _SV.setHighPingWarningVisual(false) end
       if _SV.setKickWarningVisual then _SV.setKickWarningVisual(false) end
@@ -27073,47 +27073,47 @@ end
       if _SV.setHeadlessVisual then _SV.setHeadlessVisual(false) end
       if disableKorblox then pcall(disableKorblox) end
       if _SV.setKorbloxVisual then _SV.setKorbloxVisual(false) end
-      if _G._MetroAvatarChangerReset then pcall(_G._MetroAvatarChangerReset) end
+      if _G._YaisAvatarChangerReset then pcall(_G._YaisAvatarChangerReset) end
 
       -- >>> ANTI BAT BEGIN
-      if _G.MetroAntiBat then pcall(function() _G.MetroAntiBat.setEnabled(false) end) end
+      if _G.YaisAntiBat then pcall(function() _G.YaisAntiBat.setEnabled(false) end) end
       if _SV.setAntiBatVisual then _SV.setAntiBatVisual(false) end
       -- <<< ANTI BAT END
       -- >>> ANTI TP BAT BEGIN
       -- Float spento col Reset: lo stato vive solo a runtime, ma il loop
       -- resterebbe attaccato e continuerebbe a tenerti in quota.
-      pcall(function() if _G.MetroFloatStop then _G.MetroFloatStop() end end)
+      pcall(function() if _G.YaisFloatStop then _G.YaisFloatStop() end end)
       pcall(function()
-        if _G.MetroAntiTPBat then
-          _G.MetroAntiTPBat.setEnabled(false, true)
-          _G.MetroAntiTPBat.setSpam(false, true)
-          _G.MetroAntiTPBat.setVersion(1, true)
+        if _G.YaisAntiTPBat then
+          _G.YaisAntiTPBat.setEnabled(false, true)
+          _G.YaisAntiTPBat.setSpam(false, true)
+          _G.YaisAntiTPBat.setVersion(1, true)
         else
-          _G.MetroAntiTPBatEnabled = false
-          _G.MetroAntiTPBatSpam = false
-          _G.MetroAntiTPBatVersion = 1
+          _G.YaisAntiTPBatEnabled = false
+          _G.YaisAntiTPBatSpam = false
+          _G.YaisAntiTPBatVersion = 1
         end
-        if _G._MetroAntiTPBatSetRowVisual then _G._MetroAntiTPBatSetRowVisual(false) end
-        if _G._MetroAntiTPBatSetSpamVisual then _G._MetroAntiTPBatSetSpamVisual(false) end
-        if _G._MetroAntiTPBatSetVersionVisual then _G._MetroAntiTPBatSetVersionVisual(1) end
+        if _G._YaisAntiTPBatSetRowVisual then _G._YaisAntiTPBatSetRowVisual(false) end
+        if _G._YaisAntiTPBatSetSpamVisual then _G._YaisAntiTPBatSetSpamVisual(false) end
+        if _G._YaisAntiTPBatSetVersionVisual then _G._YaisAntiTPBatSetVersionVisual(1) end
       end)
       -- <<< ANTI TP BAT END
       -- >>> ANTI VOID BEGIN
-      if _G.MetroAntiVoid then pcall(function() _G.MetroAntiVoid.setEnabled(false) end) end
+      if _G.YaisAntiVoid then pcall(function() _G.YaisAntiVoid.setEnabled(false) end) end
       if _SV.setAntiVoidVisual then _SV.setAntiVoidVisual(false) end
       -- <<< ANTI VOID END
-      if _G.MetroRainbowTools then pcall(function() _G.MetroRainbowTools.setEnabled(false) end) end
+      if _G.YaisRainbowTools then pcall(function() _G.YaisRainbowTools.setEnabled(false) end) end
       if _SV.setRainbowToolsVisual then _SV.setRainbowToolsVisual(false) end
-      if _G.MetroTransparentTools then pcall(function() _G.MetroTransparentTools.setEnabled(false) end) end
+      if _G.YaisTransparentTools then pcall(function() _G.YaisTransparentTools.setEnabled(false) end) end
       if _SV.setTransparentToolsVisual then _SV.setTransparentToolsVisual(false) end
-      if _G.MetroCustomTools then pcall(function() _G.MetroCustomTools.setEnabled(false) end) end
+      if _G.YaisCustomTools then pcall(function() _G.YaisCustomTools.setEnabled(false) end) end
       if _SV.setCustomToolsVisual then _SV.setCustomToolsVisual(false) end
       -- >>> CUSTOM TOOLS SKIN <<< si torna alle due skin di default
-      if _G.MetroDuelsetCustomToolSkin then
-        pcall(_G.MetroDuelsetCustomToolSkin, "Bat", "DiamondSword")
-        pcall(_G.MetroDuelsetCustomToolSkin, "Medusa", "GoldenDesertEagle")
+      if _G.YaisDuelsetCustomToolSkin then
+        pcall(_G.YaisDuelsetCustomToolSkin, "Bat", "DiamondSword")
+        pcall(_G.YaisDuelsetCustomToolSkin, "Medusa", "GoldenDesertEagle")
       end
-      if _G.MetroCustomSounds then pcall(function() _G.MetroCustomSounds.setEnabled(false) end) end
+      if _G.YaisCustomSounds then pcall(function() _G.YaisCustomSounds.setEnabled(false) end) end
       if _SV.setCustomSoundsVisual then _SV.setCustomSoundsVisual(false) end
 
       if _G.StretchRez and _G.StretchRez.apply then
@@ -27126,29 +27126,29 @@ end
       if autoTPHeightBox then autoTPHeightBox.Text = tostring(autoTPHeight) end
       if radiusBox then radiusBox.Text = tostring(autoStealRadius) end
       if setAutoStealVisual then setAutoStealVisual(false) end
-      if _G.MetroDuelsetStealMode then _G.MetroDuelsetStealMode("Normal") end
-      if _G.MetroDuelsetSemiSubModeVisual then _G.MetroDuelsetSemiSubModeVisual("V1") end
-      if _G.MetroRefreshAimbotSpeedBoxes then _G.MetroRefreshAimbotSpeedBoxes() end
+      if _G.YaisDuelsetStealMode then _G.YaisDuelsetStealMode("Normal") end
+      if _G.YaisDuelsetSemiSubModeVisual then _G.YaisDuelsetSemiSubModeVisual("V1") end
+      if _G.YaisRefreshAimbotSpeedBoxes then _G.YaisRefreshAimbotSpeedBoxes() end
       if type(applyCustomSky) == "function" then applyCustomSky("Off") end
       if skyValueLabel then skyValueLabel.Text = "Off" end
       savedStealBarPositionTable = nil
-      if _G.MetroResetStealBarPosition then pcall(_G.MetroResetStealBarPosition) end
-      if _G.MetroResetMobileButtons then _G.MetroResetMobileButtons() end
-      if _G.MetroRefreshStretchSelector then _G.MetroRefreshStretchSelector() end
-      if _G.MetroDuelsApplySavedGameplayStates then _G.MetroDuelsApplySavedGameplayStates() end
-      if _G.MetroDuelstopMedCounter then _G.MetroDuelstopMedCounter() end
-      if _G.MetroRefreshInfJumpModeSelector then _G.MetroRefreshInfJumpModeSelector() end
-      if _G.MetroRefreshAntiRagdollModeSelector then _G.MetroRefreshAntiRagdollModeSelector() end
-      if _G.MetroRefreshAutoCarryModeSelector then _G.MetroRefreshAutoCarryModeSelector() end
-      if _G.MetroRefreshBatCounterModeSelector then _G.MetroRefreshBatCounterModeSelector() end
+      if _G.YaisResetStealBarPosition then pcall(_G.YaisResetStealBarPosition) end
+      if _G.YaisResetMobileButtons then _G.YaisResetMobileButtons() end
+      if _G.YaisRefreshStretchSelector then _G.YaisRefreshStretchSelector() end
+      if _G.YaisDuelsApplySavedGameplayStates then _G.YaisDuelsApplySavedGameplayStates() end
+      if _G.YaisDuelstopMedCounter then _G.YaisDuelstopMedCounter() end
+      if _G.YaisRefreshInfJumpModeSelector then _G.YaisRefreshInfJumpModeSelector() end
+      if _G.YaisRefreshAntiRagdollModeSelector then _G.YaisRefreshAntiRagdollModeSelector() end
+      if _G.YaisRefreshAutoCarryModeSelector then _G.YaisRefreshAutoCarryModeSelector() end
+      if _G.YaisRefreshBatCounterModeSelector then _G.YaisRefreshBatCounterModeSelector() end
       if _SV.setLookAtVisual then pcall(function() _SV.setLookAtVisual(false) end) end
-      if _G.MetroLookAtRadiusBox then _G.MetroLookAtRadiusBox.Text = "20" end
+      if _G.YaisLookAtRadiusBox then _G.YaisLookAtRadiusBox.Text = "20" end
 
       -- >>> RAINBOW MOBILE JOYSTICK BEGIN
-      if _G.MetroDuelsetRainbowJoystick then
-        pcall(_G.MetroDuelsetRainbowJoystick, false)
+      if _G.YaisDuelsetRainbowJoystick then
+        pcall(_G.YaisDuelsetRainbowJoystick, false)
       end
-      _G.MetroRainbowJoystickEnabled = false
+      _G.YaisRainbowJoystickEnabled = false
       -- <<< RAINBOW MOBILE JOYSTICK END
 
       -- >>> RESET VISUALS BEGIN
@@ -27158,8 +27158,8 @@ end
       -- al rientro successivo (dove il config, salvato qui sotto, viene
       -- riletto) comparivano spenti senza che nessuno li avesse spenti.
       -- E' esattamente il caso di Synchronize After Hit.
-      if _G._MetroDuelsyncAfterHit and _G._MetroDuelsyncAfterHit.setVisual then
-        pcall(_G._MetroDuelsyncAfterHit.setVisual, false)
+      if _G._YaisDuelsyncAfterHit and _G._YaisDuelsyncAfterHit.setVisual then
+        pcall(_G._YaisDuelsyncAfterHit.setVisual, false)
       end
       for _, _vn in ipairs({
         "setAntiDieVisual",
@@ -27178,7 +27178,7 @@ end
       end
       -- <<< RESET VISUALS END
 
-      saveMetroConfig()
+      saveYaisConfig()
     end)
     task.wait(0.35)
     setResetDoneTheme()
@@ -27191,10 +27191,10 @@ end
 end
 
 task.wait()
-__MetroDuelsSetupVisualsUI()
-_G.__MetroDuelsSetupSettingsUI()
-if MetroUpdateGuiLockVisual then MetroUpdateGuiLockVisual() end
-if _G.MetroApplyMobileButtonsHidden then _G.MetroApplyMobileButtonsHidden() end
+__YaisDuelsSetupVisualsUI()
+_G.__YaisDuelsSetupSettingsUI()
+if YaisUpdateGuiLockVisual then YaisUpdateGuiLockVisual() end
+if _G.YaisApplyMobileButtonsHidden then _G.YaisApplyMobileButtonsHidden() end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
   local isControllerInput = tostring(input.UserInputType):find("Gamepad") ~= nil
@@ -27217,13 +27217,13 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
   if isKeyMatch(speedKeybinds.ToggleUI) then
     if Main.Visible then
-      if _G.MetroHubClose then _G.MetroHubClose(true)
+      if _G.YaisHubClose then _G.YaisHubClose(true)
       else Main.Visible = false; MiniFrame.Visible = true end
     else
-      if _G.MetroHubOpen then _G.MetroHubOpen()
+      if _G.YaisHubOpen then _G.YaisHubOpen()
       else Main.Visible = true; MiniFrame.Visible = false; Main.Size = FULL_MAIN_SIZE end
     end
-    saveMetroConfig()
+    saveYaisConfig()
     return
   end
 
@@ -27256,7 +27256,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
     listeningForSpeedKey = nil
     refreshAllSpeedKeybinds()
-    saveMetroConfig()
+    saveYaisConfig()
     return
   end
 
@@ -27281,7 +27281,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     listeningForTPDownKey = false
     refreshAllSpeedKeybinds()
     refreshTPDownKeybind()
-    saveMetroConfig()
+    saveYaisConfig()
     return
   end
 
@@ -27294,29 +27294,29 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     return
   end
   if isKeyMatch(speedKeybinds.Aimbot) then
-    if _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-      if _G.MetroDuelsafeModeForceStop then _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK") end
+    if _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+      if _G.YaisDuelsafeModeForceStop then _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK") end
       return
     end
-    if _G.MetroToggleSelectedAimbot then
-      _G.MetroToggleSelectedAimbot()
-    elseif selectedAimbotMode == "V2" and _G.MetroDuelstartBatAimbotV2 and _G.MetroDuelstopBatAimbotV2 then
-      if _G.MetroBatAimbotV2On then _G.MetroDuelstopBatAimbotV2() else _G.MetroDuelstartBatAimbotV2() end
-    elseif _G.MetroDuelstartNormalAimbot and _G.MetroDuelstopNormalAimbot then
-      if _G.MetroNormalAimbotOn then _G.MetroDuelstopNormalAimbot() else _G.MetroDuelstartNormalAimbot() end
+    if _G.YaisToggleSelectedAimbot then
+      _G.YaisToggleSelectedAimbot()
+    elseif selectedAimbotMode == "V2" and _G.YaisDuelstartBatAimbotV2 and _G.YaisDuelstopBatAimbotV2 then
+      if _G.YaisBatAimbotV2On then _G.YaisDuelstopBatAimbotV2() else _G.YaisDuelstartBatAimbotV2() end
+    elseif _G.YaisDuelstartNormalAimbot and _G.YaisDuelstopNormalAimbot then
+      if _G.YaisNormalAimbotOn then _G.YaisDuelstopNormalAimbot() else _G.YaisDuelstartNormalAimbot() end
     end
-    if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
+    if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
     return
   end
   if isKeyMatch(speedKeybinds.TPBat) then
-    if _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-      if _G.MetroDuelsafeModeForceStop then _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK") end
+    if _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+      if _G.YaisDuelsafeModeForceStop then _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK") end
       return
     end
-    if _G.MetroToggleTPBatManual then
-      _G.MetroToggleTPBatManual()
-    elseif _G.MetroToggleTPBat then
-      _G.MetroToggleTPBat()
+    if _G.YaisToggleTPBatManual then
+      _G.YaisToggleTPBatManual()
+    elseif _G.YaisToggleTPBat then
+      _G.YaisToggleTPBat()
     end
     return
   end
@@ -27329,23 +27329,23 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     return
   end
   if isKeyMatch(speedKeybinds.AutoPlay) then
-    if _G.MetroAutoPlayToggle then _G.MetroAutoPlayToggle() end
+    if _G.YaisAutoPlayToggle then _G.YaisAutoPlayToggle() end
     return
   end
   if isKeyMatch(speedKeybinds.AntiTPBat) then
-    if _G.MetroAntiTPBat then
-      _G.MetroAntiTPBat.toggle()
-    elseif _G.MetroToggleAntiTPBat then
-      _G.MetroToggleAntiTPBat()
+    if _G.YaisAntiTPBat then
+      _G.YaisAntiTPBat.toggle()
+    elseif _G.YaisToggleAntiTPBat then
+      _G.YaisToggleAntiTPBat()
     end
     return
   end
   if isKeyMatch(speedKeybinds.Float) then
-    if _G.MetroFloatToggle then _G.MetroFloatToggle() end
+    if _G.YaisFloatToggle then _G.YaisFloatToggle() end
     return
   end
   if isKeyMatch(speedKeybinds.InstantReset) then
-    if _G.MetroInstantReset then _G.MetroInstantReset() end
+    if _G.YaisInstantReset then _G.YaisInstantReset() end
     return
   end
   if isKeyMatch(tpDownKeybind) then
@@ -27356,15 +27356,15 @@ end)
 
 setTab("MOVEMENT")
 
-_G.__MetroDuelsSetupStealBar = function()
+_G.__YaisDuelsSetupStealBar = function()
   local RunService = game:GetService("RunService")
   local UIS = UserInputService
   local TS = TweenService
 
-  local existingStealBar = HubGui and HubGui:FindFirstChild("MetroHubStealBarGui")
+  local existingStealBar = HubGui and HubGui:FindFirstChild("YaisHubStealBarGui")
   if existingStealBar then existingStealBar:Destroy() end
   -- copia rimasta in PlayerGui da una versione precedente dello script
-  existingStealBar = PlayerGui:FindFirstChild("MetroHubStealBarGui")
+  existingStealBar = PlayerGui:FindFirstChild("YaisHubStealBarGui")
   if existingStealBar then existingStealBar:Destroy() end
 
   -- ============================================================
@@ -27401,7 +27401,7 @@ _G.__MetroDuelsSetupStealBar = function()
   })
 
   local gui = Instance.new("ScreenGui")
-  gui.Name = "MetroHubStealBarGui"
+  gui.Name = "YaisHubStealBarGui"
   gui.ResetOnSpawn = false
   gui.IgnoreGuiInset = true
   gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -27411,7 +27411,7 @@ _G.__MetroDuelsSetupStealBar = function()
   function drag(frame)
     local dragging, dragStart, startPos = false, nil, nil
     frame.InputBegan:Connect(function(input)
-      if _G.MetroGuiLocked == true then return end
+      if _G.YaisGuiLocked == true then return end
       if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
@@ -27421,7 +27421,7 @@ _G.__MetroDuelsSetupStealBar = function()
             dragging = false
             if frame and frame.Name == "StealBar" then
               savedStealBarPositionTable = udim2ToTable(frame.Position)
-              pcall(saveMetroConfig)
+              pcall(saveYaisConfig)
             end
           end
         end)
@@ -27439,8 +27439,8 @@ _G.__MetroDuelsSetupStealBar = function()
   local pbFrame = Instance.new("Frame", gui)
   pbFrame.Name = "StealBar"
   pbFrame.Size = UDim2.new(0, W, 0, H)
-  _G.MetroDuelstealBarDefaultPosition = UDim2.new(0.5, -math.floor(W / 2), 1, -128)
-  pbFrame.Position = tableToUDim2(savedStealBarPositionTable, _G.MetroDuelstealBarDefaultPosition)
+  _G.YaisDuelstealBarDefaultPosition = UDim2.new(0.5, -math.floor(W / 2), 1, -128)
+  pbFrame.Position = tableToUDim2(savedStealBarPositionTable, _G.YaisDuelstealBarDefaultPosition)
   savedStealBarPositionTable = udim2ToTable(pbFrame.Position)
   pbFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
   pbFrame.BackgroundTransparency = 0.35
@@ -27461,36 +27461,36 @@ _G.__MetroDuelsSetupStealBar = function()
     savedStealBarPositionTable = udim2ToTable(pbFrame.Position)
   end)
 
-  _G.MetroResetStealBarPosition = function()
+  _G.YaisResetStealBarPosition = function()
     if pbFrame and pbFrame.Parent then
-      pbFrame.Position = _G.MetroDuelstealBarDefaultPosition or UDim2.new(0.5, -176, 1, -128)
+      pbFrame.Position = _G.YaisDuelstealBarDefaultPosition or UDim2.new(0.5, -176, 1, -128)
       savedStealBarPositionTable = udim2ToTable(pbFrame.Position)
     else
       savedStealBarPositionTable = nil
     end
   end
 
-  _G.MetroApplyStealBarPosition = function()
+  _G.YaisApplyStealBarPosition = function()
     if pbFrame and pbFrame.Parent then
-      pbFrame.Position = tableToUDim2(savedStealBarPositionTable, _G.MetroDuelstealBarDefaultPosition or UDim2.new(0.5, -176, 1, -128))
+      pbFrame.Position = tableToUDim2(savedStealBarPositionTable, _G.YaisDuelstealBarDefaultPosition or UDim2.new(0.5, -176, 1, -128))
       savedStealBarPositionTable = udim2ToTable(pbFrame.Position)
     end
   end
 
   local pbScale = Instance.new("UIScale")
-  pbScale.Name = "MetroProgressBarScale"
-  pbScale.Scale = MetroProgressBarScaleValue or 1
+  pbScale.Name = "YaisProgressBarScale"
+  pbScale.Scale = YaisProgressBarScaleValue or 1
   pbScale.Parent = pbFrame
 
   -- Le scritte vengono scalate a mano: qui alla creazione e ad ogni nuova
   -- label aggiunta dopo, altrimenti nascerebbero con la misura piena.
   task.defer(function()
-    if _G.MetroApplyProgressBarScale then pcall(_G.MetroApplyProgressBarScale) end
+    if _G.YaisApplyProgressBarScale then pcall(_G.YaisApplyProgressBarScale) end
   end)
   pbFrame.DescendantAdded:Connect(function(d)
     if d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox") then
       task.defer(function()
-        if _G.MetroApplyProgressBarScale then pcall(_G.MetroApplyProgressBarScale) end
+        if _G.YaisApplyProgressBarScale then pcall(_G.YaisApplyProgressBarScale) end
       end)
     end
   end)
@@ -27545,7 +27545,7 @@ _G.__MetroDuelsSetupStealBar = function()
     bgImage.Visible = false
     return false
   end
-  _G.MetroDuelstealBarSyncBackground = syncBarBackground
+  _G.YaisDuelstealBarSyncBackground = syncBarBackground
 
   task.spawn(function()
     for _ = 1, 40 do
@@ -27605,7 +27605,7 @@ _G.__MetroDuelsSetupStealBar = function()
   hubTitleLbl.Position = UDim2.new(0.5, 0, 0.5, 0)
   hubTitleLbl.Size = UDim2.new(0, 220, 0, 20)
   hubTitleLbl.BackgroundTransparency = 1
-  hubTitleLbl.Text = "discord.gg/MetroDuels"
+  hubTitleLbl.Text = "discord.gg/YaisDuels"
   hubTitleLbl.TextColor3 = Color3.fromRGB(255, 140, 0)
   hubTitleLbl.TextStrokeColor3 = Color3.fromRGB(8, 4, 24)
   hubTitleLbl.TextStrokeTransparency = 0.35
@@ -27914,20 +27914,20 @@ _G.__MetroDuelsSetupStealBar = function()
       -- ===== HIGH PING WARNING POPUP =====
       -- Il Kick Warning ha la precedenza: finche' il suo popup e' vivo
       -- (anche durante la sua animazione di uscita) il ping warning aspetta.
-      local kwBusy = (_G._MetroKickWarn and _G._MetroKickWarn.active == true)
-        or (HubGui:FindFirstChild("MetroHubKickWarning") ~= nil)
+      local kwBusy = (_G._YaisKickWarn and _G._YaisKickWarn.active == true)
+        or (HubGui:FindFirstChild("YaisHubKickWarning") ~= nil)
 
-      if highPingWarningEnabled and not kwBusy and sbPingCurrent > 120 and tick() >= (_G._MetroHPWNextAllowed or 0) then
-        local existingWarning = HubGui:FindFirstChild("MetroHubPingWarning")
+      if highPingWarningEnabled and not kwBusy and sbPingCurrent > 120 and tick() >= (_G._YaisHPWNextAllowed or 0) then
+        local existingWarning = HubGui:FindFirstChild("YaisHubPingWarning")
         if not existingWarning then
           local warningGui = Instance.new("ScreenGui")
-          warningGui.Name = "MetroHubPingWarning"
+          warningGui.Name = "YaisHubPingWarning"
           warningGui.ResetOnSpawn = false
           warningGui.IgnoreGuiInset = true
           warningGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
           warningGui.DisplayOrder = 99999
           warningGui.Parent = HubGui
-          _G._MetroHPWNextAllowed = tick() + 13.5
+          _G._YaisHPWNextAllowed = tick() + 13.5
 
           local warningFrame = Instance.new("Frame")
           warningFrame.Name = "WarningFrame"
@@ -27988,7 +27988,7 @@ _G.__MetroDuelsSetupStealBar = function()
               TweenService:Create(warningIcon, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
               task.wait(0.35)
               pcall(function() warningGui:Destroy() end)
-              _G._MetroHPWNextAllowed = tick() + 10
+              _G._YaisHPWNextAllowed = tick() + 10
             end
           end)
         end
@@ -28005,32 +28005,32 @@ _G.__MetroDuelsSetupStealBar = function()
   _G.StealBar = StealBar
 end
 
-_G.__MetroDuelsSetupStealBar()
-if _G.MetroAutoStealSync then task.defer(_G.MetroAutoStealSync) end
+_G.__YaisDuelsSetupStealBar()
+if _G.YaisAutoStealSync then task.defer(_G.YaisAutoStealSync) end
 
-_G.__MetroDuelsSetupMinimizeToggle = function()
-  _G.__MetroDuelsMinimized = false
+_G.__YaisDuelsSetupMinimizeToggle = function()
+  _G.__YaisDuelsMinimized = false
   Close.MouseButton1Click:Connect(function()
     -- Si guarda lo stato REALE della finestra, non un flag che puo' essere
     -- rimasto indietro.
     if Main.Visible then
-      if _G.MetroHubClose then _G.MetroHubClose(true)
-      else _G.__MetroDuelsMinimized = true; Main.Visible = false; MiniFrame.Visible = true end
+      if _G.YaisHubClose then _G.YaisHubClose(true)
+      else _G.__YaisDuelsMinimized = true; Main.Visible = false; MiniFrame.Visible = true end
     else
-      if _G.MetroHubOpen then _G.MetroHubOpen()
-      else _G.__MetroDuelsMinimized = false; Main.Visible = true; MiniFrame.Visible = false; Main.Size = FULL_MAIN_SIZE end
+      if _G.YaisHubOpen then _G.YaisHubOpen()
+      else _G.__YaisDuelsMinimized = false; Main.Visible = true; MiniFrame.Visible = false; Main.Size = FULL_MAIN_SIZE end
     end
-    saveMetroConfig()
+    saveYaisConfig()
   end)
 end
 
-_G.__MetroDuelsSetupMinimizeToggle()
+_G.__YaisDuelsSetupMinimizeToggle()
 
-_G.__MetroDuelsRunIntro = function()
+_G.__YaisDuelsRunIntro = function()
   local TS = TweenService
   local introGuiParent = Gui and Gui.Parent or HubGui
   local origSize = FULL_MAIN_SIZE or Main.Size
-  local wasMinimizedBeforeIntro = (_G.__MetroDuelsMinimized == true)
+  local wasMinimizedBeforeIntro = (_G.__YaisDuelsMinimized == true)
 
   if not _introEnabled then
     stopIntroPlayback()
@@ -28358,11 +28358,11 @@ subGrad.Color = ColorSequence.new({
   end)
 end
 
-_G.__MetroDuelsRunIntro()
+_G.__YaisDuelsRunIntro()
 
 
 
-_G.MetroDuelsForceSyncLoadedButtons = function()
+_G.YaisDuelsForceSyncLoadedButtons = function()
   pcall(function()
     if _SV.setAutoTPVisual then _SV.setAutoTPVisual(autoTPEnabled) end
     if autoTPEnabled then startAutoTP() else stopAutoTP() end
@@ -28370,104 +28370,104 @@ _G.MetroDuelsForceSyncLoadedButtons = function()
   pcall(function()
     if setInfJumpVisual then setInfJumpVisual(infJumpEnabled) end
     if setInfJumpInternal then setInfJumpInternal(infJumpEnabled) end
-    if _G.MetroRefreshInfJumpModeSelector then _G.MetroRefreshInfJumpModeSelector() end
-    if _G.MetroRefreshTPDownMethodSelector then _G.MetroRefreshTPDownMethodSelector() end   -- >>> TP DOWN METHOD <<<
+    if _G.YaisRefreshInfJumpModeSelector then _G.YaisRefreshInfJumpModeSelector() end
+    if _G.YaisRefreshTPDownMethodSelector then _G.YaisRefreshTPDownMethodSelector() end   -- >>> TP DOWN METHOD <<<
     -- >>> CUSTOM FONTS <<< la GUI a questo punto esiste: si applica il
     -- font salvato e si agganciano i listener per quello che nascera' dopo.
-    if _G.MetroFonts then
-      pcall(_G.MetroFonts.applyAll)
-      pcall(_G.MetroFonts.hook)
+    if _G.YaisFonts then
+      pcall(_G.YaisFonts.applyAll)
+      pcall(_G.YaisFonts.hook)
     end
   end)
   pcall(function()
-    if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.MetroLookAtEnabled == true) end
-    if _G.MetroLookAtRadiusBox then _G.MetroLookAtRadiusBox.Text = tostring(tonumber(_G.MetroLookAtRadius) or 20) end
-    if _G.MetroLookAtEnabled then
-      if _G.MetroDuelstartLookAt then _G.MetroDuelstartLookAt() end
+    if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.YaisLookAtEnabled == true) end
+    if _G.YaisLookAtRadiusBox then _G.YaisLookAtRadiusBox.Text = tostring(tonumber(_G.YaisLookAtRadius) or 20) end
+    if _G.YaisLookAtEnabled then
+      if _G.YaisDuelstartLookAt then _G.YaisDuelstartLookAt() end
     else
-      if _G.MetroDuelstopLookAt then _G.MetroDuelstopLookAt() end
+      if _G.YaisDuelstopLookAt then _G.YaisDuelstopLookAt() end
     end
   end)
   pcall(function()
     if setAutoCarrySpeedVisual then setAutoCarrySpeedVisual(autoCarrySpeedEnabled == true) end
-    if _G.MetroRefreshAutoCarryModeSelector then _G.MetroRefreshAutoCarryModeSelector() end
+    if _G.YaisRefreshAutoCarryModeSelector then _G.YaisRefreshAutoCarryModeSelector() end
   end)
   pcall(function()
     if setAntiRagdollVisual then setAntiRagdollVisual(antiRagdollEnabled) end
-    if _SV.setTPRagdollVisual then _SV.setTPRagdollVisual(_G.MetroTPRagdollEnabled == true) end
-    if _G.MetroRefreshAntiRagdollModeSelector then _G.MetroRefreshAntiRagdollModeSelector() end
+    if _SV.setTPRagdollVisual then _SV.setTPRagdollVisual(_G.YaisTPRagdollEnabled == true) end
+    if _G.YaisRefreshAntiRagdollModeSelector then _G.YaisRefreshAntiRagdollModeSelector() end
     setAntiRagdoll(antiRagdollEnabled)
   end)
   pcall(function()
-    if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._MetroAntiDieUserWanted == true) end
-    setAntiDie(_G._MetroAntiDieUserWanted == true)
+    if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._YaisAntiDieUserWanted == true) end
+    setAntiDie(_G._YaisAntiDieUserWanted == true)
     -- Un modulo poteva aver gia' armato l'Anti Die: setAntiDie(false)
     -- staccherebbe tutto senza che nessuno lo rimetta.
-    if _G.MetroAntiDieAutoSync then _G.MetroAntiDieAutoSync() end
+    if _G.YaisAntiDieAutoSync then _G.YaisAntiDieAutoSync() end
   end)
   pcall(function()
-    if _G.MetroDuelsetAutoLeft then _G.MetroDuelsetAutoLeft(autoLeftEnabled, true) end
-    if _G.MetroDuelsetAutoRight then _G.MetroDuelsetAutoRight(autoRightEnabled, true) end
+    if _G.YaisDuelsetAutoLeft then _G.YaisDuelsetAutoLeft(autoLeftEnabled, true) end
+    if _G.YaisDuelsetAutoRight then _G.YaisDuelsetAutoRight(autoRightEnabled, true) end
   end)
   pcall(function()
     if setAutoStealVisual then setAutoStealVisual(autoStealEnabled) end
-    if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
+    if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
     -- >>> RADIUS CIRCLE <<<
-    if _G.MetroDuelsetRadiusCircle then _G.MetroDuelsetRadiusCircle(_G.MetroRadiusCircleEnabled == true) end
-    if _G.MetroRadiusCircleSetVisual then _G.MetroRadiusCircleSetVisual(_G.MetroRadiusCircleEnabled == true) end
-    if _G.MetroDuelsetRadiusCircleColor then _G.MetroDuelsetRadiusCircleColor(_G.MetroRadiusCircleColor) end
-    if _G.MetroRadiusCircleSetColorPreview then _G.MetroRadiusCircleSetColorPreview(_G.MetroRadiusCircleColor) end
+    if _G.YaisDuelsetRadiusCircle then _G.YaisDuelsetRadiusCircle(_G.YaisRadiusCircleEnabled == true) end
+    if _G.YaisRadiusCircleSetVisual then _G.YaisRadiusCircleSetVisual(_G.YaisRadiusCircleEnabled == true) end
+    if _G.YaisDuelsetRadiusCircleColor then _G.YaisDuelsetRadiusCircleColor(_G.YaisRadiusCircleColor) end
+    if _G.YaisRadiusCircleSetColorPreview then _G.YaisRadiusCircleSetColorPreview(_G.YaisRadiusCircleColor) end
   end)
   pcall(function()
-    if _G.MetroNormalAutoSwingSetVisual then _G.MetroNormalAutoSwingSetVisual(autoSwingEnabled) end
-    if _G.MetroMirrorTPDownSetVisual then _G.MetroMirrorTPDownSetVisual(mirrorTPDownEnabled) end
-    if _G.MetroTPBatAutoSwingSetVisual then _G.MetroTPBatAutoSwingSetVisual(tpBatAutoSwingEnabled) end
-    if _G.MetroTPBatCameraLockSetVisual then _G.MetroTPBatCameraLockSetVisual(_G._MetroGetTPBatCameraLock and _G._MetroGetTPBatCameraLock() or false) end
+    if _G.YaisNormalAutoSwingSetVisual then _G.YaisNormalAutoSwingSetVisual(autoSwingEnabled) end
+    if _G.YaisMirrorTPDownSetVisual then _G.YaisMirrorTPDownSetVisual(mirrorTPDownEnabled) end
+    if _G.YaisTPBatAutoSwingSetVisual then _G.YaisTPBatAutoSwingSetVisual(tpBatAutoSwingEnabled) end
+    if _G.YaisTPBatCameraLockSetVisual then _G.YaisTPBatCameraLockSetVisual(_G._YaisGetTPBatCameraLock and _G._YaisGetTPBatCameraLock() or false) end
     -- >>> TP BAT VERSIONS: allinea lo slider al valore caricato <<<
-    _G.MetroTPBatVersion = math.clamp(tonumber(_G.MetroTPBatVersion) or 1, 1, 5)
-    if _G._MetroTPBatSetVersionVisual then _G._MetroTPBatSetVersionVisual(_G.MetroTPBatVersion) end
-    if _G.MetroTPBatSetVisual then _G.MetroTPBatSetVisual(_G.MetroTPBatOn == true) end
-    if _G.MetroTPBatOn and _G.MetroDuelstartTPBat then
-      _G.MetroDuelstartTPBat()
-    elseif _G.MetroDuelstopTPBat then
-      _G.MetroDuelstopTPBat()
+    _G.YaisTPBatVersion = math.clamp(tonumber(_G.YaisTPBatVersion) or 1, 1, 5)
+    if _G._YaisTPBatSetVersionVisual then _G._YaisTPBatSetVersionVisual(_G.YaisTPBatVersion) end
+    if _G.YaisTPBatSetVisual then _G.YaisTPBatSetVisual(_G.YaisTPBatOn == true) end
+    if _G.YaisTPBatOn and _G.YaisDuelstartTPBat then
+      _G.YaisDuelstartTPBat()
+    elseif _G.YaisDuelstopTPBat then
+      _G.YaisDuelstopTPBat()
     end
   end)
   pcall(function()
     if selectedAimbotMode == "V2" then
-      if _G.MetroNormalAimbotStop then _G.MetroNormalAimbotStop() end
-      if _G.MetroBatAimbotV2On and _G.MetroBatAimbotV2Start then
-        _G.MetroBatAimbotV2Start()
-      elseif _G.MetroBatAimbotV2Stop then
-        _G.MetroBatAimbotV2Stop()
+      if _G.YaisNormalAimbotStop then _G.YaisNormalAimbotStop() end
+      if _G.YaisBatAimbotV2On and _G.YaisBatAimbotV2Start then
+        _G.YaisBatAimbotV2Start()
+      elseif _G.YaisBatAimbotV2Stop then
+        _G.YaisBatAimbotV2Stop()
       end
     else
-      if _G.MetroBatAimbotV2Stop then _G.MetroBatAimbotV2Stop() end
-      if _G.MetroNormalAimbotOn and _G.MetroNormalAimbotStart then
-        _G.MetroNormalAimbotStart()
-      elseif _G.MetroNormalAimbotStop then
-        _G.MetroNormalAimbotStop()
+      if _G.YaisBatAimbotV2Stop then _G.YaisBatAimbotV2Stop() end
+      if _G.YaisNormalAimbotOn and _G.YaisNormalAimbotStart then
+        _G.YaisNormalAimbotStart()
+      elseif _G.YaisNormalAimbotStop then
+        _G.YaisNormalAimbotStop()
       end
     end
-    if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
+    if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
   end)
   pcall(function()
     if setBatCounterVisual then setBatCounterVisual(batCounterEnabled) end
-    if _G.MetroRefreshBatCounterModeSelector then _G.MetroRefreshBatCounterModeSelector() end
+    if _G.YaisRefreshBatCounterModeSelector then _G.YaisRefreshBatCounterModeSelector() end
     if setMedCounterVisual then setMedCounterVisual(medCounterEnabled) end
     if _SV.setSafeModeVisual then _SV.setSafeModeVisual(antiKickEnabled) end
     if batCounterEnabled then
-      if _G.MetroDuelstartBatCounter then _G.MetroDuelstartBatCounter() end
+      if _G.YaisDuelstartBatCounter then _G.YaisDuelstartBatCounter() end
     else
-      if _G.MetroDuelstopBatCounter then _G.MetroDuelstopBatCounter() end
+      if _G.YaisDuelstopBatCounter then _G.YaisDuelstopBatCounter() end
     end
     if medCounterEnabled then
-      if _G.MetroDuelstartMedCounter then _G.MetroDuelstartMedCounter(LP.Character) end
+      if _G.YaisDuelstartMedCounter then _G.YaisDuelstartMedCounter(LP.Character) end
     else
-      if _G.MetroDuelstopMedCounter then _G.MetroDuelstopMedCounter() end
+      if _G.YaisDuelstopMedCounter then _G.YaisDuelstopMedCounter() end
     end
-    if _G.MetroDuelsetNoPlayerCollisionVisual then _G.MetroDuelsetNoPlayerCollisionVisual(_G.MetroNoPlayerCollisionEnabled) end
-    if _G.MetroNoPlayerCollisionEnabled then
+    if _G.YaisDuelsetNoPlayerCollisionVisual then _G.YaisDuelsetNoPlayerCollisionVisual(_G.YaisNoPlayerCollisionEnabled) end
+    if _G.YaisNoPlayerCollisionEnabled then
       if enableNoPlayerCollision then enableNoPlayerCollision() end
     else
       if disableNoPlayerCollision then disableNoPlayerCollision() end
@@ -28483,12 +28483,12 @@ _G.MetroDuelsForceSyncLoadedButtons = function()
     -- Forza restart: stopRagdollCountdown + StopEnemy azzerano i flag-guard interni prima di riavviare
     if ragdollCountdownEnabled then
       stopRagdollCountdown()
-      if _G.MetroDuelstopEnemyRagdollCountdown then _G.MetroDuelstopEnemyRagdollCountdown() end
+      if _G.YaisDuelstopEnemyRagdollCountdown then _G.YaisDuelstopEnemyRagdollCountdown() end
       hookRagdollCountdown(LP.Character)
-      if _G.MetroDuelstartEnemyRagdollCountdown then _G.MetroDuelstartEnemyRagdollCountdown() end
+      if _G.YaisDuelstartEnemyRagdollCountdown then _G.YaisDuelstartEnemyRagdollCountdown() end
     else
       stopRagdollCountdown()
-      if _G.MetroDuelstopEnemyRagdollCountdown then _G.MetroDuelstopEnemyRagdollCountdown() end
+      if _G.YaisDuelstopEnemyRagdollCountdown then _G.YaisDuelstopEnemyRagdollCountdown() end
     end
     if _SV.setFPSBoostVisual then _SV.setFPSBoostVisual(fpsBoostEnabled) end
     if fpsBoostEnabled then enableStretchRez() else disableStretchRez() end
@@ -28499,8 +28499,8 @@ _G.MetroDuelsForceSyncLoadedButtons = function()
     if _SV.setXRayVisual then _SV.setXRayVisual(xrayEnabled) end
     if setXRay then pcall(setXRay, xrayEnabled) end
     if _SV.setHighPingWarningVisual then _SV.setHighPingWarningVisual(highPingWarningEnabled) end
-    if _SV.setKickWarningVisual then _SV.setKickWarningVisual(_G._MetroKickWarn.enabled == true) end
-    if _G.MetroRefreshUAKVisual then _G.MetroRefreshUAKVisual() end
+    if _SV.setKickWarningVisual then _SV.setKickWarningVisual(_G._YaisKickWarn.enabled == true) end
+    if _G.YaisRefreshUAKVisual then _G.YaisRefreshUAKVisual() end
     if _SV.setFOVVisual then _SV.setFOVVisual(fovEnabled) end
     if fovEnabled then enableCustomFov() else disableCustomFov() end
     if _SV.setNoCamCollisionVisual then _SV.setNoCamCollisionVisual(noCamCollisionEnabled) end
@@ -28510,7 +28510,7 @@ _G.MetroDuelsForceSyncLoadedButtons = function()
     end
     if skyValueLabel then skyValueLabel.Text = skyTheme or "Off" end
   end)
-  pcall(saveMetroConfig)
+  pcall(saveYaisConfig)
 end
 
 task.defer(function()
@@ -28521,14 +28521,14 @@ task.defer(function()
   if skyValueLabel then skyValueLabel.Text = skyTheme or "Off" end
 end)
 
-task.defer(_G.MetroDuelsForceSyncLoadedButtons)
+task.defer(_G.YaisDuelsForceSyncLoadedButtons)
 task.delay(1, function()
-  if _G.MetroDuelsForceSyncLoadedButtons then _G.MetroDuelsForceSyncLoadedButtons() end
+  if _G.YaisDuelsForceSyncLoadedButtons then _G.YaisDuelsForceSyncLoadedButtons() end
 end)
 
 task.defer(function()
   task.wait(0.2)
-  if _G.MetroDuelsyncToggleVisuals then _G.MetroDuelsyncToggleVisuals() end
+  if _G.YaisDuelsyncToggleVisuals then _G.YaisDuelsyncToggleVisuals() end
 end)
 
 customFontVisualEnabled = false
@@ -28544,7 +28544,7 @@ function disableCustomFont()
   if V then V.customFontEnabled = false end
 end
 
-_G.MetroDuelsApplySavedGameplayStates = function()
+_G.YaisDuelsApplySavedGameplayStates = function()
   pcall(function()
     if _SV.setAutoTPVisual then _SV.setAutoTPVisual(autoTPEnabled == true) end
     if autoTPEnabled then startAutoTP() else stopAutoTP() end
@@ -28552,60 +28552,60 @@ _G.MetroDuelsApplySavedGameplayStates = function()
   pcall(function()
     if setInfJumpVisual then setInfJumpVisual(infJumpEnabled == true) end
     if setInfJumpInternal then setInfJumpInternal(infJumpEnabled == true) end
-    if _G.MetroRefreshInfJumpModeSelector then _G.MetroRefreshInfJumpModeSelector() end
-    if _G.MetroRefreshTPDownMethodSelector then _G.MetroRefreshTPDownMethodSelector() end   -- >>> TP DOWN METHOD <<<
+    if _G.YaisRefreshInfJumpModeSelector then _G.YaisRefreshInfJumpModeSelector() end
+    if _G.YaisRefreshTPDownMethodSelector then _G.YaisRefreshTPDownMethodSelector() end   -- >>> TP DOWN METHOD <<<
     -- >>> CUSTOM FONTS <<< la GUI a questo punto esiste: si applica il
     -- font salvato e si agganciano i listener per quello che nascera' dopo.
-    if _G.MetroFonts then
-      pcall(_G.MetroFonts.applyAll)
-      pcall(_G.MetroFonts.hook)
+    if _G.YaisFonts then
+      pcall(_G.YaisFonts.applyAll)
+      pcall(_G.YaisFonts.hook)
     end
   end)
   pcall(function()
-    if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.MetroLookAtEnabled == true) end
-    if _G.MetroLookAtRadiusBox then _G.MetroLookAtRadiusBox.Text = tostring(tonumber(_G.MetroLookAtRadius) or 20) end
-    if _G.MetroLookAtEnabled then
-      if _G.MetroDuelstartLookAt then _G.MetroDuelstartLookAt() end
+    if _SV.setLookAtVisual then _SV.setLookAtVisual(_G.YaisLookAtEnabled == true) end
+    if _G.YaisLookAtRadiusBox then _G.YaisLookAtRadiusBox.Text = tostring(tonumber(_G.YaisLookAtRadius) or 20) end
+    if _G.YaisLookAtEnabled then
+      if _G.YaisDuelstartLookAt then _G.YaisDuelstartLookAt() end
     else
-      if _G.MetroDuelstopLookAt then _G.MetroDuelstopLookAt() end
+      if _G.YaisDuelstopLookAt then _G.YaisDuelstopLookAt() end
     end
   end)
   pcall(function()
     if setAutoCarrySpeedVisual then setAutoCarrySpeedVisual(autoCarrySpeedEnabled == true) end
-    if _G.MetroRefreshAutoCarryModeSelector then _G.MetroRefreshAutoCarryModeSelector() end
+    if _G.YaisRefreshAutoCarryModeSelector then _G.YaisRefreshAutoCarryModeSelector() end
   end)
   pcall(function()
     if setAntiRagdollVisual then setAntiRagdollVisual(antiRagdollEnabled == true) end
-    if _G.MetroRefreshAntiRagdollModeSelector then _G.MetroRefreshAntiRagdollModeSelector() end
+    if _G.YaisRefreshAntiRagdollModeSelector then _G.YaisRefreshAntiRagdollModeSelector() end
     if setAntiRagdoll then setAntiRagdoll(antiRagdollEnabled == true) end
   end)
   pcall(function()
-    if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._MetroAntiDieUserWanted == true) end
-    setAntiDie(_G._MetroAntiDieUserWanted == true)
+    if _SV.setAntiDieVisual then _SV.setAntiDieVisual(_G._YaisAntiDieUserWanted == true) end
+    setAntiDie(_G._YaisAntiDieUserWanted == true)
     -- Un modulo poteva aver gia' armato l'Anti Die: setAntiDie(false)
     -- staccherebbe tutto senza che nessuno lo rimetta.
-    if _G.MetroAntiDieAutoSync then _G.MetroAntiDieAutoSync() end
+    if _G.YaisAntiDieAutoSync then _G.YaisAntiDieAutoSync() end
   end)
   pcall(function()
     if setAutoStealVisual then setAutoStealVisual(autoStealEnabled == true) end
-    if _G.MetroAutoStealSync then _G.MetroAutoStealSync() end
+    if _G.YaisAutoStealSync then _G.YaisAutoStealSync() end
   end)
   pcall(function()
     if setBatCounterVisual then setBatCounterVisual(batCounterEnabled == true) end
-    if _G.MetroRefreshBatCounterModeSelector then _G.MetroRefreshBatCounterModeSelector() end
-    if batCounterEnabled and _G.MetroDuelstartBatCounter then _G.MetroDuelstartBatCounter() elseif _G.MetroDuelstopBatCounter then _G.MetroDuelstopBatCounter() end
+    if _G.YaisRefreshBatCounterModeSelector then _G.YaisRefreshBatCounterModeSelector() end
+    if batCounterEnabled and _G.YaisDuelstartBatCounter then _G.YaisDuelstartBatCounter() elseif _G.YaisDuelstopBatCounter then _G.YaisDuelstopBatCounter() end
   end)
   pcall(function()
     if setMedCounterVisual then setMedCounterVisual(medCounterEnabled == true) end
-    if medCounterEnabled and _G.MetroDuelstartMedCounter then
-      _G.MetroDuelstartMedCounter(LP.Character)
-    elseif _G.MetroDuelstopMedCounter then
-      _G.MetroDuelstopMedCounter()
+    if medCounterEnabled and _G.YaisDuelstartMedCounter then
+      _G.YaisDuelstartMedCounter(LP.Character)
+    elseif _G.YaisDuelstopMedCounter then
+      _G.YaisDuelstopMedCounter()
     end
   end)
   pcall(function()
-    if _G.MetroDuelsetNoPlayerCollisionVisual then _G.MetroDuelsetNoPlayerCollisionVisual(_G.MetroNoPlayerCollisionEnabled == true) end
-    if _G.MetroNoPlayerCollisionEnabled then enableNoPlayerCollision() else disableNoPlayerCollision() end
+    if _G.YaisDuelsetNoPlayerCollisionVisual then _G.YaisDuelsetNoPlayerCollisionVisual(_G.YaisNoPlayerCollisionEnabled == true) end
+    if _G.YaisNoPlayerCollisionEnabled then enableNoPlayerCollision() else disableNoPlayerCollision() end
   end)
   pcall(function()
     if _SV.setUnwalkVisual then _SV.setUnwalkVisual(unwalkEnabled == true) end
@@ -28650,12 +28650,12 @@ _G.MetroDuelsApplySavedGameplayStates = function()
       -- poi hookRagdollCountdown parte da zero senza guard che blocchino.
       -- Per il sistema enemy, StopEnemy azzera enemyRagdollConn (il flag-guard di StartEnemy).
       stopRagdollCountdown()
-      _G.MetroDuelstopEnemyRagdollCountdown()
+      _G.YaisDuelstopEnemyRagdollCountdown()
       hookRagdollCountdown(LP.Character)
-      _G.MetroDuelstartEnemyRagdollCountdown()
+      _G.YaisDuelstartEnemyRagdollCountdown()
     else
       stopRagdollCountdown()
-      _G.MetroDuelstopEnemyRagdollCountdown()
+      _G.YaisDuelstopEnemyRagdollCountdown()
     end
   end)
   pcall(function()
@@ -28674,12 +28674,12 @@ _G.MetroDuelsApplySavedGameplayStates = function()
     if _SV.setXRayVisual then _SV.setXRayVisual(xrayEnabled == true) end
     if setXRay then setXRay(xrayEnabled) end
     -- >>> BRAINROT X-RAY <<<
-    if _SV.setBrainrotXRayVisual then _SV.setBrainrotXRayVisual(_G.MetroBrainrotXRayEnabled == true) end
-    if _G.MetroDuelsetBrainrotXRay then _G.MetroDuelsetBrainrotXRay(_G.MetroBrainrotXRayEnabled == true) end
+    if _SV.setBrainrotXRayVisual then _SV.setBrainrotXRayVisual(_G.YaisBrainrotXRayEnabled == true) end
+    if _G.YaisDuelsetBrainrotXRay then _G.YaisDuelsetBrainrotXRay(_G.YaisBrainrotXRayEnabled == true) end
   end)
   pcall(function()
     if _SV.setFOVVisual then _SV.setFOVVisual(fovEnabled == true) end
-    if _G.MetroRefreshFovValueBox then _G.MetroRefreshFovValueBox() end   -- >>> FOV VALUE ARROW <<<
+    if _G.YaisRefreshFovValueBox then _G.YaisRefreshFovValueBox() end   -- >>> FOV VALUE ARROW <<<
     if fovEnabled then enableCustomFov() else disableCustomFov() end
   end)
   pcall(function()
@@ -28697,40 +28697,40 @@ _G.MetroDuelsApplySavedGameplayStates = function()
 
   -- >>> ANTI TP BAT BEGIN
   pcall(function()
-    if _G.MetroAntiTPBat then
-      _G.MetroAntiTPBat.setSpam(_G.MetroAntiTPBatSpam == true, true)
-      _G.MetroAntiTPBat.setVersion(_G.MetroAntiTPBatVersion or 1, true)
-      _G.MetroAntiTPBat.setEnabled(_G.MetroAntiTPBatEnabled == true, true)
+    if _G.YaisAntiTPBat then
+      _G.YaisAntiTPBat.setSpam(_G.YaisAntiTPBatSpam == true, true)
+      _G.YaisAntiTPBat.setVersion(_G.YaisAntiTPBatVersion or 1, true)
+      _G.YaisAntiTPBat.setEnabled(_G.YaisAntiTPBatEnabled == true, true)
     end
-    if _G._MetroAntiTPBatRefreshUI then _G._MetroAntiTPBatRefreshUI() end
+    if _G._YaisAntiTPBatRefreshUI then _G._YaisAntiTPBatRefreshUI() end
   end)
   -- <<< ANTI TP BAT END
   -- >>> ANTI VOID BEGIN
   pcall(function()
-    local on = _G.MetroAntiVoidEnabled == true
+    local on = _G.YaisAntiVoidEnabled == true
     if _SV.setAntiVoidVisual then _SV.setAntiVoidVisual(on) end
-    if _G.MetroAntiVoid then _G.MetroAntiVoid.setEnabled(on) end
+    if _G.YaisAntiVoid then _G.YaisAntiVoid.setEnabled(on) end
   end)
   -- <<< ANTI VOID END
   pcall(function()
-    local on = _G.MetroRainbowToolsEnabled == true
+    local on = _G.YaisRainbowToolsEnabled == true
     if _SV.setRainbowToolsVisual then _SV.setRainbowToolsVisual(on) end
-    if _G.MetroRainbowTools then _G.MetroRainbowTools.setEnabled(on) end
+    if _G.YaisRainbowTools then _G.YaisRainbowTools.setEnabled(on) end
   end)
   pcall(function()
-    local on = _G.MetroTransparentToolsEnabled == true
+    local on = _G.YaisTransparentToolsEnabled == true
     if _SV.setTransparentToolsVisual then _SV.setTransparentToolsVisual(on) end
-    if _G.MetroTransparentTools then _G.MetroTransparentTools.setEnabled(on) end
+    if _G.YaisTransparentTools then _G.YaisTransparentTools.setEnabled(on) end
   end)
   pcall(function()
-    local on = _G.MetroCustomToolsEnabled == true
+    local on = _G.YaisCustomToolsEnabled == true
     if _SV.setCustomToolsVisual then _SV.setCustomToolsVisual(on) end
-    if _G.MetroCustomTools then _G.MetroCustomTools.setEnabled(on) end
+    if _G.YaisCustomTools then _G.YaisCustomTools.setEnabled(on) end
   end)
   pcall(function()
-    local on = _G.MetroCustomSoundsEnabled == true
+    local on = _G.YaisCustomSoundsEnabled == true
     if _SV.setCustomSoundsVisual then _SV.setCustomSoundsVisual(on) end
-    if _G.MetroCustomSounds then _G.MetroCustomSounds.setEnabled(on) end
+    if _G.YaisCustomSounds then _G.YaisCustomSounds.setEnabled(on) end
   end)
 
   pcall(function()
@@ -28738,76 +28738,76 @@ _G.MetroDuelsApplySavedGameplayStates = function()
     if skyValueLabel then skyValueLabel.Text = skyTheme or "Off" end
   end)
   pcall(function()
-    if selectedAnimPackIndex and selectedAnimPackIndex ~= 1 and _G.MetroDuelsetAnimPack then
-      _G.MetroDuelsetAnimPack(selectedAnimPackIndex)
+    if selectedAnimPackIndex and selectedAnimPackIndex ~= 1 and _G.YaisDuelsetAnimPack then
+      _G.YaisDuelsetAnimPack(selectedAnimPackIndex)
     end
     if setAnimPackVisual then setAnimPackVisual(selectedAnimPackIndex or 1) end
     -- >>> VISIBILE SOLO CON CUSTOM <<< allineamento dopo il load config
-    if _G.MetroCustomAnimSetRowVisible then
-      _G.MetroCustomAnimSetRowVisible((selectedAnimPackIndex or 1) == 7, false)
+    if _G.YaisCustomAnimSetRowVisible then
+      _G.YaisCustomAnimSetRowVisible((selectedAnimPackIndex or 1) == 7, false)
     end
   end)
 end
 
 task.defer(function()
   task.wait(0.25)
-  if _G.MetroDuelsApplySavedGameplayStates then _G.MetroDuelsApplySavedGameplayStates() end
+  if _G.YaisDuelsApplySavedGameplayStates then _G.YaisDuelsApplySavedGameplayStates() end
 end)
 
 task.delay(1.25, function()
-  if _G.MetroDuelsApplySavedGameplayStates then _G.MetroDuelsApplySavedGameplayStates() end
+  if _G.YaisDuelsApplySavedGameplayStates then _G.YaisDuelsApplySavedGameplayStates() end
 end)
 
 task.delay(3, function()
   if antiLagVisualEnabled and type(applyKTMOptimization) == "function" then pcall(applyKTMOptimization) end
 end)
 
-_G.MetroAutoTPRestoreWanted = _G.MetroAutoTPRestoreWanted or false
-_G.MetroAutoTPRestoreBlockedUntil = _G.MetroAutoTPRestoreBlockedUntil or 0
+_G.YaisAutoTPRestoreWanted = _G.YaisAutoTPRestoreWanted or false
+_G.YaisAutoTPRestoreBlockedUntil = _G.YaisAutoTPRestoreBlockedUntil or 0
 
-function MetroAnyAimbotActive()
-  return (_G.MetroNormalAimbotOn == true) or (_G.MetroBatAimbotV2On == true) or (_G.MetroTPBatOn == true)
+function YaisAnyAimbotActive()
+  return (_G.YaisNormalAimbotOn == true) or (_G.YaisBatAimbotV2On == true) or (_G.YaisTPBatOn == true)
 end
 
-_G.MetroDuelstopAutoTPForAction = function()
+_G.YaisDuelstopAutoTPForAction = function()
   if autoTPEnabled then
-    _G.MetroAutoTPRestoreWanted = true
-    _G.MetroAutoTPRestoreBlockedUntil = tick() + 0.35
+    _G.YaisAutoTPRestoreWanted = true
+    _G.YaisAutoTPRestoreBlockedUntil = tick() + 0.35
     stopAutoTP()
     if _SV.setAutoTPVisual then _SV.setAutoTPVisual(false) end
   end
 end
 
-function MetroTryRestoreAutoTP()
-  if not _G.MetroAutoTPRestoreWanted then return end
-  if tick() < (_G.MetroAutoTPRestoreBlockedUntil or 0) then return end
-  if MetroAnyAimbotActive() then return end
+function YaisTryRestoreAutoTP()
+  if not _G.YaisAutoTPRestoreWanted then return end
+  if tick() < (_G.YaisAutoTPRestoreBlockedUntil or 0) then return end
+  if YaisAnyAimbotActive() then return end
   if dropBrainrotActive then return end
-  _G.MetroAutoTPRestoreWanted = false
+  _G.YaisAutoTPRestoreWanted = false
   startAutoTP()
   if _SV.setAutoTPVisual then _SV.setAutoTPVisual(true) end
-  saveMetroConfig()
+  saveYaisConfig()
 end
 
-RunService.Heartbeat:Connect(MetroTryRestoreAutoTP)
+RunService.Heartbeat:Connect(YaisTryRestoreAutoTP)
 
-_G._oldMetroDuelstopNormalAimbot = _G.MetroDuelstopNormalAimbot
-_G.MetroDuelstopNormalAimbot = function(...)
-  local r = {_G._oldMetroDuelstopNormalAimbot(...)}
-  _G.MetroAutoTPRestoreBlockedUntil = tick() + 0.05
-  task.delay(0.08, MetroTryRestoreAutoTP)
+_G._oldYaisDuelstopNormalAimbot = _G.YaisDuelstopNormalAimbot
+_G.YaisDuelstopNormalAimbot = function(...)
+  local r = {_G._oldYaisDuelstopNormalAimbot(...)}
+  _G.YaisAutoTPRestoreBlockedUntil = tick() + 0.05
+  task.delay(0.08, YaisTryRestoreAutoTP)
   return unpack(r)
 end
-_G.MetroNormalAimbotStop = _G.MetroDuelstopNormalAimbot
+_G.YaisNormalAimbotStop = _G.YaisDuelstopNormalAimbot
 
-_G._oldMetroDuelstopBatAimbotV2 = _G.MetroDuelstopBatAimbotV2
-_G.MetroDuelstopBatAimbotV2 = function(...)
-  local r = {_G._oldMetroDuelstopBatAimbotV2(...)}
-  _G.MetroAutoTPRestoreBlockedUntil = tick() + 0.05
-  task.delay(0.08, MetroTryRestoreAutoTP)
+_G._oldYaisDuelstopBatAimbotV2 = _G.YaisDuelstopBatAimbotV2
+_G.YaisDuelstopBatAimbotV2 = function(...)
+  local r = {_G._oldYaisDuelstopBatAimbotV2(...)}
+  _G.YaisAutoTPRestoreBlockedUntil = tick() + 0.05
+  task.delay(0.08, YaisTryRestoreAutoTP)
   return unpack(r)
 end
-_G.MetroBatAimbotV2Stop = _G.MetroDuelstopBatAimbotV2
+_G.YaisBatAimbotV2Stop = _G.YaisDuelstopBatAimbotV2
 
 -- >>> ANTI DIE AUTO BEGIN
 -- Wrapper sui punti che accendono/spengono i moduli: qui le funzioni
@@ -28822,32 +28822,32 @@ do
     if type(old) ~= "function" then return end
     _G[name] = function(...)
       local r = {old(...)}
-      if _G.MetroAntiDieAutoSync then pcall(_G.MetroAntiDieAutoSync) end
+      if _G.YaisAntiDieAutoSync then pcall(_G.YaisAntiDieAutoSync) end
       return unpack(r)
     end
   end
-  wrap("MetroDuelstartTPBat")
-  wrap("MetroDuelstopTPBat")
-  wrap("MetroDuelstartNormalAimbot")
-  wrap("MetroDuelstopNormalAimbot")
-  wrap("MetroDuelstartBatAimbotV2")
-  wrap("MetroDuelstopBatAimbotV2")
+  wrap("YaisDuelstartTPBat")
+  wrap("YaisDuelstopTPBat")
+  wrap("YaisDuelstartNormalAimbot")
+  wrap("YaisDuelstopNormalAimbot")
+  wrap("YaisDuelstartBatAimbotV2")
+  wrap("YaisDuelstopBatAimbotV2")
 
   -- Gli alias erano stati presi PRIMA di questo punto, quindi puntavano
   -- ancora alle funzioni originali e chi li usava (il ripristino dello
   -- stato dal config) scavalcava sia l'armamento sia la sync. Si
   -- ripuntano alle versioni avvolte.
-  _G.MetroNormalAimbotStart = _G.MetroDuelstartNormalAimbot
-  _G.MetroBatAimbotV2Start  = _G.MetroDuelstartBatAimbotV2
-  _G.MetroBatAimbotV2Stop   = _G.MetroDuelstopBatAimbotV2
+  _G.YaisNormalAimbotStart = _G.YaisDuelstartNormalAimbot
+  _G.YaisBatAimbotV2Start  = _G.YaisDuelstartBatAimbotV2
+  _G.YaisBatAimbotV2Stop   = _G.YaisDuelstopBatAimbotV2
 end
 -- <<< ANTI DIE AUTO END
 
-_G._oldMetroDuelstopTPBat = _G.MetroDuelstopTPBat
-_G.MetroDuelstopTPBat = function(...)
-  local r = {_G._oldMetroDuelstopTPBat(...)}
-  _G.MetroAutoTPRestoreBlockedUntil = tick() + 0.05
-  task.delay(0.08, MetroTryRestoreAutoTP)
+_G._oldYaisDuelstopTPBat = _G.YaisDuelstopTPBat
+_G.YaisDuelstopTPBat = function(...)
+  local r = {_G._oldYaisDuelstopTPBat(...)}
+  _G.YaisAutoTPRestoreBlockedUntil = tick() + 0.05
+  task.delay(0.08, YaisTryRestoreAutoTP)
   return unpack(r)
 end
 
@@ -28858,13 +28858,13 @@ task.spawn(function()
       wasDropping = true
     elseif wasDropping then
       wasDropping = false
-      _G.MetroAutoTPRestoreBlockedUntil = tick() + 0.05
-      task.delay(0.08, MetroTryRestoreAutoTP)
+      _G.YaisAutoTPRestoreBlockedUntil = tick() + 0.05
+      task.delay(0.08, YaisTryRestoreAutoTP)
     end
   end
 end)
 
-function MetroRepairKeybinds()
+function YaisRepairKeybinds()
   for keyId, defaultKey in pairs(DEFAULT_SPEED_KEYBINDS) do
     if speedKeybinds[keyId] == Enum.KeyCode.Unknown then
       speedKeybinds[keyId] = defaultKey
@@ -28875,17 +28875,17 @@ function MetroRepairKeybinds()
   if refreshTPDownKeybind then refreshTPDownKeybind() end
 end
 
-_G._oldSaveMetroConfigStable = saveMetroConfig
-saveMetroConfig = function()
-  MetroRepairKeybinds()
-  return _G._oldSaveMetroConfigStable()
+_G._oldSaveYaisConfigStable = saveYaisConfig
+saveYaisConfig = function()
+  YaisRepairKeybinds()
+  return _G._oldSaveYaisConfigStable()
 end
 
-MetroRepairKeybinds()
+YaisRepairKeybinds()
 task.defer(function()
   task.wait(0.2)
-  MetroRepairKeybinds()
-  saveMetroConfig()
+  YaisRepairKeybinds()
+  saveYaisConfig()
 end)
 
 -- ============================================================
@@ -28894,50 +28894,50 @@ end)
 task.defer(function()
   task.wait(0.35)
   local TS = game:GetService("TweenService")
-  local old = HubGui:FindFirstChild("MetroHubMobileButtons")
+  local old = HubGui:FindFirstChild("YaisHubMobileButtons")
   if old then old:Destroy() end
   -- copia rimasta in PlayerGui da una versione precedente dello script
-  old = PlayerGui:FindFirstChild("MetroHubMobileButtons")
+  old = PlayerGui:FindFirstChild("YaisHubMobileButtons")
   if old then old:Destroy() end
 
   local mobileGui = Instance.new("ScreenGui")
-  mobileGui.Name = "MetroHubMobileButtons"
+  mobileGui.Name = "YaisHubMobileButtons"
   mobileGui.ResetOnSpawn = false
   mobileGui.IgnoreGuiInset = true
   mobileGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
   mobileGui.DisplayOrder = 1000
   mobileGui.Parent = HubGui
 
-  _G.MetroMobileButtonRefs = {}
-  local mobileButtons = _G.MetroMobileButtonRefs
+  _G.YaisMobileButtonRefs = {}
+  local mobileButtons = _G.YaisMobileButtonRefs
 
   -- >>> HIDE PER SINGOLO BOTTONE <<<
   -- Prima si spegneva l'intera ScreenGui. Ora la GUI resta accesa e si
   -- nasconde bottone per bottone, cosi' si possono fare eccezioni: nella
   -- lista un bottone spento resta visibile anche col toggle acceso.
-  -- La lista e l'helper MetroMobileHideIncluded sono definiti in cima
+  -- La lista e l'helper YaisMobileHideIncluded sono definiti in cima
   -- al file, perche' la UI li usa prima che questo blocco esista.
-  function _G.MetroApplyMobileButtonsHidden()
-    local g = HubGui:FindFirstChild("MetroHubMobileButtons")
+  function _G.YaisApplyMobileButtonsHidden()
+    local g = HubGui:FindFirstChild("YaisHubMobileButtons")
     if g then g.Enabled = true end
-    local hideAll = (_G.MetroHideMobileButtons == true)
+    local hideAll = (_G.YaisHideMobileButtons == true)
     for key, entry in pairs(mobileButtons) do
       local holder = entry and entry.holder
       if holder then
-        holder.Visible = not (hideAll and _G.MetroMobileHideIncluded(key))
+        holder.Visible = not (hideAll and _G.YaisMobileHideIncluded(key))
       end
     end
     if setHideMobileButtonsVisual then pcall(setHideMobileButtonsVisual, hideAll) end
   end
 
-  function _G.MetroApplyMobileButtonSize()
-    _G.MetroMobileButtonScale = math.clamp(tonumber(_G.MetroMobileButtonScale) or 0.75, 0.30, 1.35)
+  function _G.YaisApplyMobileButtonSize()
+    _G.YaisMobileButtonScale = math.clamp(tonumber(_G.YaisMobileButtonScale) or 0.75, 0.30, 1.35)
     for _, entry in pairs(mobileButtons) do
       local holder = entry and entry.holder
       if holder then
         local sc = holder:FindFirstChild("MobileButtonScale") or Instance.new("UIScale")
         sc.Name = "MobileButtonScale"
-        sc.Scale = _G.MetroMobileButtonScale
+        sc.Scale = _G.YaisMobileButtonScale
         sc.Parent = holder
       end
     end
@@ -28948,7 +28948,7 @@ task.defer(function()
         if obj.Name == "Mobile Buttons Size" then
           local valueBox = obj:FindFirstChild("Value")
           if valueBox and valueBox:IsA("TextLabel") then
-            valueBox.Text = string.format("%.2f", _G.MetroMobileButtonScale)
+            valueBox.Text = string.format("%.2f", _G.YaisMobileButtonScale)
           end
         end
       end
@@ -28957,11 +28957,11 @@ task.defer(function()
 
   local function setActive(btn, state)
     if not btn then return end
-    local pressed = btn:GetAttribute("MetroMobilePressed") == true
+    local pressed = btn:GetAttribute("YaisMobilePressed") == true
     state = (state == true) or pressed
     local visualState = state and "on" or "off"
-    if btn:GetAttribute("MetroMobileVisualState") == visualState then return end
-    btn:SetAttribute("MetroMobileVisualState", visualState)
+    if btn:GetAttribute("YaisMobileVisualState") == visualState then return end
+    btn:SetAttribute("YaisMobileVisualState", visualState)
     local holder = btn.Parent
     local glow = holder and holder:FindFirstChild("Glow")
     local st = btn:FindFirstChildOfClass("UIStroke")
@@ -28987,11 +28987,11 @@ task.defer(function()
 
   local function pulse(btn)
     if not btn then return end
-    btn:SetAttribute("MetroMobilePressed", true)
+    btn:SetAttribute("YaisMobilePressed", true)
     setActive(btn, true)
     task.delay(0.18, function()
       if btn and btn.Parent then
-        btn:SetAttribute("MetroMobilePressed", false)
+        btn:SetAttribute("YaisMobilePressed", false)
         setActive(btn, false)
       end
     end)
@@ -29003,7 +29003,7 @@ local function makeButton(key, label, pos, onPress)
     holder.Name = "MBH_" .. key
     holder.Size = UDim2.new(0, 78, 0, 58)
     
-    local savedPos = _G.MetroMobileButtonPositions and _G.MetroMobileButtonPositions[key]
+    local savedPos = _G.YaisMobileButtonPositions and _G.YaisMobileButtonPositions[key]
     if savedPos and type(savedPos) == "table" then
         holder.Position = tableToUDim2(savedPos, pos)
     else
@@ -29038,7 +29038,7 @@ local function makeButton(key, label, pos, onPress)
 
     -- Gradiente per il TESTO (spento)
     local txtGrad = Instance.new("UIGradient", btn)
-    txtGrad.Name = "_MetroDuelshimmerGradient"
+    txtGrad.Name = "_YaisDuelshimmerGradient"
     txtGrad.Rotation = 0
     txtGrad.Transparency = NumberSequence.new(0)
     txtGrad.Color = ColorSequence.new({
@@ -29094,13 +29094,13 @@ local function makeButton(key, label, pos, onPress)
     -- Funzione per ottenere lo stato logico
     local function getLogicalState()
         if key == "autoPlay" then
-            return _G.MetroAutoPlay and _G.MetroAutoPlay.active() or false
+            return _G.YaisAutoPlay and _G.YaisAutoPlay.active() or false
         elseif key == "aimbot" then
-            return (_G.MetroNormalAimbotOn == true) or (_G.MetroBatAimbotV2On == true)
+            return (_G.YaisNormalAimbotOn == true) or (_G.YaisBatAimbotV2On == true)
         elseif key == "tpBat" then
-            return _G.MetroTPBatMobileActive and _G.MetroTPBatMobileActive() or false
+            return _G.YaisTPBatMobileActive and _G.YaisTPBatMobileActive() or false
         elseif key == "antiTPBat" then
-            return _G.MetroAntiTPBatEnabled == true
+            return _G.YaisAntiTPBatEnabled == true
         elseif key == "carry" then
             return currentSpeedMode == "Carry"
         elseif key == "laggerNormal" then
@@ -29135,10 +29135,10 @@ local function makeButton(key, label, pos, onPress)
             end
             
             if dragging then
-                if _G.MetroMobileButtonPositions then
-                    _G.MetroMobileButtonPositions[key] = udim2ToTable(holder.Position)
+                if _G.YaisMobileButtonPositions then
+                    _G.YaisMobileButtonPositions[key] = udim2ToTable(holder.Position)
                 end
-                pcall(saveMetroConfig)
+                pcall(saveYaisConfig)
             end
             
             pressing = false
@@ -29153,7 +29153,7 @@ local function makeButton(key, label, pos, onPress)
     end)
 
     UserInputService.InputChanged:Connect(function(i)
-        if _G.MetroGuiLocked == true or not pressing then return end
+        if _G.YaisGuiLocked == true or not pressing then return end
         if i.UserInputType ~= Enum.UserInputType.MouseMovement and i.UserInputType ~= Enum.UserInputType.Touch then return end
         local delta = i.Position - pressPos
         if not dragging and (math.abs(delta.X) > 6 or math.abs(delta.Y) > 6) then
@@ -29176,9 +29176,9 @@ local function makeButton(key, label, pos, onPress)
     }
 
     -- Stato di visibilita' subito coerente col toggle e con la lista
-    if _G.MetroMobileHideIncluded then
-        holder.Visible = not ((_G.MetroHideMobileButtons == true)
-                              and _G.MetroMobileHideIncluded(key))
+    if _G.YaisMobileHideIncluded then
+        holder.Visible = not ((_G.YaisHideMobileButtons == true)
+                              and _G.YaisMobileHideIncluded(key))
     end
 
     updateButton(getLogicalState())
@@ -29203,12 +29203,12 @@ local defaults = {
     laggerNormal = UDim2.new(1, x2, 0.5, y4),
     laggerCarry  = UDim2.new(1, x3, 0.5, y4),
 }
-  function _G.MetroResetMobileButtons()
-    _G.MetroMobileButtonScale = 0.75
-    _G.MetroHideMobileButtons = false
+  function _G.YaisResetMobileButtons()
+    _G.YaisMobileButtonScale = 0.75
+    _G.YaisHideMobileButtons = false
     -- >>> HIDE PER BOTTONE <<< si torna a "tutti inclusi"
-    _G.MetroMobileHideList = {}
-    if _G.MetroRefreshMobileHideList then pcall(_G.MetroRefreshMobileHideList) end
+    _G.YaisMobileHideList = {}
+    if _G.YaisRefreshMobileHideList then pcall(_G.YaisRefreshMobileHideList) end
     for key, defaultPos in pairs(defaults) do
       local entry = mobileButtons[key]
       local holder = entry and entry.holder
@@ -29219,15 +29219,15 @@ local defaults = {
         if btn then
           btn.Position = UDim2.new(0, 0, 0, 0)
           btn.Size = UDim2.new(1, 0, 1, 0)
-          btn:SetAttribute("MetroMobilePressed", false)
-          btn:SetAttribute("MetroMobileVisualState", nil)
+          btn:SetAttribute("YaisMobilePressed", false)
+          btn:SetAttribute("YaisMobileVisualState", nil)
         end
       end
     end
-    if _G.MetroApplyMobileButtonSize then _G.MetroApplyMobileButtonSize() end
-    if _G.MetroApplyMobileButtonsHidden then _G.MetroApplyMobileButtonsHidden() end
+    if _G.YaisApplyMobileButtonSize then _G.YaisApplyMobileButtonSize() end
+    if _G.YaisApplyMobileButtonsHidden then _G.YaisApplyMobileButtonsHidden() end
     if showActionNotification then pcall(function() showActionNotification("MOBILE BUTTONS RESET") end) end
-    saveMetroConfig()
+    saveYaisConfig()
   end
 
   makeButton("drop", "DROP\nBR", defaults.drop, function(btn)
@@ -29240,26 +29240,26 @@ local defaults = {
   end)
 
   makeButton("autoPlay", "AUTO\nPLAY", defaults.autoPlay, function(btn)
-    if _G.MetroAutoPlayToggle then _G.MetroAutoPlayToggle() end
+    if _G.YaisAutoPlayToggle then _G.YaisAutoPlayToggle() end
     task.delay(0.03, function()
       -- Non basta guardare "in ascolto": a lato gia' rilevato il bottone
       -- rappresenta la direzione accesa, e quella e' un'altra cosa.
-      setActive(btn, _G.MetroAutoPlay and _G.MetroAutoPlay.active() or false)
+      setActive(btn, _G.YaisAutoPlay and _G.YaisAutoPlay.active() or false)
     end)
   end)
 
   makeButton("tpBat", "TP\nBAT", defaults.tpBat, function(btn)
-    if _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-      if _G.MetroDuelsafeModeForceStop then _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK") end
+    if _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+      if _G.YaisDuelsafeModeForceStop then _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK") end
       return
     end
-    if _G.MetroToggleTPBatManual then
-      _G.MetroToggleTPBatManual()
-    elseif _G.MetroToggleTPBat then
-      _G.MetroToggleTPBat()
+    if _G.YaisToggleTPBatManual then
+      _G.YaisToggleTPBatManual()
+    elseif _G.YaisToggleTPBat then
+      _G.YaisToggleTPBat()
     end
     task.delay(0.03, function()
-      setActive(btn, _G.MetroTPBatMobileActive and _G.MetroTPBatMobileActive() or false)
+      setActive(btn, _G.YaisTPBatMobileActive and _G.YaisTPBatMobileActive() or false)
     end)
   end)
 
@@ -29269,37 +29269,37 @@ local defaults = {
   end
 
   makeButton("aimbot", _getAimbotMobileLabel(), defaults.aimbot, function(btn)
-    if _G.MetroDuelsafeModeIsLocked and _G.MetroDuelsafeModeIsLocked() then
-      if _G.MetroDuelsafeModeForceStop then _G.MetroDuelsafeModeForceStop("SAFE MODE LOCK") end
+    if _G.YaisDuelsafeModeIsLocked and _G.YaisDuelsafeModeIsLocked() then
+      if _G.YaisDuelsafeModeForceStop then _G.YaisDuelsafeModeForceStop("SAFE MODE LOCK") end
       return
     end
-    if _G.MetroToggleSelectedAimbot then _G.MetroToggleSelectedAimbot() end
-    if _G.MetroRefreshAimbotVisual then _G.MetroRefreshAimbotVisual() end
+    if _G.YaisToggleSelectedAimbot then _G.YaisToggleSelectedAimbot() end
+    if _G.YaisRefreshAimbotVisual then _G.YaisRefreshAimbotVisual() end
     task.delay(0.03, function()
-      setActive(btn, (_G.MetroNormalAimbotOn == true) or (_G.MetroBatAimbotV2On == true))
+      setActive(btn, (_G.YaisNormalAimbotOn == true) or (_G.YaisBatAimbotV2On == true))
     end)
   end)
 
   makeButton("instantReset", "INSTANT\nRESET", defaults.instantReset, function(btn)
-    if _G.MetroInstantReset then _G.MetroInstantReset() end
+    if _G.YaisInstantReset then _G.YaisInstantReset() end
     pulse(btn)
   end)
 
   makeButton("antiTPBat", "ANTI\nTP BAT", defaults.antiTPBat, function(btn)
-    if _G.MetroAntiTPBat then
-      _G.MetroAntiTPBat.toggle()
-    elseif _G.MetroToggleAntiTPBat then
-      _G.MetroToggleAntiTPBat()
+    if _G.YaisAntiTPBat then
+      _G.YaisAntiTPBat.toggle()
+    elseif _G.YaisToggleAntiTPBat then
+      _G.YaisToggleAntiTPBat()
     end
     task.delay(0.03, function()
-      setActive(btn, _G.MetroAntiTPBatEnabled == true)
+      setActive(btn, _G.YaisAntiTPBatEnabled == true)
     end)
   end)
 
   makeButton("float", "FLOAT", defaults.float, function(btn)
-    if _G.MetroFloatToggle then _G.MetroFloatToggle() end
+    if _G.YaisFloatToggle then _G.YaisFloatToggle() end
     task.delay(0.03, function()
-      setActive(btn, _G.MetroFloatOn == true)
+      setActive(btn, _G.YaisFloatOn == true)
     end)
   end)
 
@@ -29336,18 +29336,18 @@ local defaults = {
   end)
 
 
-  _G.MetroApplyMobileButtonSize()
-  _G.MetroApplyMobileButtonsHidden()
+  _G.YaisApplyMobileButtonSize()
+  _G.YaisApplyMobileButtonsHidden()
 
   -- Nessun Heartbeat: i bottoni vengono aggiornati event-driven
-  -- tramite _G.MetroRefreshMobileButtonStates() chiamata
+  -- tramite _G.YaisRefreshMobileButtonStates() chiamata
   -- nelle funzioni che cambiano effettivamente lo stato.
-  function _G.MetroRefreshMobileButtonStates()
+  function _G.YaisRefreshMobileButtonStates()
     if mobileButtons.autoPlay then
-      mobileButtons.autoPlay.setActive(_G.MetroAutoPlay and _G.MetroAutoPlay.active() or false)
+      mobileButtons.autoPlay.setActive(_G.YaisAutoPlay and _G.YaisAutoPlay.active() or false)
     end
     if mobileButtons.aimbot then
-      mobileButtons.aimbot.setActive((_G.MetroNormalAimbotOn == true) or (_G.MetroBatAimbotV2On == true))
+      mobileButtons.aimbot.setActive((_G.YaisNormalAimbotOn == true) or (_G.YaisBatAimbotV2On == true))
       -- Aggiorna il testo in base alla versione selezionata
       local aimbotMobileBtn = mobileButtons.aimbot.btn
       if aimbotMobileBtn then
@@ -29357,13 +29357,13 @@ local defaults = {
       if _G._AmbHideOptLabel_aimbot then pcall(_G._AmbHideOptLabel_aimbot) end
     end
     if mobileButtons.float then
-      mobileButtons.float.setActive(_G.MetroFloatOn == true)
+      mobileButtons.float.setActive(_G.YaisFloatOn == true)
     end
     if mobileButtons.tpBat then
-      mobileButtons.tpBat.setActive(_G.MetroTPBatMobileActive and _G.MetroTPBatMobileActive() or false)
+      mobileButtons.tpBat.setActive(_G.YaisTPBatMobileActive and _G.YaisTPBatMobileActive() or false)
     end
     if mobileButtons.antiTPBat then
-      mobileButtons.antiTPBat.setActive(_G.MetroAntiTPBatEnabled == true)
+      mobileButtons.antiTPBat.setActive(_G.YaisAntiTPBatEnabled == true)
     end
     if mobileButtons.carry then mobileButtons.carry.setActive(currentSpeedMode == "Carry") end
     if mobileButtons.laggerNormal then mobileButtons.laggerNormal.setActive(currentSpeedMode == "Lagger") end
@@ -29371,9 +29371,9 @@ local defaults = {
   end
 end)
 
-local _oldLoadMetroConfig = loadMetroConfig
-loadMetroConfig = function()
-    _oldLoadMetroConfig()
+local _oldLoadYaisConfig = loadYaisConfig
+loadYaisConfig = function()
+    _oldLoadYaisConfig()
     -- Applica lo stato di Stretch Rez dopo il caricamento
     if _G.StretchRez and _G.StretchRez.apply then
         local idx = stretchCurrentIndex or 1
